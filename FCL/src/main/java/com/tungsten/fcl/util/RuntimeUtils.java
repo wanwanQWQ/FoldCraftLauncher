@@ -330,14 +330,13 @@ public class RuntimeUtils {
             Gson gson = new Gson();
             JsonObject jsonObject = gson.fromJson(ReadTools.getAssetReader(context, "config.json"), JsonObject.class);
             JsonObject configurations = jsonObject.getAsJsonObject("configurations");
-            // 若不存在gameDir属性值有问题则添加一个
             for(String key : configurations.keySet()) {
                 JsonObject config = configurations.getAsJsonObject(key);
-
-                if(!config.has("gameDir") || !isPath(config.get("gameDir").getAsString()) || !new File(config.get("gameDir").getAsString()).canWrite() || !new File(config.get("gameDir").getAsString()).canRead()) {
+                // 若不存在gameDir属性值有问题则添加一个
+                if(!config.has("gameDir") || config.get("gameDir") == null || config.get("gameDir").getAsString().equals("")) {
                     config.addProperty("gameDir", FCLPath.SHARED_COMMON_DIR);
                 }
-
+                config.addProperty("gameDir", setGameDir(config.get("gameDir").getAsString()));
             }
             // 将修改后的 "configurations" 字段与原始 JSON 字符串中的其他字段合并
             JsonObject mergedJsonObject = new JsonObject();
@@ -356,31 +355,17 @@ public class RuntimeUtils {
         }
     }
 
-    public static void reloadSettingsLauncherPictures(Context context, Map<String, String> importRuleTable) throws IOException {
-        if (context == null || importRuleTable == null || importRuleTable.isEmpty()) return;
-
-        // 获取assets目录中"others_file/settings_launcher_pictures"的文件列表
-        String[] assetFiles = context.getAssets().list("others_file/settings_launcher_pictures");
-
-        Set<String> keys = importRuleTable.keySet();
-        for(String s : keys) {
-            try {
-                if(Arrays.asList(assetFiles).contains(s)) copyAssetsFileToLocalDir(context, "others_file/settings_launcher_pictures/" + s, importRuleTable.get(s) + "/" + s);
-            }catch(FileNotFoundException e) {
-                Log.d("事件", "文件未找到：" + s);
-            }catch(IOException e) {
-                Log.d("事件", "处理文件时发生错误：" + s);
-            }
+    public String setGameDir(String gameDir) {
+        Map<String, String> replaceGameDir = new HashMap<>();
+        replaceGameDir.put("${INTERNAL_DIR}", FCLPath.INTERNAL_DIR);
+        replaceGameDir.put("${FILES_DIR}", FCLPath.FILES_DIR);
+        replaceGameDir.put("${CACHE_DIR}", FCLPath.CACHE_DIR);
+        replaceGameDir.put("${EXTERNAL_DIR}", FCLPath.EXTERNAL_DIR);
+        replaceGameDir.put("${SHARED_COMMON_DIR}", FCLPath.SHARED_COMMON_DIR);
+        for (Map.Entry<String, String> entry : replaceGameDir.entrySet()) {
+            gameDir = gameDir.replace(entry.getKey(), entry.getValue());
         }
-    }
-
-    public static boolean isPath(String str) {
-        try {
-            Paths.get(str);
-            return true;
-        } catch (InvalidPathException e) {
-            return false;
-        }
+        return gameDir;
     }
 
     public static void writeStringToFile(String path,String fileName, String content) throws IOException {

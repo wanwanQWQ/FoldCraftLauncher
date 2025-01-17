@@ -9,22 +9,44 @@ shift 1
 fi
 
 runtime_cmd_help(){
-  echo "Usage: runtime <help|unknown> [Args]"
-  echo "Print a friendly greeting."
-  echo "Args:"
-  echo "    (without args or unknown args)"
-  echo "        print the greeting and exit"
-  echo "    -h, --help"
+  echo "Usage: runtime [help|install] <Args>"
+  echo "Runtime management."
+  echo "Commands:"
+  echo "    help"
   echo "        display this help and exit"
-  echo "    -v, --version"
-  echo "        output version information and exit"
+  echo "    install"
+  echo "        Install (override) target runtime with the given source directory."
+  echo "        Usage: ... <target> <source>"
+  echo "        Args:"
+  echo "            <target>: the runtime to be installed (overrided)."
+  echo "            <source>: the source directory."
 }
 
-case "${runtime_cmd}" in
-  "help")
+runtime_cmd_install(){
+  local target="$1"
+  local source="$2"
+  if [[ "${target}" == "java8" ]]; then
+    target_dir="${FCL_INTERNAL_DIR}/app_runtime/java/jre8"
+  elif [[ "${target}" == "java11" ]]; then
+    target_dir="${FCL_INTERNAL_DIR}/app_runtime/java/jre11"
+  elif [[ "${target}" == "java17" ]]; then
+    target_dir="${FCL_INTERNAL_DIR}/app_runtime/java/jre17"
+  elif [[ "${target}" == "java21" ]]; then
+    target_dir="${FCL_INTERNAL_DIR}/app_runtime/java/jre21"
+  else
+    echo "Unknowm runtime: ${target}"
+    return
+  fi
+  if [[ ! -d "${source}" ]]; then
+    echo "Unable to access source dir."
+    return
+  fi
+}
+
+if [[ "${runtime_cmd}" == "help" ]]; then
     runtime_cmd_help
-  ;;
-  "" | *)
+elif [[ "${runtime_cmd}" == "install" ]]; then
+    runtime_cmd_install ${@}
+else
     echo "Unknown runtime command. Use 'runtime help' to get help."
-  ;;
-esac
+fi
