@@ -5,7 +5,7 @@ on:
     inputs:
       pkgSuffix:
         description: "Package Suffix"
-        required: false
+        required: true
         default: "modpack"
 
 jobs:

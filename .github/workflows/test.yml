@@ -2,9 +2,10 @@ name: Android CI test
 
 on:
   workflow_dispatch:
+    inputs:
       pkgSuffix:
         description: "Package Suffix"
-        required: false
+        required: true
         default: "modpack"
 
 jobs:
