@@ -68,7 +68,7 @@ class RendererUtil {
                 width,
                 height
             ).apply {
-                isClippingEnabled = true
+                isClippingEnabled = false
                 isOutsideTouchable = true
                 enterTransition = Slide(Gravity.BOTTOM)
                 exitTransition = Slide(Gravity.BOTTOM)

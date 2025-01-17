@@ -11,9 +11,12 @@ android {
     namespace 'com.tungsten.fcl'
     compileSdk 34
 
-
     Properties properties = new Properties()
     properties.load(Files.newInputStream(Paths.get("${rootDir}/local.properties")))
+    def pkgSuffix = System.getProperty("pkgSuffix", "modpack")
+    if (pkgSuffix.isEmpty()) {
+        pkgSuffix = "modpack"
+    }
 
     signingConfigs {
         FCLKey {
@@ -34,11 +37,16 @@ android {
         aaptOptions{
             ignoreAssets "!.svn:!.git:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*.scc:*~"
         }
-        applicationId "com.tungsten.fcl.debug"
+        applicationId "com.tungsten.fcl." + pkgSuffix
         minSdk 26
         targetSdk 34
         versionCode 1200
         versionName "1.2.0"
+
+        resValue "string", "app_name", "Fold Craft Launcher " + pkgSuffix
+        resValue "string", "app_version", "${defaultConfig.versionName}"
+        resValue "string", "curse_api_key", properties.get("curse-api-key","null")
+        resValue "string", "oauth_api_key", properties.get("oauth-api-key","null")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -57,11 +65,6 @@ android {
             debuggable true
             minifyEnabled false
             multiDexEnabled true
-        }
-        configureEach {
-            resValue "string", "app_version", "${defaultConfig.versionName}"
-            resValue "string", "curse_api_key", properties.get("curse-api-key","null")
-            resValue "string", "oauth_api_key", properties.get("oauth-api-key","null")
         }
     }
     applicationVariants.configureEach { variant ->

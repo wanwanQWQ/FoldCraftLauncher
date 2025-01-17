@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 
+import com.tungsten.fclauncher.R;
 import com.tungsten.fclauncher.keycodes.FCLKeycodes;
 import com.tungsten.fclauncher.keycodes.LwjglGlfwKeycode;
 import com.tungsten.fclauncher.utils.FCLPath;
@@ -299,7 +300,7 @@ public class FCLBridge implements Serializable {
                     uri = Uri.parse(targetLink);
                 } else {
                     //can`t get authority by R.string.file_browser_provider
-                    uri = FileProvider.getUriForFile(context, "com.tungsten.fcl.debug.provider", new File(targetLink));
+                    uri = FileProvider.getUriForFile(context, context.getString(R.string.file_browser_provider), new File(targetLink));
                 }
                 intent.setDataAndType(uri, "*/*");
                 context.startActivity(intent);

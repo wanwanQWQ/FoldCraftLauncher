@@ -71,7 +71,7 @@ public class ControllerDownloadPage extends FCLTempPage implements View.OnClickL
         super(context, id, parent, resId);
         this.categories = categories;
         this.index = index;
-        this.url = (source == 0 ? ControllerRepoPage.CONTROLLER_GITHUB : ControllerRepoPage.CONTROLLER_GIT_CN) + "repo_json/" + index.getId() + "/";
+        this.url = (source == 0 ? ControllerRepoPage.CONTROLLER_REPO_A : ControllerRepoPage.CONTROLLER_REPO_B) + "repo_json/" + index.getId() + "/";
         create();
     }
 

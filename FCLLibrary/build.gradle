@@ -7,23 +7,27 @@ android {
     namespace 'com.tungsten.fcllibrary'
     compileSdk 34
 
+    def pkgSuffix = System.getProperty("pkgSuffix", "modpack")
+    if (pkgSuffix.isEmpty()) {
+        pkgSuffix = "modpack"
+    }
+
     defaultConfig {
         minSdk 26
         targetSdk 34
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        resValue "string", "file_browser_provider", "com.tungsten.fcl." + pkgSuffix + ".provider"
+        resValue "string", "file_browser_document_provider", "com.tungsten.fcl." + pkgSuffix + ".document.provider"
     }
 
     buildTypes {
         release {
             minifyEnabled false
-            resValue 'string', 'file_browser_provider', 'com.tungsten.fcl.debug.provider'
-            resValue 'string', 'file_browser_document_provider', 'com.tungsten.fcl.debug.document.provider'
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
             initWith debug
-            resValue 'string', 'file_browser_provider', 'com.tungsten.fcl.debug.provider'
-            resValue 'string', 'file_browser_document_provider', 'com.tungsten.fcl.debug.document.provider'
             jniDebuggable true
             renderscriptDebuggable true
             debuggable true

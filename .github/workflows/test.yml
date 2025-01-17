@@ -2,14 +2,15 @@ name: Android CI test
 
 on:
   workflow_dispatch:
+      pkgSuffix:
+        description: "Package Suffix"
+        required: false
+        default: "modpack"
 
 jobs:
   DebugBuild:
     strategy:
       fail-fast: false
-    env:
-      CURSE_API_KEY: ${{ secrets.CURSE_API_KEY }}
-      OAUTH_API_KEY: ${{ secrets.OAUTH_API_KEY }}
     name: Build Debug
     runs-on: ubuntu-20.04
     steps:
@@ -20,7 +21,7 @@ jobs:
       - name: set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: "temurin"
           java-version: 17
 
       - name: Prepare to Build ALL
@@ -31,7 +32,7 @@ jobs:
 
       - name: Build ALL apk
         run: |
-          ./gradlew assembledebug -Darch=all --stacktrace
+          ./gradlew assembledebug -Darch="all" -DpkgSuffix="${{github.event.inputs.pkgSuffix}}" --stacktrace
 
       - name: Upload ALL apk
         uses: actions/upload-artifact@v4
@@ -47,7 +48,7 @@ jobs:
 
       - name: Build ARM64 apk
         run: |
-          ./gradlew assembledebug -Darch=arm64 --stacktrace
+          ./gradlew assembledebug -Darch="arm64" -DpkgSuffix="${{github.event.inputs.pkgSuffix}}" --stacktrace
 
       - name: Upload ARM64 apk
         uses: actions/upload-artifact@v4

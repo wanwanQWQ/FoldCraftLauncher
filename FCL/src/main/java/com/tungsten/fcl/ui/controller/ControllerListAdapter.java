@@ -29,7 +29,7 @@ public class ControllerListAdapter extends FCLAdapter {
 
     public ControllerListAdapter(Context context, int source, ArrayList<ControllerCategory> categories, ArrayList<ControllerIndex> list, Callback callback) {
         super(context);
-        this.repoUrl = source == 0 ? ControllerRepoPage.CONTROLLER_GITHUB : ControllerRepoPage.CONTROLLER_GIT_CN;
+        this.repoUrl = source == 0 ? ControllerRepoPage.CONTROLLER_REPO_A : ControllerRepoPage.CONTROLLER_REPO_B;
         this.categories = categories;
         this.list = list;
         this.callback = callback;

@@ -63,8 +63,8 @@ import java.util.stream.Collectors;
 
 public class ControllerRepoPage extends FCLCommonPage implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
-    public static final String CONTROLLER_GITHUB = FCLApplication.appConfig.getProperty("controller-url","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/controllerRepo/");
-    public static final String CONTROLLER_GIT_CN = FCLApplication.appConfig.getProperty("controller-url-cn","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/controllerRepoCN/");
+    public static final String CONTROLLER_REPO_A = FCLApplication.appConfig.getProperty("controller-repo-a","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/controllerRepoA/");
+    public static final String CONTROLLER_REPO_B = FCLApplication.appConfig.getProperty("controller-repo-b","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/controllerRepoB/");
 
     private final ObjectProperty<ControllerCategory> categoryProperty = new SimpleObjectProperty<>(new ControllerCategory(0, null));
     private boolean refreshCategory = true;
@@ -118,7 +118,7 @@ public class ControllerRepoPage extends FCLCommonPage implements View.OnClickLis
 
     private void search(String name, int lang, int source, int category, int device) {
         setLoading(true);
-        String head = source == 0 ? CONTROLLER_GITHUB : CONTROLLER_GIT_CN;
+        String head = source == 0 ? CONTROLLER_REPO_A : CONTROLLER_REPO_B;
         String indexUrl = head + "index.json";
         String categoryUrl = head + "category.json";
         Task.supplyAsync(() -> {
@@ -198,7 +198,7 @@ public class ControllerRepoPage extends FCLCommonPage implements View.OnClickLis
 
     private void checkUpdate(int source, boolean toast) {
         check.setEnabled(false);
-        String head = source == 0 ? CONTROLLER_GITHUB : CONTROLLER_GIT_CN;
+        String head = source == 0 ? CONTROLLER_REPO_A : CONTROLLER_REPO_B;
         String indexUrl = head + "index.json";
         if (toast)
             Toast.makeText(getContext(), getContext().getString(R.string.update_checking), Toast.LENGTH_SHORT).show();
@@ -316,12 +316,12 @@ public class ControllerRepoPage extends FCLCommonPage implements View.OnClickLis
         deviceSpinner = findViewById(R.id.device);
 
         ArrayList<String> sources = new ArrayList<>();
-        sources.add(getContext().getString(R.string.control_download_source_github));
-        sources.add(getContext().getString(R.string.control_download_source_cn));
+        sources.add(getContext().getString(R.string.control_download_source_a));
+        sources.add(getContext().getString(R.string.control_download_source_b));
         ArrayAdapter<String> sourceAdapter = new ArrayAdapter<>(getContext(), R.layout.item_spinner_auto_tint, sources);
         sourceAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
         sourceSpinner.setAdapter(sourceAdapter);
-        sourceSpinner.setSelection(1);
+        sourceSpinner.setSelection(0);
         sourceSpinner.setOnItemSelectedListener(this);
 
         ArrayList<String> lang = new ArrayList<>();
@@ -347,7 +347,6 @@ public class ControllerRepoPage extends FCLCommonPage implements View.OnClickLis
         retry.setOnClickListener(this);
 
         search();
-        Controllers.addCallback(() -> checkUpdate(LocaleUtils.isChinese(getContext()) ? 1 : 0, false));
     }
 
     @Override
@@ -363,7 +362,7 @@ public class ControllerRepoPage extends FCLCommonPage implements View.OnClickLis
     @Override
     public void onClick(View view) {
         if (view == check) {
-            checkUpdate(sourceSpinner == null ? (LocaleUtils.isChinese(getContext()) ? 1 : 0) : sourceSpinner.getSelectedItemPosition(), true);
+            checkUpdate(sourceSpinner == null ? 0 : sourceSpinner.getSelectedItemPosition(), true);
         }
         if (view == search || view == retry) {
             search();

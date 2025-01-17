@@ -7,10 +7,18 @@ android {
     namespace 'com.tungsten.fclauncher'
     compileSdk 34
 
+    def pkgSuffix = System.getProperty("pkgSuffix", "modpack")
+    if (pkgSuffix.isEmpty()) {
+        pkgSuffix = "modpack"
+    }
+
     defaultConfig {
         minSdk 26
         targetSdk 34
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        resValue "string", "file_browser_provider", "com.tungsten.fcl." + pkgSuffix + ".provider"
+        resValue "string", "file_browser_document_provider", "com.tungsten.fcl." + pkgSuffix + ".document.provider"
     }
 
     buildTypes {
@@ -25,6 +33,8 @@ android {
             debuggable true
             minifyEnabled false
             multiDexEnabled true
+        }
+        configureEach {
         }
     }
     compileOptions {
