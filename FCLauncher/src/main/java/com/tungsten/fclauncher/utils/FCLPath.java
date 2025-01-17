@@ -72,7 +72,7 @@ public class FCLPath {
         CACIOCAVALLO_11_DIR = RUNTIME_DIR + "/caciocavallo11";
         CACIOCAVALLO_17_DIR = RUNTIME_DIR + "/caciocavallo17";
 
-        EXTERNAL_DIR = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + APP_CONFIG_PROPERTIES.getProperty("put-directory","FCL-Server");
+        EXTERNAL_DIR = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + APP_CONFIG_PROPERTIES.getProperty("put-directory","FCL-Modpack");
         if (APP_CONFIG_PROPERTIES.getProperty("put-directory-suffix","true").equals("true")) {
             EXTERNAL_DIR = EXTERNAL_DIR + "/" + context.getPackageName().substring("com.tungsten.fcl.".length());
         }

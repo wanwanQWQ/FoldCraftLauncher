@@ -355,7 +355,7 @@ public class RuntimeUtils {
         }
     }
 
-    public String setGameDir(String gameDir) {
+    public static String setGameDir(String gameDir) {
         Map<String, String> replaceGameDir = new HashMap<>();
         replaceGameDir.put("${INTERNAL_DIR}", FCLPath.INTERNAL_DIR);
         replaceGameDir.put("${FILES_DIR}", FCLPath.FILES_DIR);
