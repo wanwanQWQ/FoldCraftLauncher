@@ -1,0 +1,31 @@
+{
+  "author": "mmdyzy·不想取名的阿peng",
+  "description": "仿基岩版触控，UM改版，原作者：不想取名的阿peng\n改版作者/维护：mmdyzy\n更新日志(1.8.54):\n欢迎界面新增活动窗口“贺新春”\n放大按钮字符改为“C”\n注意页面内容更新\n“注意”页面改为“用户须知”\n聊天页面修改“/”菜单中时间，天气子菜单的返回按钮位置，更方便返回\n回退了打开菜单的同时暂停\n菜单中的“添加服务器”按钮改为游戏内外都可点击\n欢迎页面允许选择不启用水印进入游戏\n快捷功能面板切换模式后会自动关闭\n右上角C键放大允许双击保持\n允许在设置-控件模式隐藏C键放大按钮\n新增彩蛋，等待你的发掘~",
+  "history": [
+    {
+      "versionCode": 1010843,
+      "versionName": "1.8.43"
+    },
+    {
+      "versionCode": 1010844,
+      "versionName": "1.8.44"
+    },
+    {
+      "versionCode": 1010845,
+      "versionName": "1.8.45"
+    },
+    {
+      "versionCode": 1010850,
+      "versionName": "1.8.50"
+    },
+    {
+      "versionCode": 1010852,
+      "versionName": "1.8.52"
+    }
+  ],
+  "latest": {
+    "versionCode": 1010854,
+    "versionName": "1.8.54"
+  },
+  "screenshot": 1
+}

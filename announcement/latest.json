@@ -1,0 +1,29 @@
+{
+  "id": 118901,
+  "significant": false,
+  "outdated": false,
+  "minVersion": -1,
+  "maxVersion": -1,
+  "specificLang": [],
+  "title": [
+    {
+      "lang": "zh_CN",
+      "text": "公告：关于TouchController模组    &&    1.1.9.8-1 更新：进入启动器设置，点击检查更新，查看详细更新内容。"
+    },
+    {
+      "lang": null,
+      "text": "..."
+    }
+  ],
+  "date": "https://github.com/hyplant/FoldCraftLauncher/actions",
+  "content": [
+    {
+      "lang": "zh_CN",
+      "text": "Touch Controller 模组支持：\n    与官方版不同，需要手动开启\n    选中对应实例后，可在管理版本的右侧菜单中开启/关闭\n    对所有同一游戏目录下的实例生效\n\n\n(I) 官方版\n  [启动器更新至 1.1.9.8]\n    6项变更\n  [启动器更新至 1.1.9.7]\n    2项变更\n  [启动器更新至 1.1.9.6]\n    6项变更\n  [未合并的功能]\n    1项变更\n(II) 服务器直装版功能\n  [未更改]\n    0项变更\n(III) 整合包版功能\n  [TouchController模组]\n    1项变更\n"
+    },
+    {
+      "lang": null,
+      "text": "Switch to \"简体中文\" in launcher settings."
+    }
+  ]
+}

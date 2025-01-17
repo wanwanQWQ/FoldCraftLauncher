@@ -1,0 +1,39 @@
+{
+  "author": "coMicBox",
+  "description": "为旅行者准备的实用键位。详细更新内容详见开始屏幕右下角[更新]内更新日志",
+  "history": [
+    {
+      "versionCode": 2,
+      "versionName": "5.0"
+    },
+    {
+      "versionCode": 3,
+      "versionName": "5.1前瞻"
+    },
+    {
+      "versionCode": 5,
+      "versionName": "5.1"
+    },
+    {
+      "versionCode": 6,
+      "versionName": "5.1_v3"
+    },
+    {
+      "versionCode": 9,
+      "versionName": "5.1_v4[测试]"
+    },
+    {
+      "versionCode": 10,
+      "versionName": "5.2"
+    },
+    {
+      "versionCode": 11,
+      "versionName": "5.2_v1"
+    }
+  ],
+  "latest": {
+    "versionCode": 13,
+    "versionName": "5.3"
+  },
+  "screenshot": 6
+}

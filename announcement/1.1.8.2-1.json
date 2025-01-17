@@ -1,0 +1,29 @@
+{
+  "id": 118201,
+  "significant": true,
+  "outdated": false,
+  "minVersion": -1,
+  "maxVersion": -1,
+  "specificLang": [],
+  "title": [
+    {
+      "lang": "zh_CN",
+      "text": "1.1.8.2-1"
+    },
+    {
+      "lang": null,
+      "text": "..."
+    }
+  ],
+  "date": "https://github.com/hyplant/FoldCraftLauncher/actions",
+  "content": [
+    {
+      "lang": "zh_CN",
+      "text": "进入启动器设置，点击检查更新，查看该版本的更新内容。\n\n请检查：\n    1. 使用默认主题时各处文本是否为清晰。\n    2. 首页快速切换页面时是否有概率崩溃。\n    3. 终端中有大量文本输出时是否正常工作。\n\n直装版默认不禁用 钠的lwjgl检测\n    如有需要，请手动添加启动参数：\"-Dsodium.checks.issue2561=false\"\n"
+    },
+    {
+      "lang": null,
+      "text": "Switch to \"简体中文\" in launcher settings."
+    }
+  ]
+}

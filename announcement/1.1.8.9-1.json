@@ -1,0 +1,29 @@
+{
+  "id": 118901,
+  "significant": false,
+  "outdated": false,
+  "minVersion": -1,
+  "maxVersion": -1,
+  "specificLang": [],
+  "title": [
+    {
+      "lang": "zh_CN",
+      "text": "1.1.8.9-1"
+    },
+    {
+      "lang": null,
+      "text": "..."
+    }
+  ],
+  "date": "https://github.com/hyplant/FoldCraftLauncher/actions",
+  "content": [
+    {
+      "lang": "zh_CN",
+      "text": "进入启动器设置，点击检查更新，查看该版本的更新内容。\n\n(I) 启动器更新至 1.1.8.9\n    1.移除Activity跳转动画\n    2.更新高清修复和Forge下载链接\n    3.隐藏自动安装页面的FabricAPI和QuiltAPI\n    4.增加隐藏主界面皮肤模型的功能\n    5.修复Modrinth整合包补全Bug\n    6.调整窗口分辨率最大上限调整为300%\n    7.修复自定义按键解析错误导致可能崩溃的一个Bug\n    *. 详见官方更新日志\n(II) 服务器直装版功能\n    1. 可以使用直装版配置文件隐藏主界面皮肤\n(III) 整合包版功能\n    1. 重新加入主页皮肤，仅在没有公告时显示\n    2. 微调主题颜色\n"
+    },
+    {
+      "lang": null,
+      "text": "Switch to \"简体中文\" in launcher settings."
+    }
+  ]
+}

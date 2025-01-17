@@ -1,0 +1,80 @@
+[
+  {
+    "id": 100,
+    "lang": [
+      {
+        "locale": "zh_CN",
+        "text": "推荐"
+      },
+      {
+        "locale": null,
+        "text": "Recommend"
+      }
+    ]
+  },
+  {
+    "id": 101,
+    "lang": [
+      {
+        "locale": "zh_CN",
+        "text": "官方"
+      },
+      {
+        "locale": null,
+        "text": "Official"
+      }
+    ]
+  },
+  {
+    "id": 1,
+    "lang": [
+      {
+        "locale": "en",
+        "text": "Universal"
+      },
+      {
+        "locale": "zh_CN",
+        "text": "通用"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "lang": [
+      {
+        "locale": "en",
+        "text": "Modpack"
+      },
+      {
+        "locale": "zh_CN",
+        "text": "整合包"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "lang": [
+      {
+        "locale": "en",
+        "text": "BE style"
+      },
+      {
+        "locale": "zh_CN",
+        "text": "基岩版"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "lang": [
+      {
+        "locale": "en",
+        "text": "Full keyboard"
+      },
+      {
+        "locale": "zh_CN",
+        "text": "全键盘"
+      }
+    ]
+  }
+]
