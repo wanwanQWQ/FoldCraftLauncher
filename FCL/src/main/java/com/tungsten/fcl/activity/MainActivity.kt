@@ -24,6 +24,7 @@ import androidx.core.view.postDelayed
 import androidx.databinding.DataBindingUtil
 import com.mio.util.AnimUtil
 import com.mio.util.AnimUtil.Companion.interpolator
+import com.tungsten.fcl.FCLApplication
 import com.mio.util.AnimUtil.Companion.startAfter
 import com.mio.util.GuideUtil
 import com.mio.util.RendererUtil
@@ -41,9 +42,11 @@ import com.tungsten.fcl.ui.version.Versions
 import com.tungsten.fcl.upgrade.UpdateChecker
 import com.tungsten.fcl.util.AndroidUtils
 import com.tungsten.fcl.util.FXUtils
+import com.tungsten.fcl.util.RequestCodes
 import com.tungsten.fcl.util.WeakListenerHolder
 import com.tungsten.fclauncher.FCLConfig
 import com.tungsten.fclauncher.bridge.FCLBridge
+import com.tungsten.fclauncher.utils.FCLPath
 import com.tungsten.fclauncher.plugins.DriverPlugin
 import com.tungsten.fclauncher.plugins.RendererPlugin
 import com.tungsten.fclcore.auth.Account
@@ -63,12 +66,15 @@ import com.tungsten.fclcore.mod.RemoteModRepository
 import com.tungsten.fclcore.task.Schedulers
 import com.tungsten.fclcore.util.Logging
 import com.tungsten.fclcore.util.fakefx.BindingMapping
+import com.tungsten.fcllibrary.browser.FileBrowser
+import com.tungsten.fcllibrary.browser.options.LibMode
 import com.tungsten.fcllibrary.component.FCLActivity
 import com.tungsten.fcllibrary.component.theme.ThemeEngine
 import com.tungsten.fcllibrary.component.view.FCLEditText
 import com.tungsten.fcllibrary.component.view.FCLMenuView
 import com.tungsten.fcllibrary.component.view.FCLMenuView.OnSelectListener
 import com.tungsten.fcllibrary.util.ConvertUtils
+import java.io.File
 import java.io.IOException
 import java.lang.ref.WeakReference
 import java.util.function.Consumer
@@ -170,23 +176,22 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                         .show()
                     true
                 }
-                launch.setOnClickListener(this@MainActivity)
+                viewLogs.setOnClickListener(this@MainActivity)
+                viewLogs.setOnLongClickListener {
+                    startActivity(Intent(this@MainActivity, ShellActivity::class.java))
+                    true
+                }
+                launchPojav.setOnClickListener(this@MainActivity)
                 launchBoat.setOnClickListener(this@MainActivity)
                 OnLongClickListener { openRendererMenu(it);true }.apply {
-                    launch.setOnLongClickListener(this)
+                    launchPojav.setOnLongClickListener(this)
                     launchBoat.setOnLongClickListener(this)
                 }
 
                 uiManager = UIManager(this@MainActivity, uiLayout)
                 _uiManager = uiManager
                 uiManager.registerDefaultBackEvent() {
-                    if (uiManager.currentUI === uiManager.mainUI) {
-                        val i = Intent(Intent.ACTION_MAIN)
-                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        i.addCategory(Intent.CATEGORY_HOME)
-                        startActivity(i)
-                        exitProcess(0)
-                    } else {
+                    if (uiManager.currentUI !== uiManager.mainUI) {
                         home.isSelected = true
                     }
                 }
@@ -200,13 +205,12 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                     back.setOnClickListener(this@MainActivity)
                     home.setSelected(true)
                     back.setOnLongClickListener {
-                        startActivity(Intent(this@MainActivity, ShellActivity::class.java))
-                        true
+                        exitProcess(1)
                     }
 
                     setupAccountDisplay()
                     setupVersionDisplay()
-                    UpdateChecker.getInstance().checkAuto(this@MainActivity).start()
+                    if (FCLApplication.appConfig.getProperty("check-update", "true") == "true") UpdateChecker.getInstance().checkAuto(this@MainActivity).start()
                 }
                 playAnim()
                 uiLayout.postDelayed(1500) {
@@ -317,10 +321,17 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
             if (view === executeJar) {
                 JarExecutorHelper.start(this@MainActivity, this@MainActivity)
             }
-            if (view === launch) {
+            if (view === viewLogs) {
+                val builder = FileBrowser.Builder(this@MainActivity)
+                builder.setLibMode(LibMode.FILE_BROWSER)
+                builder.setInitDir(File(FCLPath.LOG_DIR).absolutePath)
+                builder.create().browse(this@MainActivity, RequestCodes.BROWSE_DIR_CODE, null)
+            }
+
+            fun launch() {
                 if (!Controllers.isInitialized()) {
                     title.setTextWithAnim(getString(R.string.message_loading_controllers))
-                    AnimUtil.playTranslationX(launch, 700, 0f, 50f, -50f, 50f, -50f, 0f)
+                    AnimUtil.playTranslationX(launchPojav, 700, 0f, 50f, -50f, 50f, -50f, 0f)
                         .interpolator(OvershootInterpolator()).start()
                     AnimUtil.playTranslationX(launchBoat, 700, 0f, 50f, -50f, 50f, -50f, 0f)
                         .interpolator(OvershootInterpolator()).start()
@@ -339,9 +350,13 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                 }
                 Versions.launch(this@MainActivity, selectedProfile)
             }
+            if (view === launchPojav) {
+                FCLBridge.BACKEND_IS_BOAT = false
+                launch()
+            }
             if (view === launchBoat) {
-                FCLBridge.BACKEND_IS_BOAT = true;
-                onClick(launch)
+                FCLBridge.BACKEND_IS_BOAT = true
+                launch()
             }
         }
     }
@@ -521,7 +536,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                 it.interpolator(BounceInterpolator()).start()
             }
             AnimUtil.playTranslationY(
-                listOf(executeJar, launch, launchBoat),
+                listOf(executeJar, viewLogs, launchPojav, launchBoat),
                 speed * 100L,
                 -200f,
                 0f

@@ -144,22 +144,6 @@ public final class LauncherHelper {
                             Task.composeAsync(() -> null)
                     );
                 }).withStage("launch.state.dependencies")
-                .thenComposeAsync(() -> {
-                    try (InputStream input = LauncherHelper.class.getResourceAsStream("/assets/game/MioLibFixer.jar")) {
-                        Files.copy(input, new File(FCLPath.LIB_FIXER_PATH).toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    } catch (IOException e) {
-                        Logging.LOG.log(Level.WARNING, "Unable to unpack MioLibFixer.jar", e);
-                    }
-                    return null;
-                })
-                .thenComposeAsync(() -> {
-                    try (InputStream input = LauncherHelper.class.getResourceAsStream("/assets/game/MioLaunchWrapper.jar")) {
-                        Files.copy(input, new File(FCLPath.MIO_LAUNCH_WRAPPER).toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    } catch (IOException e) {
-                        Logging.LOG.log(Level.WARNING, "Unable to unpack MioLaunchWrapper.jar", e);
-                    }
-                    return null;
-                })
                 .thenComposeAsync(() -> gameVersion.map(s -> new GameVerificationFixTask(dependencyManager, s, version.get())).orElse(null))
                 .thenComposeAsync(() -> logIn(context, account).withStage("launch.state.logging_in"))
                 .thenComposeAsync(authInfo -> Task.supplyAsync(() -> {
@@ -188,6 +172,7 @@ public final class LauncherHelper {
                     fclBridge.setRenderer(repository.getVersionSetting(selectedVersion).getRenderer().toString());
                     fclBridge.setJava(Integer.toString(javaVersionRef.get().getVersion()));
                     checkMod(fclBridge);
+                    checkTouchMod(fclBridge, repository.getRunDirectory(selectedVersion).getAbsolutePath());
                     JVMActivity.setFCLBridge(fclBridge, MenuType.GAME);
                     Bundle bundle = new Bundle();
                     bundle.putString("controller", repository.getVersionSetting(selectedVersion).getController());
@@ -299,12 +284,20 @@ public final class LauncherHelper {
                 sb.append(" | ");
                 sb.append(mod.getModLoaderType());
                 sb.append("\n");
-                if (mod.getId().equals("touchcontroller")) {
-                    bridge.setHasTouchController(true);
-                }
             });
             bridge.setModSummary(sb.toString());
         } catch (Throwable ignore) {
+        }
+    }
+
+    private void checkTouchMod(FCLBridge bridge, String GameDir) {
+        try {
+            File touchModEnableFile = new File(GameDir + "/config", "enableTouchMod");
+            if (touchModEnableFile.exists()) {
+                LOG.log(Level.INFO, "Enable touch controller mod!");
+                bridge.setHasTouchController(true);
+            }
+        } catch (Exception ignore) {
         }
     }
 
@@ -323,19 +316,19 @@ public final class LauncherHelper {
                         return Task.completed(suggestedJavaVersion);
                     }
 
-                    CompletableFuture<JavaVersion> future = new CompletableFuture<>();
-                    Runnable continueAction = () -> future.complete(javaVersion);
-                    FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(context);
-                    builder.setCancelable(false);
-                    builder.setMessage(context.getString(R.string.launch_error_java));
-                    builder.setPositiveButton(context.getString(R.string.launch_error_java_auto), () -> {
-                        setting.setJava(JavaVersion.JAVA_AUTO.getVersionName());
-                        future.complete(suggestedJavaVersion);
-                    });
-                    builder.setNegativeButton(context.getString(R.string.launch_error_java_continue), continueAction::run);
-                    builder.create().show();
-                    return Task.fromCompletableFuture(future);
-                }).withStage("launch.state.java");
+            CompletableFuture<JavaVersion> future = new CompletableFuture<>();
+            Runnable continueAction = () -> future.complete(javaVersion);
+            FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(context);
+            builder.setCancelable(false);
+            builder.setMessage(context.getString(R.string.launch_error_java));
+            builder.setPositiveButton(context.getString(R.string.launch_error_java_auto), () -> {
+                setting.setJava(JavaVersion.JAVA_AUTO.getVersionName());
+                future.complete(suggestedJavaVersion);
+            });
+            builder.setNegativeButton(context.getString(R.string.launch_error_java_continue), continueAction::run);
+            builder.create().show();
+            return Task.fromCompletableFuture(future);
+        }).withStage("launch.state.java");
     }
 
     private static Task<AuthInfo> logIn(Context context, Account account) {

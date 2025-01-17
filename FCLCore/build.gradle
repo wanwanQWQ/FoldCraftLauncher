@@ -9,9 +9,7 @@ android {
     defaultConfig {
         minSdk 26
         targetSdk 34
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
@@ -19,8 +17,13 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-        fordebug {
+        debug {
             initWith debug
+            jniDebuggable true
+            renderscriptDebuggable true
+            debuggable true
+            multiDexEnabled true
+            minifyEnabled false
         }
     }
     compileOptions {

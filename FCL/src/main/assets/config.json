@@ -1,0 +1,44 @@
+{
+  "accounts": [],
+  "authlibInjectorServers": [
+    {
+      "metadataTimestamp": 0,
+      "url": "https://littleskin.cn/api/yggdrasil/"
+    }
+  ],
+  "autoChooseDownloadType": true,
+  "autoDownloadThreads": true,
+  "commonpath": "",
+  "_version": 0,
+  "configurations": {
+    "Default Directory": {
+      "global": {
+        "usesGlobal": true,
+        "javaArgs": "",
+        "minecraftArgs": "",
+        "maxMemory": 4096,
+        "autoMemory": true,
+        "permSize": "",
+        "serverIp": "",
+        "java": "Auto",
+        "scaleFactor": 1.0,
+        "notCheckGame": true,
+        "notCheckJVM": true,
+        "beGesture": false,
+        "vulkanDriverSystem": false,
+        "controller": "",
+        "renderer": 4,
+        "driver": "Turnip",
+        "isolateGameDir": false,
+        "customRenderer": "",
+        "pojavBigCore": false
+      },
+      "gameDir": ""
+    }
+  },
+  "downloadThreads": 64,
+  "downloadType": "mojang",
+  "last": "Default Directory",
+  "uiVersion": 0,
+  "versionListSource": "balanced"
+}

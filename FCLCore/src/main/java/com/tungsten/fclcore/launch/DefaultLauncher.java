@@ -47,7 +47,9 @@ import com.tungsten.fclcore.util.versioning.VersionNumber;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -91,20 +93,12 @@ public class DefaultLauncher extends Launcher {
         res.addDefault("-Dsun.stdout.encoding=", encoding.name());
         res.addDefault("-Dsun.stderr.encoding=", encoding.name());
 
-        // Fix RCE vulnerability of log4j2
-        res.addDefault("-Djava.rmi.server.useCodebaseOnly=", "true");
-        res.addDefault("-Dcom.sun.jndi.rmi.object.trustURLCodebase=", "false");
-        res.addDefault("-Dcom.sun.jndi.cosnaming.object.trustURLCodebase=", "false");
-
-        String formatMsgNoLookups = res.addDefault("-Dlog4j2.formatMsgNoLookups=", "true");
-        if (!"-Dlog4j2.formatMsgNoLookups=false".equals(formatMsgNoLookups) && isUsingLog4j()) {
+        if (isUsingLog4j()) {
             res.addDefault("-Dlog4j.configurationFile=", getLog4jConfigurationFile().getAbsolutePath());
         }
 
         // Default JVM Args
         appendJvmArgs(res);
-
-        res.addDefault("-Dminecraft.client.jar=", repository.getVersionJar(version).toString());
 
         // Using G1GC with its settings by default
 //        if (options.getJava().getVersion() >= 8
@@ -127,9 +121,6 @@ public class DefaultLauncher extends Launcher {
             res.addDefault("-Xss", "1m");
         }
 
-        res.addDefault("-Dfml.ignoreInvalidMinecraftCertificates=", "true");
-        res.addDefault("-Dfml.ignorePatchDiscrepancies=", "true");
-
         // LWJGL debug mode
         // res.addDefault("-Dorg.lwjgl.util.Debug=", "true");
         // res.addDefault("-Dorg.lwjgl.util.DebugLoader=", "true");
@@ -142,11 +133,8 @@ public class DefaultLauncher extends Launcher {
         }
 
         res.addDefault("-Djava.io.tmpdir=", FCLPath.CACHE_DIR);
-        res.addDefault("-Dos.name=", "Linux");
-        res.addDefault("-Dos.version=Android-", Build.VERSION.RELEASE);
         res.addDefault("-Dorg.lwjgl.opengl.libname=", "${gl_lib_name}");
         res.addDefault("-Dorg.lwjgl.freetype.libname=", context.getApplicationInfo().nativeLibraryDir + "/libfreetype.so");
-        res.addDefault("-Dfml.earlyprogresswindow=", "false");
         if (FCLBridge.BACKEND_IS_BOAT) {
             res.addDefault("-Dwindow.width=", options.getWidth() + "");
             res.addDefault("-Dwindow.height=", options.getHeight() + "");
@@ -155,12 +143,8 @@ public class DefaultLauncher extends Launcher {
             res.addDefault("-Dglfwstub.windowHeight=", options.getHeight() + "");
         }
         res.addDefault("-Dglfwstub.initEgl=", "false");
-        res.addDefault("-Dloader.disable_forked_guis=", "true");
         res.addDefault("-Duser.home=", options.getGameDir().getAbsolutePath());
-        res.addDefault("-Duser.language=", System.getProperty("user.language"));
-        res.addDefault("-Duser.timezone=", TimeZone.getDefault().getID());
         res.addDefault("-Dorg.lwjgl.vulkan.libname=", "libvulkan.so");
-        res.addDefault("-Dsodium.checks.issue2561=", "false");
         res.addDefault("-Djdk.lang.Process.launchMechanism=", "FORK");
         File libJna = new File(FCLPath.RUNTIME_DIR, "jna");
         if (jnaVersion != null && !jnaVersion.isEmpty()) {
@@ -384,15 +368,17 @@ public class DefaultLauncher extends Launcher {
     public void extractLog4jConfigurationFile() throws IOException {
         File targetFile = getLog4jConfigurationFile();
         if (targetFile.exists()) return;
-        InputStream source;
+        Path target = Paths.get(targetFile.getAbsolutePath());
+        Path source;
         if (VersionNumber.compare(repository.getGameVersion(version).orElse("0.0"), "1.12") < 0) {
-            source = DefaultLauncher.class.getResourceAsStream("/assets/game/log4j2-1.7.xml");
+            source = Paths.get(FCLPath.PLUGIN_DIR + "/log4j2-1.7.xml");
         } else {
-            source = DefaultLauncher.class.getResourceAsStream("/assets/game/log4j2-1.12.xml");
+            source = Paths.get(FCLPath.PLUGIN_DIR + "/log4j2-1.12.xml");
         }
-
-        try (InputStream input = source; OutputStream output = new FileOutputStream(targetFile)) {
-            IOUtils.copyTo(input, output);
+        try {
+            Files.copy(source, target);
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to copy log4j config file", e);
         }
     }
 
@@ -405,7 +391,6 @@ public class DefaultLauncher extends Launcher {
                 pair("${auth_uuid}", UUIDTypeAdapter.fromUUID(authInfo.getUUID())),
                 pair("${version_name}", Optional.ofNullable(options.getVersionName()).orElse(version.getId())),
                 pair("${profile_name}", Optional.ofNullable(options.getProfileName()).orElse("Minecraft")),
-                pair("${version_type}", Optional.ofNullable(options.getVersionType()).orElse(version.getType().getId())),
                 pair("${game_directory}", repository.getRunDirectory(version.getId()).getAbsolutePath()),
                 pair("${user_type}", "msa"),
                 pair("${assets_index_name}", version.getAssetIndex().getId()),

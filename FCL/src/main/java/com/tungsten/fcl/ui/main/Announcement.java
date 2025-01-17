@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.tungsten.fcl.R;
 import com.tungsten.fcl.upgrade.UpdateChecker;
 import com.tungsten.fcllibrary.util.LocaleUtils;
 
@@ -79,7 +80,7 @@ public class Announcement {
             throw new IllegalStateException("No title list!");
         }
         for (Content c : title) {
-            if (LocaleUtils.getLocale(LocaleUtils.getLanguage(context)).toString().contains(c.getLang())) {
+            if (c.getLang() == null || LocaleUtils.getLocale(LocaleUtils.getLanguage(context)).toString().contains(c.getLang())) {
                 return c.getText();
             }
         }
@@ -91,7 +92,7 @@ public class Announcement {
             throw new IllegalStateException("No content list!");
         }
         for (Content c : content) {
-            if (LocaleUtils.getLocale(LocaleUtils.getLanguage(context)).toString().contains(c.getLang())) {
+            if (c.getLang() == null || LocaleUtils.getLocale(LocaleUtils.getLanguage(context)).toString().contains(c.getLang())) {
                 return c.getText();
             }
         }
@@ -105,6 +106,8 @@ public class Announcement {
             return false;
         if (maxVersion != -1 && maxVersion < UpdateChecker.getCurrentVersionCode(context))
             return false;
+        if (significant)
+            return true;
         if (!specificLang.isEmpty()) {
             boolean cancel = true;
             for (String lang : specificLang) {
@@ -117,7 +120,7 @@ public class Announcement {
                 return false;
         }
         SharedPreferences sharedPreferences = context.getSharedPreferences("launcher", Context.MODE_PRIVATE);
-        return sharedPreferences.getInt("ignore_announcement", 0) < id;
+        return sharedPreferences.getInt("ignore_announcement", 0) != id;
     }
 
     public void hide(Context context) {

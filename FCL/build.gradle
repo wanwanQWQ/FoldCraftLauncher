@@ -1,3 +1,6 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
@@ -8,40 +11,30 @@ android {
     namespace 'com.tungsten.fcl'
     compileSdk 34
 
-    def pwd = System.getenv("FCL_KEYSTORE_PASSWORD")
-    def curseApiKey = System.getenv("CURSE_API_KEY")
-    def oauthApiKey = System.getenv("OAUTH_API_KEY")
-    if (pwd == null || curseApiKey == null || oauthApiKey == null) {
-        if (new File("${rootDir}/local.properties").exists()) {
-            Properties prop = new Properties()
-            prop.load(new FileInputStream("${rootDir}/local.properties"))
-            pwd = prop.get("pwd")
-            curseApiKey = prop.get("curse.api.key")
-            oauthApiKey = prop.get("oauth.api.key")
-        }
-    }
-    if (curseApiKey == null || oauthApiKey == null) {
-        curseApiKey = "null"
-        oauthApiKey = "null"
-    }
+
+    Properties properties = new Properties()
+    properties.load(Files.newInputStream(Paths.get("${rootDir}/local.properties")))
 
     signingConfigs {
         FCLKey {
-            storeFile file("../key-store.jks")
-            storePassword pwd
-            keyAlias "FCL-Key"
-            keyPassword pwd
-        }
-        FCLDebugKey {
-            storeFile file("../debug-key.jks")
+            storeFile file("debug-key.jks")
             storePassword "FCL-Debug"
             keyAlias "FCL-Debug"
             keyPassword "FCL-Debug"
         }
+        DebugKey {
+            storeFile file("test-key.jks")
+            storePassword "keystore-pass"
+            keyAlias "testkey"
+            keyPassword "keystore-pass"
+        }
     }
 
     defaultConfig {
-        applicationId "com.tungsten.fcl"
+        aaptOptions{
+            ignoreAssets "!.svn:!.git:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*.scc:*~"
+        }
+        applicationId "com.tungsten.fcl.debug"
         minSdk 26
         targetSdk 34
         versionCode 1200
@@ -56,15 +49,19 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.FCLKey
         }
-        fordebug {
+        debug {
             initWith debug
-            applicationIdSuffix ".debug"
-            signingConfig signingConfigs.FCLDebugKey
+            signingConfig signingConfigs.DebugKey
+            jniDebuggable true
+            renderscriptDebuggable true
+            debuggable true
+            minifyEnabled false
+            multiDexEnabled true
         }
         configureEach {
             resValue "string", "app_version", "${defaultConfig.versionName}"
-            resValue "string", "curse_api_key", curseApiKey
-            resValue "string", "oauth_api_key", oauthApiKey
+            resValue "string", "curse_api_key", properties.get("curse-api-key","null")
+            resValue "string", "oauth_api_key", properties.get("oauth-api-key","null")
         }
     }
     applicationVariants.configureEach { variant ->
@@ -83,8 +80,8 @@ android {
                     println(runtimeDir)
                     def files = fileTree(dir: runtimeDir, include: ['*.tar.xz'])
                     files.forEach { File file ->
-                        if (arch != 'all' && !file.getName().contains(arch) && !file.getName().contains("universal")) {
-                            print("delete:${file} :")
+                        if (arch != 'all'&& !file.getName().contains("universal") && !file.getName().contains(arch)) {
+                            print("delete:${file} : ")
                             println(delete(file))
                         }
                     }
@@ -137,43 +134,6 @@ android {
     }
 }
 
-tasks.register('updateMap') {
-    doLast {
-        def list = []
-        new File("${rootDir}/version_map.json").withReader("UTF-8") { reader ->
-            reader.eachLine {
-                if (it.contains('versionCode')) {
-                    it = it.replaceAll('[0-9]+', "${android.defaultConfig.versionCode}")
-                } else if (it.contains("versionName")) {
-                    it = it.replaceAll(': ".+', ": \"${android.defaultConfig.versionName}\",")
-                } else if (it.contains("date")) {
-                    def date = new Date().format("yyyy.MM.dd", TimeZone.getTimeZone("UTC"))
-                    it = it.replaceAll(': ".+', ": \"${date}\",")
-                } else if (it.contains("url")) {
-                    it = it.replaceAll('download/.+"', "download/${android.defaultConfig.versionName}/FCL-release-${android.defaultConfig.versionName}-all.apk\"")
-                }
-                list.add(it + "\n")
-            }
-        }
-        new File("${rootDir}/version_map.json").withWriter("UTF-8") { writer ->
-            list.each {
-                writer.write(it)
-            }
-        }
-    }
-}
-
-task uploadMap(dependsOn: 'updateMap') {
-    doLast {
-        ssh.run {
-            session(remotes.debugServer) {
-                File file = file "${rootDir}/version_map.json"
-                put from: file.getAbsolutePath(), into: "/www/wwwroot/FCLApi/public/files"
-            }
-        }
-    }
-}
-
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(path: ':FCLCore')
@@ -194,23 +154,4 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
-}
-
-ssh.settings {
-    knownHosts = allowAnyHosts
-}
-
-remotes {
-    try {
-        Properties prop = new Properties()
-        prop.load(new FileInputStream("${rootDir}/local.properties"))
-        debugServer {
-            host = prop.getProperty("sftp.host")
-            port = prop.getProperty("sftp.port").toInteger()
-            user = prop.getProperty("sftp.username")
-            password = prop.getProperty("sftp.password")
-        }
-    } catch (Exception ignored) {
-
-    }
 }

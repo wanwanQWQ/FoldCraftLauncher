@@ -43,6 +43,7 @@ import static java.util.stream.Collectors.toList;
 import android.content.Context;
 
 import com.google.gson.reflect.TypeToken;
+import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.game.OAuthServer;
 import com.tungsten.fclauncher.utils.FCLPath;
@@ -339,8 +340,6 @@ public final class Accounts {
                 }
             });
         }
-
-        triggerAuthlibInjectorUpdateCheck();
 
         for (AuthlibInjectorServer server : config().getAuthlibInjectorServers()) {
             if (selected instanceof AuthlibInjectorAccount && ((AuthlibInjectorAccount) selected).getServer() == server)

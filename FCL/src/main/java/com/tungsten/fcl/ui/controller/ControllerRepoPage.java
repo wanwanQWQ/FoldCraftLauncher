@@ -16,6 +16,7 @@ import androidx.appcompat.widget.AppCompatSpinner;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.control.download.ControllerCategory;
 import com.tungsten.fcl.control.download.ControllerIndex;
@@ -62,8 +63,8 @@ import java.util.stream.Collectors;
 
 public class ControllerRepoPage extends FCLCommonPage implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
-    public static final String CONTROLLER_GITHUB = "https://raw.githubusercontent.com/FCL-Team/FCL-Controllers/main/";
-    public static final String CONTROLLER_GIT_CN = "https://gitee.com/fcl-team/FCL-Controllers/raw/main/";
+    public static final String CONTROLLER_GITHUB = FCLApplication.appConfig.getProperty("controller-url","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/controllerRepo/");
+    public static final String CONTROLLER_GIT_CN = FCLApplication.appConfig.getProperty("controller-url-cn","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/controllerRepoCN/");
 
     private final ObjectProperty<ControllerCategory> categoryProperty = new SimpleObjectProperty<>(new ControllerCategory(0, null));
     private boolean refreshCategory = true;
@@ -128,7 +129,7 @@ public class ControllerRepoPage extends FCLCommonPage implements View.OnClickLis
             ArrayList<ControllerCategory> categories = JsonUtils.GSON.fromJson(categoryStr, new TypeToken<ArrayList<ControllerCategory>>(){}.getType());
             categories.add(0, new ControllerCategory(0, null));
             allIndexes.forEach(i -> {
-                if ((i.getLang().equals("all") || lang == 0 || LocaleUtils.getLocale(LocaleUtils.getLanguage(getContext())).toString().contains(i.getLang())) &&
+                if ((i.getLang() == null || i.getLang().equals("all") || lang == 0 || LocaleUtils.getLocale(LocaleUtils.getLanguage(getContext())).toString().contains(i.getLang())) &&
                         i.getDevice().contains(device) &&
                         (category == 0 || i.getCategories().contains(category))) {
                     indexes.add(i);
@@ -320,7 +321,7 @@ public class ControllerRepoPage extends FCLCommonPage implements View.OnClickLis
         ArrayAdapter<String> sourceAdapter = new ArrayAdapter<>(getContext(), R.layout.item_spinner_auto_tint, sources);
         sourceAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
         sourceSpinner.setAdapter(sourceAdapter);
-        sourceSpinner.setSelection(LocaleUtils.isChinese(getContext()) ? 1 : 0);
+        sourceSpinner.setSelection(1);
         sourceSpinner.setOnItemSelectedListener(this);
 
         ArrayList<String> lang = new ArrayList<>();

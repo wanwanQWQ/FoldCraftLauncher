@@ -20,22 +20,16 @@ package com.tungsten.fcl.setting;
 import static com.tungsten.fcl.setting.ConfigHolder.config;
 import static com.tungsten.fcl.util.FXUtils.onInvalidating;
 import static com.tungsten.fclcore.fakefx.collections.FXCollections.observableArrayList;
-
+import android.content.SharedPreferences;
+import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.util.WeakListenerHolder;
 import com.tungsten.fclauncher.utils.FCLPath;
 import com.tungsten.fclcore.event.EventBus;
 import com.tungsten.fclcore.event.RefreshedVersionsEvent;
 import com.tungsten.fclcore.fakefx.beans.Observable;
-import com.tungsten.fclcore.fakefx.beans.property.ObjectProperty;
-import com.tungsten.fclcore.fakefx.beans.property.ReadOnlyListProperty;
-import com.tungsten.fclcore.fakefx.beans.property.ReadOnlyListWrapper;
-import com.tungsten.fclcore.fakefx.beans.property.ReadOnlyStringProperty;
-import com.tungsten.fclcore.fakefx.beans.property.ReadOnlyStringWrapper;
-import com.tungsten.fclcore.fakefx.beans.property.SimpleObjectProperty;
-import com.tungsten.fclcore.fakefx.collections.FXCollections;
-import com.tungsten.fclcore.fakefx.collections.ObservableList;
-
+import com.tungsten.fclcore.fakefx.beans.property.*;
+import com.tungsten.fclcore.fakefx.collections.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -96,8 +90,7 @@ public final class Profiles {
     private static void checkProfiles() {
         if (profiles.isEmpty()) {
             Profile current = new Profile(FCLPath.CONTEXT.getString(R.string.profile_shared), new File(FCLPath.SHARED_COMMON_DIR), new VersionSetting(), null);
-            Profile home = new Profile(FCLPath.CONTEXT.getString(R.string.profile_private), new File(FCLPath.PRIVATE_COMMON_DIR));
-            profiles.addAll(current, home);
+            profiles.addAll(current);
         }
     }
 
@@ -111,8 +104,9 @@ public final class Profiles {
         profiles.addListener(onInvalidating(Profiles::checkProfiles));
 
         selectedProfile.addListener((a, b, newValue) -> {
-            if (newValue != null)
+            if(newValue != null) {
                 newValue.getRepository().refreshVersionsAsync().start();
+            }
         });
     }
 

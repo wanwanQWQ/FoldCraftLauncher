@@ -91,6 +91,10 @@ public class LauncherSettingPage extends FCLCommonPage implements View.OnClickLi
         super(context, id, parent, resId);
     }
 
+    public void clearCacheDirs() {
+        FileUtils.cleanDirectoryQuietly(new File(FCLPath.CACHE_DIR));
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -194,27 +198,11 @@ public class LauncherSettingPage extends FCLCommonPage implements View.OnClickLi
                 config().downloadThreadsProperty().set(FetchTask.DEFAULT_CONCURRENCY);
             }
         });
+
         threads.setProgress(config().getDownloadThreads());
         threads.addProgressListener();
         threads.progressProperty().bindBidirectional(config().downloadThreadsProperty());
         threadsText.stringProperty().bind(Bindings.createStringBinding(() -> threads.getProgress() + "", threads.progressProperty()));
-
-        if (System.currentTimeMillis() - getLastClearCacheTime() >= 3 * ONE_DAY) {
-            FileUtils.cleanDirectoryQuietly(new File(FCLPath.CACHE_DIR).getParentFile());
-            setLastClearCacheTime(System.currentTimeMillis());
-        }
-    }
-
-    public long getLastClearCacheTime() {
-        SharedPreferences sharedPreferences = getContext().getSharedPreferences("launcher", Context.MODE_PRIVATE);
-        return sharedPreferences.getLong("clear_cache", 0L);
-    }
-
-    public void setLastClearCacheTime(long time) {
-        SharedPreferences sharedPreferences = getContext().getSharedPreferences("launcher", Context.MODE_PRIVATE);
-        @SuppressLint("CommitPrefEdits") SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putLong("clear_cache", time);
-        editor.apply();
     }
 
     private int getSourcePosition(String source) {
@@ -236,20 +224,28 @@ public class LauncherSettingPage extends FCLCommonPage implements View.OnClickLi
 
     @Override
     public void onClick(View v) {
-        if (v == checkUpdate && !UpdateChecker.getInstance().isChecking()) {
-            UpdateChecker.getInstance().checkManually(getContext()).whenComplete(Schedulers.androidUIThread(), e -> {
-                if (e != null) {
-                    FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
-                    builder.setCancelable(false);
-                    builder.setAlertLevel(FCLAlertDialog.AlertLevel.ALERT);
-                    builder.setMessage(getContext().getString(R.string.update_check_failed) + "\n" + e);
-                    builder.setNegativeButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_positive), null);
-                    builder.create().show();
-                }
-            }).start();
+        SharedPreferences sharedPreferences = getContext().getSharedPreferences("launcher", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        if (v == checkUpdate) {
+            editor.putInt("ignore_update", -1);
+            editor.putInt("ignore_announcement", -1);
+            editor.apply();
+            if (!UpdateChecker.getInstance().isChecking()) {
+                UpdateChecker.getInstance().checkManually(getContext()).whenComplete(Schedulers.androidUIThread(), e -> {
+                    if (e != null) {
+                        FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
+                        builder.setCancelable(false);
+                        builder.setAlertLevel(FCLAlertDialog.AlertLevel.ALERT);
+                        builder.setMessage(getContext().getString(R.string.update_check_failed) + "\n" + e);
+                        builder.setNegativeButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_positive), null);
+                        builder.create().show();
+                    }
+                }).start();
+            }
         }
         if (v == clearCache) {
-            FileUtils.cleanDirectoryQuietly(new File(FCLPath.CACHE_DIR).getParentFile());
+            clearCacheDirs();
         }
         if (v == exportLog) {
             thread(() -> {
@@ -409,10 +405,10 @@ public class LauncherSettingPage extends FCLCommonPage implements View.OnClickLi
             }));
         }
         if (v == resetTheme) {
-            ThemeEngine.getInstance().applyAndSave(getContext(), ThemeEngine.getWallpaperColor(getContext()), false);
+            ThemeEngine.getInstance().applyAndSave(getContext(), ThemeEngine.getDefaultColor(getContext()), false);
         }
         if (v == resetTheme2) {
-            ThemeEngine.getInstance().applyAndSave2(getContext(), ThemeEngine.getWallpaperColor(getContext()), false);
+            ThemeEngine.getInstance().applyAndSave2(getContext(), ThemeEngine.getDefaultColor2(getContext()), false);
         }
         if (v == resetLtBackground) {
             new Thread(() -> {

@@ -10,20 +10,25 @@ android {
     defaultConfig {
         minSdk 26
         targetSdk 34
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
         release {
             minifyEnabled false
+            resValue 'string', 'file_browser_provider', 'com.tungsten.fcl.debug.provider'
+            resValue 'string', 'file_browser_document_provider', 'com.tungsten.fcl.debug.document.provider'
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-        fordebug {
+        debug {
             initWith debug
             resValue 'string', 'file_browser_provider', 'com.tungsten.fcl.debug.provider'
             resValue 'string', 'file_browser_document_provider', 'com.tungsten.fcl.debug.document.provider'
+            jniDebuggable true
+            renderscriptDebuggable true
+            debuggable true
+            multiDexEnabled true
+            minifyEnabled false
         }
     }
     compileOptions {

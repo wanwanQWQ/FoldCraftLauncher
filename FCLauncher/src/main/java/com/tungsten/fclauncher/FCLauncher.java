@@ -8,7 +8,6 @@ import android.os.Build;
 import android.system.Os;
 import android.util.ArrayMap;
 
-import com.jaredrummler.android.device.DeviceName;
 import com.oracle.dalvik.VMLauncher;
 import com.tungsten.fclauncher.bridge.FCLBridge;
 import com.tungsten.fclauncher.plugins.DriverPlugin;
@@ -41,7 +40,7 @@ public class FCLauncher {
 
     private static void logStartInfo(FCLBridge bridge, String task) {
         printTaskTitle(bridge, "Start " + task);
-        log(bridge, "Device: " + DeviceName.getDeviceName());
+        log(bridge, "Device: " + Build.MODEL);
         log(bridge, "Architecture: " + Architecture.archAsString(Architecture.getDeviceArchitecture()));
         log(bridge, "CPU: " + getSocName());
         log(bridge, "Android SDK: " + Build.VERSION.SDK_INT);
@@ -374,7 +373,6 @@ public class FCLauncher {
         String[] args = rebaseArgs(config);
         boolean javaArgs = true;
         int mainClass = 0;
-        boolean isToken = false;
         for (String arg : args) {
             if (javaArgs)
                 javaArgs = !arg.equals("mio.Wrapper");
@@ -384,13 +382,6 @@ public class FCLauncher {
                 mainClass++;
                 prefix = "MainClass: ";
             }
-            if (isToken) {
-                isToken = false;
-                log(bridge, prefix + "***");
-                continue;
-            }
-            if (arg.equals("--accessToken"))
-                isToken = true;
             log(bridge, prefix + arg);
         }
         bridge.setLdLibraryPath(getLibraryPath(config.getContext(), config.getJavaPath(), config.getRenderer() == FCLConfig.Renderer.RENDERER_CUSTOM ? RendererPlugin.getSelected().getPath() : null));

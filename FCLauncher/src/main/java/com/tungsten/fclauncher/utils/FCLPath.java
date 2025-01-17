@@ -4,8 +4,10 @@ import android.content.Context;
 import android.os.Environment;
 
 import java.io.File;
+import java.util.Properties;
 
 public class FCLPath {
+    public static Properties APP_CONFIG_PROPERTIES;
 
     public static Context CONTEXT;
 
@@ -30,8 +32,9 @@ public class FCLPath {
     public static String BACKGROUND_DIR;
     public static String CONTROLLER_DIR;
 
-    public static String PRIVATE_COMMON_DIR;
-    public static String SHARED_COMMON_DIR = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FCL/.minecraft";
+    public static String SHARED_COMMON_DIR;
+    public static String EXTERNAL_DIR;
+    public static String INTERNAL_DIR;
 
     public static String AUTHLIB_INJECTOR_PATH;
     public static String LIB_FIXER_PATH;
@@ -40,12 +43,14 @@ public class FCLPath {
     public static String DK_BACKGROUND_PATH;
 
     public static void loadPaths(Context context) {
+        APP_CONFIG_PROPERTIES = new PropertiesFileParse("config.properties", context).getProperties();
+
         CONTEXT = context;
 
         NATIVE_LIB_DIR = context.getApplicationInfo().nativeLibraryDir;
 
-        LOG_DIR = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FCL/log";
-        CACHE_DIR = context.getCacheDir() + "/fclauncher";
+        LOG_DIR = EXTERNAL_DIR + "/logs";
+        CACHE_DIR = INTERNAL_DIR + "/cache";
 
         RUNTIME_DIR = context.getDir("runtime", 0).getAbsolutePath();
         JAVA_8_PATH = RUNTIME_DIR + "/java/jre8";
@@ -59,11 +64,13 @@ public class FCLPath {
         CACIOCAVALLO_17_DIR = RUNTIME_DIR + "/caciocavallo17";
 
         FILES_DIR = context.getFilesDir().getAbsolutePath();
+        INTERNAL_DIR = new File(FILES_DIR).getParentFile().getAbsolutePath();
         PLUGIN_DIR = FILES_DIR + "/plugins";
         BACKGROUND_DIR = FILES_DIR + "/background";
-        CONTROLLER_DIR = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FCL/control";
+        CONTROLLER_DIR = EXTERNAL_DIR + "/controllers";
 
-        PRIVATE_COMMON_DIR = context.getExternalFilesDir(".minecraft").getAbsolutePath();
+        EXTERNAL_DIR = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + APP_CONFIG_PROPERTIES.getProperty("put-directory","FCL-Server");
+        SHARED_COMMON_DIR = EXTERNAL_DIR + "/.minecraft";
 
         AUTHLIB_INJECTOR_PATH = PLUGIN_DIR + "/authlib-injector.jar";
         LIB_FIXER_PATH = PLUGIN_DIR + "/MioLibFixer.jar";
@@ -86,8 +93,9 @@ public class FCLPath {
         init(PLUGIN_DIR);
         init(BACKGROUND_DIR);
         init(CONTROLLER_DIR);
-        init(PRIVATE_COMMON_DIR);
         init(SHARED_COMMON_DIR);
+        init(EXTERNAL_DIR);
+        init(INTERNAL_DIR);
     }
 
     private static boolean init(String path) {

@@ -22,8 +22,6 @@
     <string name="setting">Настройки</string>
     
     <string name="about">О лаунчере</string>
-    <string name="about_sponsor">Спонсоры</string>
-    <string name="about_source">Исходный код</string>
     <string name="about_desc">Fold Craft Launcher - это лаунчер который запускать Minecraft: Java Edition на Android устройствах.
     
     Fold Craft Launcher разработан командой FCL-Team.
@@ -98,7 +96,6 @@
     <string name="action_share">Поделиться</string>
     <string name="action_skip">Пропустить</string>
 
-    <string name="announcement">Объявление: %s</string>
     <string name="announcement_significant">Это объявление является важным. Пожалуйста, подтвердите, что вы прочитали это объявление, прежде чем скрывать его.</string>
 
     <string name="archive_author">Авторы</string>
@@ -132,7 +129,6 @@
 
     <string name="community">Сообщество</string>
     <string name="community_hint">Присоединяйтесь к нашему сообществу, чтобы получать последние версии, сообщать об ошибках и т. д. Если вы присоединитесь, пожалуйста, следуйте правилам сообщества.</string>
-    <string name="community_qq">QQ группа</string>
 
     <string name="control_create">Создать контроллер</string>
     <string name="control_delete">Вы уверены, что хотите удалить этот контроллер?</string>
@@ -341,7 +337,6 @@
     <string name="folder_config">Конфигурации</string>
     <string name="folder_game">Папка игры</string>
     <string name="folder_log">Логи</string>
-    <string name="folder_fcl_log">Логи лаунчера</string>
     <string name="folder_mod">Моды</string>
     <string name="folder_resourcepacks">Ресурспаки</string>
     <string name="folder_saves">Миры</string>
@@ -785,8 +780,6 @@
 
     <string name="profile_shared">"Поделиться с папкой 
     (хранилище устройства)"</string>
-    <string name="profile_private">"Приватная папка 
-    (хранилище игры)"</string>
     <string name="profile_name">Название</string>
     <string name="profile_path">Путь</string>
     <string name="profile_select">Выбрать папку</string>

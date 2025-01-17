@@ -7,6 +7,7 @@ import android.view.View;
 
 import androidx.core.content.FileProvider;
 
+import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.control.download.ControllerIndex;
 import com.tungsten.fcl.control.download.ControllerVersion;
@@ -40,7 +41,7 @@ public class ControllerUploadPage extends FCLTempPage implements View.OnClickLis
     private FCLTextView tag;
     private FCLTextView description;
 
-    private FCLButton qq;
+    private FCLButton community;
     private FCLButton share;
 
     public ControllerUploadPage(Context context, int id, FCLUILayout parent, int resId, Controller controller) {
@@ -58,9 +59,9 @@ public class ControllerUploadPage extends FCLTempPage implements View.OnClickLis
         tag.setText(controller.getVersion());
         description.setText(controller.getDescription());
 
-        qq = findViewById(R.id.qq);
+        community = findViewById(R.id.community);
         share = findViewById(R.id.share);
-        qq.setOnClickListener(this);
+        community.setOnClickListener(this);
         share.setOnClickListener(this);
     }
 
@@ -76,8 +77,8 @@ public class ControllerUploadPage extends FCLTempPage implements View.OnClickLis
 
     @Override
     public void onClick(View view) {
-        if (view == qq) {
-            joinQQGroup(QQ_GROUP_KEY);
+        if (view == community) {
+            joinCommunity();
         }
         if (view == share) {
             ControllerUploadDialog dialog = new ControllerUploadDialog(getContext(), getActivity(), controller, this::share);
@@ -128,11 +129,10 @@ public class ControllerUploadPage extends FCLTempPage implements View.OnClickLis
         }).start();
     }
 
-    private final static String QQ_GROUP_KEY = "y9zEb5_DHSGdOYyigFdwsNHx9-9kALbX";
 
-    public boolean joinQQGroup(String key) {
-        Intent intent = new Intent();
-        intent.setData(Uri.parse("mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + key));
+    public boolean joinCommunity() {
+        Uri uri = Uri.parse(FCLApplication.appConfig.getProperty("community-controller","https://github.com/hyplant-team/FoldCraftLauncher/discussions/36"));
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         try {
             getContext().startActivity(intent);
             return true;

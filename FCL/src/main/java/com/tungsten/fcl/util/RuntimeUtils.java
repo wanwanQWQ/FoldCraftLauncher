@@ -1,35 +1,35 @@
 package com.tungsten.fcl.util;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.system.Os;
-
+import android.util.Log;
+import com.google.gson.*;
+import com.tungsten.fcl.R;
 import com.tungsten.fclauncher.FCLauncher;
-import com.tungsten.fclauncher.utils.Architecture;
-import com.tungsten.fclauncher.utils.FCLPath;
-import com.tungsten.fclcore.util.Logging;
-import com.tungsten.fclcore.util.Pack200Utils;
-import com.tungsten.fclcore.util.io.FileUtils;
-import com.tungsten.fclcore.util.io.IOUtils;
-import com.tungsten.fclcore.util.io.Unzipper;
-
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import com.tungsten.fclauncher.utils.*;
+import com.tungsten.fclcore.util.*;
+import com.tungsten.fclcore.util.io.*;
+import org.apache.commons.compress.archivers.tar.*;
 import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
 public class RuntimeUtils {
 
     public static boolean isLatest(String targetDir, String srcDir) throws IOException {
         File targetFile = new File(targetDir + "/version");
-        long version = Long.parseLong(IOUtils.readFullyAsString(RuntimeUtils.class.getResourceAsStream(srcDir + "/version")));
-        return targetFile.exists() && Long.parseLong(FileUtils.readText(targetFile)) == version;
+        return targetFile.exists() && targetDir != null && srcDir != null && Objects.equals(ReadTools.convertToString(RuntimeUtils.class.getResourceAsStream(srcDir + "/version")), ReadTools.readFileTxt(targetDir + "/version"));
+    }
+
+    public static boolean isLatest(SharedPreferences sharedPreferences, String key, String defaultValue, String srcDir) throws IOException {
+        return sharedPreferences != null && key != null && defaultValue != null && srcDir != null && Objects.equals(ReadTools.convertToString(RuntimeUtils.class.getResourceAsStream(srcDir + "/version")), sharedPreferences.getString(key,defaultValue).trim());
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -90,6 +90,53 @@ public class RuntimeUtils {
         }
     }
 
+    public static void copyAssetsDirToLocalDir(Context context, String assetsPath, String savePath){
+        try {
+            // 获取assets目录下的所有文件及目录名
+            String[] fileNames = context.getAssets().list(assetsPath);
+            // 如果是目录
+            if (fileNames.length > 0) {
+                File file = new File(savePath);
+                file.mkdirs();// 如果文件夹不存在，则递归
+                for (String fileName : fileNames) {
+                    copyAssetsDirToLocalDir(context, assetsPath + "/" + fileName, savePath + "/" + fileName);
+                }
+            } else {// 如果是文件
+                InputStream is = context.getAssets().open(assetsPath);
+                FileOutputStream fos = new FileOutputStream(new File(savePath));
+                byte[] buffer = new byte[1024];
+                int byteCount = 0;
+                // 循环从输入流读取
+                while ((byteCount = is.read(buffer)) != -1) {
+                    // 将读取的输入流写入到输出流
+                    fos.write(buffer, 0, byteCount);
+                }
+                // 刷新缓冲区
+                fos.flush();
+                is.close();
+                fos.close();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void copyAssetsFileToLocalDir(Context context, String assetsFile, String savePath) throws IOException {
+        InputStream is = context.getAssets().open(assetsFile);
+        FileOutputStream fos = new FileOutputStream(savePath);
+        byte[] buffer = new byte[1024];
+        int byteCount = 0;
+        // 循环从输入流读取
+        while ((byteCount = is.read(buffer)) != -1) {
+            // 将读取的输入流写入到输出流
+            fos.write(buffer, 0, byteCount);
+        }
+        // 刷新缓冲区
+        fos.flush();
+        is.close();
+        fos.close();
+    }
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void uncompressTarXZ(final InputStream tarFileInputStream, final File dest) throws IOException {
         dest.mkdirs();
@@ -147,4 +194,199 @@ public class RuntimeUtils {
         FileUtils.copyFile(new File(context.getApplicationInfo().nativeLibraryDir, "libawt_xawt.so"), fileLib);
     }
 
+    /**
+     * 根据提供的字符串匹配是删文件还是文件夹
+     * @param filePath 要删除的目录或文件
+     * @return 删除成功返回 true，否则返回 false。
+    **/
+    public static boolean delete(String filePath) {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            return false;
+        } else {
+            if (file.isFile()) {
+                // 为文件时调用删除文件方法
+                return deleteFile(filePath);
+            } else {
+                // 为目录时调用删除目录方法
+                return deleteDirectory(filePath);
+            }
+        }
+    }
+
+    /**
+     * 删除单个文件
+     * @param   filePath 被删除文件的文件名
+     * @return 文件删除成功返回true，否则返回false
+    **/
+    private static boolean deleteFile(String filePath) {
+        File file = new File(filePath);
+        if (file.isFile() && file.exists()) {
+            return file.delete();
+        }
+        return false;
+    }
+
+    /**
+     * 删除文件夹以及目录下的文件
+     * @param   path 被删除目录的文件路径
+     * @return  目录删除成功返回true，否则返回false
+    **/
+    private static boolean deleteDirectory(String path){
+        boolean flag = false;
+        //如果filePath不以文件分隔符结尾，自动添加文件分隔符
+        if (!path.endsWith(File.separator)) {
+            path = path + File.separator;
+        }
+        File dirFile = new File(path);
+        if (!dirFile.exists() || !dirFile.isDirectory()) {
+            return false;
+        }
+        flag = true;
+        //统计path的根目录下有多少个文件夹和文件总和
+        File[] files = dirFile.listFiles();
+        //遍历删除文件夹下的所有文件(包括子目录)
+        for (int i = 0; i < files.length; i++) {
+            if (files[i].isFile()) {
+                //删除子文件
+                flag = deleteFile(files[i].getAbsolutePath());
+                if (!flag) break;
+            } else {
+                //删除子目录[递归]
+                flag = deleteDirectory(files[i].getAbsolutePath());
+                if (!flag) break;
+            }
+        }
+        if (!flag) return false;
+        //删除当前空目录
+        return dirFile.delete();
+    }
+
+    /**
+     * 多线程统计目录大小(适合特别多小文件使用)
+     * 该方法仅适合有公有，私有目录
+    **/
+    public static long getNormalPathSize(String dir) {
+        File path = new File(dir);
+        //如果path不是目录则输出该文件大小
+        if(!path.isDirectory()) {
+            return path.length();
+        }
+        //是目录则开始多线程统计大小
+        return IoOperateHolder.FORKJOIN_POOL.invoke(new CalDirCommand(path));
+    }
+    static class CalDirCommand extends RecursiveTask<Long> {
+        private File folder;
+        CalDirCommand(File folder){
+            this.folder = folder;
+        }
+        @Override
+        protected Long compute() {
+            AtomicLong size = new AtomicLong(0);
+            File[] files = folder.listFiles();
+            if(files == null || files.length == 0) {
+                return 0L;
+            }
+            List<ForkJoinTask<Long>> jobs = new ArrayList<>();
+            for(File f : files) {
+                if(!f.isDirectory()) {
+                    size.addAndGet(f.length());
+                } else {
+                    jobs.add(new CalDirCommand(f));
+                }
+            }
+            for(ForkJoinTask<Long> t : invokeAll(jobs)) {
+                size.addAndGet(t.join());
+            }
+            return size.get();
+        }
+    }
+    private static final class IoOperateHolder {
+        final static ForkJoinPool FORKJOIN_POOL = new ForkJoinPool();
+    }
+
+    public static void copyFile(String srcPath,String destPath){
+        File src = new File(srcPath);
+        File dest = new File(destPath);
+        try {
+            InputStream inputStream = new BufferedInputStream(new FileInputStream(src));
+            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(dest));
+            byte[] flush = new byte[1024];
+            int len = -1;
+            while ((len = inputStream.read(flush)) != -1){
+                outputStream.write(flush,0,len);
+            }
+            outputStream.flush();
+            outputStream.close();
+            inputStream.close();
+        }
+        catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void reloadConfiguration(Context context) {
+        try {
+            Gson gson = new Gson();
+            JsonObject jsonObject = gson.fromJson(ReadTools.getAssetReader(context, "config.json"), JsonObject.class);
+            JsonObject configurations = jsonObject.getAsJsonObject("configurations");
+            // 若不存在gameDir属性值有问题则添加一个
+            for(String key : configurations.keySet()) {
+                JsonObject config = configurations.getAsJsonObject(key);
+
+                if(!config.has("gameDir") || !isPath(config.get("gameDir").getAsString()) || !new File(config.get("gameDir").getAsString()).canWrite() || !new File(config.get("gameDir").getAsString()).canRead()) {
+                    config.addProperty("gameDir", FCLPath.SHARED_COMMON_DIR);
+                }
+
+            }
+            // 将修改后的 "configurations" 字段与原始 JSON 字符串中的其他字段合并
+            JsonObject mergedJsonObject = new JsonObject();
+            for (String key : jsonObject.keySet()) {
+                if (!key.equals("configurations")) {
+                    mergedJsonObject.add(key, jsonObject.get(key));
+                } else {
+                    mergedJsonObject.add("configurations", jsonObject.getAsJsonObject("configurations"));
+                }
+            }
+            // 重新写入新文件
+            String formattedMergedJson = new GsonBuilder().setPrettyPrinting().create().toJson(mergedJsonObject);
+            RuntimeUtils.writeStringToFile(FCLPath.FILES_DIR, "config.json", formattedMergedJson);
+        }catch (JsonSyntaxException | JsonIOException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void reloadSettingsLauncherPictures(Context context, Map<String, String> importRuleTable) throws IOException {
+        if (context == null || importRuleTable == null || importRuleTable.isEmpty()) return;
+
+        // 获取assets目录中"others_file/settings_launcher_pictures"的文件列表
+        String[] assetFiles = context.getAssets().list("others_file/settings_launcher_pictures");
+
+        Set<String> keys = importRuleTable.keySet();
+        for(String s : keys) {
+            try {
+                if(Arrays.asList(assetFiles).contains(s)) copyAssetsFileToLocalDir(context, "others_file/settings_launcher_pictures/" + s, importRuleTable.get(s) + "/" + s);
+            }catch(FileNotFoundException e) {
+                Log.d("事件", "文件未找到：" + s);
+            }catch(IOException e) {
+                Log.d("事件", "处理文件时发生错误：" + s);
+            }
+        }
+    }
+
+    public static boolean isPath(String str) {
+        try {
+            Paths.get(str);
+            return true;
+        } catch (InvalidPathException e) {
+            return false;
+        }
+    }
+
+    public static void writeStringToFile(String path,String fileName, String content) throws IOException {
+        File file = new File(path, fileName);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+        writer.write(content);
+        writer.close();
+    }
 }

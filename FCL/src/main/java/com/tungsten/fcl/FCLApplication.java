@@ -7,16 +7,28 @@ import android.os.StrictMode;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
+import com.tungsten.fclauncher.utils.FCLPath;
 import java.lang.ref.WeakReference;
+import java.util.Properties;
 
 public class FCLApplication extends Application implements Application.ActivityLifecycleCallbacks {
     private static WeakReference<Activity> currentActivity;
+    public static Properties appConfig;
 
     @Override
     public void onCreate() {
         // enabledStrictMode();
         super.onCreate();
+
+        /**
+         * properties文件解析必须放到全局Application
+         * 因为Application的onCreate方法只会在程序启动时有且运行一次，适用于全局共享变量数据
+         * 向上和向下传递值时候如果传递的是频繁访问数据可不在经过意图传递数据值
+         * 解决那些频繁分配内存对象导致程序崩溃问题比如Handler...
+        **/
+        FCLPath.loadPaths(this);
+        appConfig = FCLPath.APP_CONFIG_PROPERTIES;
+
         this.registerActivityLifecycleCallbacks(this);
 //        PerfUtil.install();
     }

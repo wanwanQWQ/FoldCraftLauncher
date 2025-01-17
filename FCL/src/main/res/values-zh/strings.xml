@@ -8,9 +8,11 @@
     <string name="splash_permission_settings_msg">您已选择永不授权，请在设置中手动授予存储权限。</string>
 
     <string name="splash_title">欢迎使用 Fold Craft Launcher</string>
-    <string name="splash_eula_error">无法获取用户协议，请检查网络。</string>
+    <string name="splash_eula_error">无法获取用户协议，请检查网络。\n\n您可以稍后前往 github 仓库的 doc 分支查看。</string>
     <string name="splash_eula_next">同意并继续</string>
-    <string name="splash_runtime_title">安装或更新运行环境</string>
+    <string name="splash_game_resource">游戏资源</string>
+    <string name="splash_others">其他文件</string>
+    <string name="splash_runtime_title">安装或更新运行环境\n\n安装完成后需要重启应用才能生效。应用会自动退出，重新打开即可使用。</string>
     <string name="splash_runtime_install">安装 / 更新</string>
 
     <string name="account">账户管理</string>
@@ -23,8 +25,9 @@
     <string name="setting">全局设置</string>
 
     <string name="about">关于</string>
-    <string name="about_sponsor">赞助</string>
-    <string name="about_source">开源</string>
+    <string name="about_a">关于 A</string>
+    <string name="about_b">关于 B</string>
+    <string name="about_c">关于 C</string>
     <string name="about_desc">Fold Craft Launcher 是一个 Android Minecraft 启动器，让用户能够在 Android 设备上启动 Minecraft: Java Edition。\n\nFold Craft Launcher 由 FCL-Team 开发。\n\nFold Craft Launcher 的主要功能是基于 HMCLCore 修改而成的。\n\n该应用借鉴和引用了一些 PojavLauncher 和 Boat 的源码，所以如果你要传播分发该软件，请遵循 GPL-v3 协议。</string>
 
     <string name="account_add_server">添加认证服务器</string>
@@ -90,8 +93,15 @@
     <string name="action_share">分享</string>
     <string name="action_skip">跳过</string>
 
-    <string name="announcement">公告：%s</string>
-    <string name="announcement_significant">此公告为重要公告，隐藏前请确认你已阅读此公告，是否继续隐藏？</string>
+    <string name="announcement">公告</string>
+    <string name="announcement_loading">正在加载公告...</string>
+    <string name="announcement_significant">此公告为重要公告，无法隐藏。</string>
+    <string name="announcement_error_network">公告加载失败：网络问题</string>
+    <string name="announcement_error_network_content">无法加载公告，可能是链接格式有误或远程服务器异常。当前加载链接：</string>
+    <string name="announcement_error_format">公告加载异常：格式错误</string>
+    <string name="announcement_error_format_content">远程文件json格式无效或必要数据类型错误，例如启动器版本不是整数等。原始数据：</string>
+    <string name="announcement_error_data">公告加载异常：数据错误</string>
+    <string name="announcement_error_data_content">远程文件json格式有效，但内容存在问题，例如公告内容既没有当前语言版本也没有null(通用)版本等。原始数据：</string>
 
     <string name="archive_author">作者</string>
     <string name="archive_date">发布时间</string>
@@ -108,7 +118,7 @@
     <string name="button_copy">复制</string>
     <string name="button_download">下载</string>
     <string name="button_export">导出</string>
-    <string name="button_hide">不再显示</string>
+    <string name="button_hide">关闭</string>
     <string name="button_install">安装</string>
     <string name="button_mouse_left">鼠标左键</string>
     <string name="button_mouse_right">鼠标右键</string>
@@ -123,8 +133,11 @@
     <string name="button_reset">重置</string>
 
     <string name="community">社区</string>
-    <string name="community_hint">加入社区以获取最新版本，反馈 bug 等。如果你要加入社区，请遵守社区规定。\n注：由于 QQ 群聊人数有限，加入 QQ 群需先赞助10元或以上金额，赞助方式见关于页面。</string>
-    <string name="community_qq">QQ 群</string>
+    <string name="community_hint">加入社区以获取最新版本，反馈 bug 等。如果你要加入社区，请遵守社区规定。\n注：该启动器为服务器直装版，非官方分支！</string>
+    <string name="community_a">社区 A</string>
+    <string name="community_b">社区 B</string>
+    <string name="community_c">社区 C</string>
+    <string name="community_controller">控制器交流社区</string>
 
     <string name="control_create">创建新布局</string>
     <string name="control_delete">你确定要删除该布局吗？</string>
@@ -133,7 +146,8 @@
     <string name="control_download_history">下载历史版本</string>
     <string name="control_download_history_empty">没有历史版本！</string>
     <string name="control_download_lang_current">当前语言</string>
-    <string name="control_download_source_cn">国内源</string>
+    <string name="control_download_source_github">官方源</string>
+    <string name="control_download_source_cn">直装版</string>
     <string name="control_download_device_phone">手机</string>
     <string name="control_download_device_pad">平板</string>
     <string name="control_download_device_other">其他</string>
@@ -143,7 +157,7 @@
     <string name="control_import_failed">导入布局失败！</string>
     <string name="control_upgrade">布局方案：%s 是一个过时的布局方案，它可能导致一些未知的错误，但我们仍然支持加载它，是否将其迁移至新版？</string>
     <string name="control_incompatible">布局方案：%s 是一个不兼容的布局方案，这可能是由于启动器版本过低或控件版本过低导致的，请检查。</string>
-    <string name="control_upload_requirement">请先加入 QQ 群，然后点击“分享”按键，分享你的控件和基本信息，等待管理员审核。请联系管理员告知你的控件类型。</string>
+    <string name="control_upload_requirement">请先加入交流社区，然后点击“分享”按键，分享你的控件和基本信息，等待管理员审核。请联系管理员告知你的控件类型。</string>
     <string name="control_info_author">作者：</string>
     <string name="control_info_icon">图标：</string>
     <string name="control_info_lang">语言：</string>
@@ -345,7 +359,6 @@
     <string name="folder_config">浏览配置文件夹</string>
     <string name="folder_game">浏览游戏文件夹</string>
     <string name="folder_log">浏览日志文件夹</string>
-    <string name="folder_fcl_log">浏览FCL日志文件夹</string>
     <string name="folder_mod">浏览模组文件夹</string>
     <string name="folder_resourcepacks">浏览资源包文件夹</string>
     <string name="folder_saves">浏览存档文件夹</string>
@@ -447,12 +460,13 @@
     <string name="install_new_game_malformed">无效的名称</string>
     <string name="install_success">安装成功</string>
 
-    <string name="jar_execute">执行 Jar 文件</string>
+    <string name="jar_execute">执行 Jar</string>
     <string name="jar_execute_custom_args">使用自定义参数执行</string>
     <string name="jar_executor_crash_title">Jar Executor 意外退出</string>
     <string name="jar_executor_crash_reason">尚不支持 Jar Executor 崩溃原因分析。</string>
+    <string name="view_fcl_logs">FCL 日志</string>
 
-    <string name="launch">Pojav</string>
+    <string name="launch_pojav">Pojav</string>
     <string name="launch_boat">Boat</string>
     <string name="launch_error_java">你正在使用不推荐的 Java 版本，确定要继续吗？</string>
     <string name="launch_error_java_auto">自动选择</string>
@@ -707,8 +721,6 @@
     <string name="mods_update_modpack_mod_warning">更新整合包中的 Mod 可能导致整合包损坏，使整合包无法正常启动。该操作不可逆，确定要更新吗？</string>
     <string name="mods_screenshot_no_result">没有截图可以展示</string>
 
-    <string name="profile_shared">公有目录</string>
-    <string name="profile_private">私有目录</string>
     <string name="profile_name">名称</string>
     <string name="profile_path">路径</string>
     <string name="profile_select">选择目录</string>
@@ -763,7 +775,7 @@
 
     <string name="settings_launcher">启动器设置</string>
     <string name="settings_launcher_debug">调试</string>
-    <string name="settings_launcher_upgrade">启动器更新</string>
+    <string name="settings_launcher_upgrade">启动器和公告更新</string>
     <string name="settings_launcher_upgrade_check">检测</string>
     <string name="settings_launcher_cache">缓存文件夹</string>
     <string name="settings_launcher_clear_cache">清理缓存</string>
@@ -779,8 +791,8 @@
     <string name="settings_launcher_launcher_log_export_success">日志已被导出至 %s</string>
     <string name="settings_launcher_theme">主题</string>
     <string name="settings_launcher_theme2">主题2</string>
-    <string name="settings_launcher_background_lt">亮色模式启动器背景图片(最大分辨率5120x5120)</string>
-    <string name="settings_launcher_background_dk">暗色模式启动器背景图片(最大分辨率5120x5120)</string>
+    <string name="settings_launcher_background_lt">亮色背景图</string>
+    <string name="settings_launcher_background_dk">暗色背景图</string>
     <string name="settings_launcher_cursor">鼠标图片</string>
     <string name="settings_launcher_menu_icon">菜单键图标</string>
     <string name="settings_launcher_ignore_notch">忽略刘海屏</string>
@@ -870,6 +882,10 @@
     <string name="version_manage_rename_fail">重命名失败</string>
     <string name="version_new_profile">新建目录</string>
     <string name="version_update">更新整合包</string>
+    <string name="version_touch_mod">触控模组</string>
+    <string name="version_touch_mod_enabled">触控模组已启用</string>
+    <string name="version_touch_mod_disabled">触控模组已禁用</string>
+    <string name="version_touch_mod_failed">切换触控模组失败</string>
 
     <string name="view_info_visibility">可视性</string>
     <string name="view_info_visibility_always">总是可见</string>
@@ -959,5 +975,5 @@
     <string name="wiki_release">https://zh.minecraft.wiki/w/Java版%s?variant=zh-cn</string>
     <string name="wiki_snapshot">https://zh.minecraft.wiki/w/%s?variant=zh-cn</string>
     <string name="installed">已安装</string>
-    <string name="message_install_plugin">你可以通过以下方式获取插件。</string>
+    <string name="message_install_plugin">你可以打开插件网页获取插件。</string>
 </resources>

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.view.View;
 
+import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
 import com.tungsten.fclcore.task.Task;
 import com.tungsten.fcllibrary.component.ui.FCLCommonPage;
@@ -13,8 +14,9 @@ import com.tungsten.fcllibrary.component.view.FCLUILayout;
 
 public class CommunityPage extends FCLCommonPage implements View.OnClickListener {
 
-    private FCLLinearLayout discord;
-    private FCLLinearLayout qq;
+    private FCLLinearLayout community_a;
+    private FCLLinearLayout community_b;
+    private FCLLinearLayout community_c;
 
     public CommunityPage(Context context, int id, FCLUILayout parent, int resId) {
         super(context, id, parent, resId);
@@ -23,10 +25,12 @@ public class CommunityPage extends FCLCommonPage implements View.OnClickListener
     @Override
     public void onCreate() {
         super.onCreate();
-        discord = findViewById(R.id.discord);
-        qq = findViewById(R.id.qq);
-        discord.setOnClickListener(this);
-        qq.setOnClickListener(this);
+        community_a = findViewById(R.id.community_a);
+        community_b = findViewById(R.id.community_b);
+        community_c = findViewById(R.id.community_c);
+        community_a.setOnClickListener(this);
+        community_b.setOnClickListener(this);
+        community_c.setOnClickListener(this);
     }
 
     @Override
@@ -36,26 +40,21 @@ public class CommunityPage extends FCLCommonPage implements View.OnClickListener
 
     @Override
     public void onClick(View v) {
-        if (v == discord) {
-            Uri uri = Uri.parse("https://discord.gg/ffhvuXTwyV");
+        Uri uri = null;
+
+        if (v == community_a) {
+            uri = Uri.parse(FCLApplication.appConfig.getProperty("community-a","https://github.com/hyplant-team/FoldCraftLauncher"));
+        }
+        if (v == community_b) {
+            uri = Uri.parse(FCLApplication.appConfig.getProperty("community-b","https://github.com/hyplant-team/FoldCraftLauncher/issues"));
+        }
+        if (v == community_c) {
+            uri = Uri.parse(FCLApplication.appConfig.getProperty("community-c","https://github.com/hyplant-team/FoldCraftLauncher/discussions"));
+        }
+
+if (uri != null) {
             Intent intent = new Intent(Intent.ACTION_VIEW, uri);
             getContext().startActivity(intent);
-        }
-        if (v == qq) {
-            joinQQGroup(QQ_GROUP_KEY);
-        }
-    }
-
-    private final static String QQ_GROUP_KEY = "9_Mnxe5x1l6L7giLuRYQyBh0iWBgCUbw";
-
-    public boolean joinQQGroup(String key) {
-        Intent intent = new Intent();
-        intent.setData(Uri.parse("mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + key));
-        try {
-            getContext().startActivity(intent);
-            return true;
-        } catch (Exception e) {
-            return false;
         }
     }
 }

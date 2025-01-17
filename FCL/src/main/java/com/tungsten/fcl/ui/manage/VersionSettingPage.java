@@ -7,9 +7,8 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 
-import androidx.appcompat.app.AlertDialog;
-
 import com.mio.util.RendererUtil;
+import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.control.SelectControllerDialog;
 import com.tungsten.fcl.game.FCLGameRepository;
@@ -460,46 +459,28 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
             });
         }
         if (view == rendererInstallButton) {
-            new AlertDialog.Builder(getContext())
-                    .setTitle(R.string.message_install_plugin)
-                    .setItems(new String[]{"Github", getContext().getString(R.string.update_netdisk)}, (d, w) -> {
-                        String url = null;
-                        switch (w) {
-                            case 0:
-                                url = "https://github.com/FCL-Team/FCLRendererPlugin/releases/tag/Renderer";
-                                break;
-                            case 1:
-                                url = "https://pan.quark.cn/s/a9f6e9d860d9";
-                                break;
-                        }
-                        if (url != null) {
-                            AndroidUtils.openLink(getContext(), url);
-                        }
-                    })
-                    .setPositiveButton(R.string.button_cancel, null)
-                    .create()
-                    .show();
+            String url = FCLApplication.appConfig.getProperty("renderer-plugin-url","https://github.com/hyplant-team/FCLRendererPlugin/releases/tag/Renderer");
+            FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
+            builder.setAlertLevel(FCLAlertDialog.AlertLevel.INFO);
+            builder.setCancelable(true);
+            builder.setMessage(getContext().getString(R.string.message_install_plugin));
+            builder.setPositiveButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_negative), null);
+            builder.setNegativeButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_positive), () -> {
+                AndroidUtils.openLink(getContext(), url);
+            });
+            builder.create().show();
         }
         if (view == driverInstallButton) {
-            new AlertDialog.Builder(getContext())
-                    .setTitle(R.string.message_install_plugin)
-                    .setItems(new String[]{"Github", getContext().getString(R.string.update_netdisk)}, (d, w) -> {
-                        String url = null;
-                        switch (w) {
-                            case 0:
-                                url = "https://github.com/FCL-Team/FCLDriverPlugin/releases/tag/Turnip";
-                                break;
-                            case 1:
-                                url = "https://pan.quark.cn/s/d87c59695250";
-                                break;
-                        }
-                        if (url != null) {
-                            AndroidUtils.openLink(getContext(), url);
-                        }
-                    })
-                    .setPositiveButton(R.string.button_cancel, null)
-                    .create()
-                    .show();
+            String url = FCLApplication.appConfig.getProperty("driver-plugin-url","https://github.com/hyplant-team/FCLDriverPlugin/releases/tag/Renderer");
+            FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
+            builder.setAlertLevel(FCLAlertDialog.AlertLevel.INFO);
+            builder.setCancelable(true);
+            builder.setMessage(getContext().getString(R.string.message_install_plugin));
+            builder.setPositiveButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_negative), null);
+            builder.setNegativeButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_positive), () -> {
+                AndroidUtils.openLink(getContext(), url);
+            });
+            builder.create().show();
         }
     }
 }
