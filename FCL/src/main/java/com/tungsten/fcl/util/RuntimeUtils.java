@@ -336,7 +336,7 @@ public class RuntimeUtils {
                 if(!config.has("gameDir") || config.get("gameDir") == null || config.get("gameDir").getAsString().equals("")) {
                     config.addProperty("gameDir", FCLPath.SHARED_COMMON_DIR);
                 }
-                config.addProperty("gameDir", setGameDir(config.get("gameDir").getAsString()));
+                config.addProperty("gameDir", processDir(config.get("gameDir").getAsString()));
             }
             // 将修改后的 "configurations" 字段与原始 JSON 字符串中的其他字段合并
             JsonObject mergedJsonObject = new JsonObject();
@@ -355,17 +355,31 @@ public class RuntimeUtils {
         }
     }
 
-    public static String setGameDir(String gameDir) {
-        Map<String, String> replaceGameDir = new HashMap<>();
-        replaceGameDir.put("${INTERNAL_DIR}", FCLPath.INTERNAL_DIR);
-        replaceGameDir.put("${FILES_DIR}", FCLPath.FILES_DIR);
-        replaceGameDir.put("${CACHE_DIR}", FCLPath.CACHE_DIR);
-        replaceGameDir.put("${EXTERNAL_DIR}", FCLPath.EXTERNAL_DIR);
-        replaceGameDir.put("${SHARED_COMMON_DIR}", FCLPath.SHARED_COMMON_DIR);
-        for (Map.Entry<String, String> entry : replaceGameDir.entrySet()) {
-            gameDir = gameDir.replace(entry.getKey(), entry.getValue());
+    public static void deleteOldFiles(Context context) {
+        try {
+            Gson gson = new Gson();
+            JsonArray jsonArray = gson.fromJson(ReadTools.getAssetReader(context, "remove.json"), JsonArray.class);
+            for (int i = 0; i < jsonArray.size(); i++) {
+                String filePath = jsonArray.get(i).getAsString();
+                filePath = processDir(filePath);
+                delete(filePath);
+            }
+        } catch (JsonSyntaxException | JsonIOException e) {
+            throw new RuntimeException(e);
         }
-        return gameDir;
+    }
+
+    public static String processDir(String filePath) {
+        Map<String, String> replaceFilePath = new HashMap<>();
+        replaceFilePath.put("${INTERNAL_DIR}", FCLPath.INTERNAL_DIR);
+        replaceFilePath.put("${FILES_DIR}", FCLPath.FILES_DIR);
+        replaceFilePath.put("${CACHE_DIR}", FCLPath.CACHE_DIR);
+        replaceFilePath.put("${EXTERNAL_DIR}", FCLPath.EXTERNAL_DIR);
+        replaceFilePath.put("${SHARED_COMMON_DIR}", FCLPath.SHARED_COMMON_DIR);
+        for (Map.Entry<String, String> entry : replaceFilePath.entrySet()) {
+            filePath = filePath.replace(entry.getKey(), entry.getValue());
+        }
+        return filePath;
     }
 
     public static void writeStringToFile(String path,String fileName, String content) throws IOException {

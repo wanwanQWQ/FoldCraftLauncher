@@ -196,7 +196,7 @@ public final class Accounts {
 
     @SuppressWarnings("unchecked")
     private static void loadGlobalAccountStorages() {
-        Path globalAccountsFile = new File(FCLPath.FILES_DIR, "accounts.json").toPath();
+        Path globalAccountsFile = new File(FCLPath.EXTERNAL_DIR, "accounts.json").toPath();
         if (Files.exists(globalAccountsFile)) {
             try (Reader reader = Files.newBufferedReader(globalAccountsFile)) {
                 globalAccountStorages.setAll((List<Map<Object, Object>>)
@@ -339,6 +339,10 @@ public final class Accounts {
                     LOG.log(Level.WARNING, "Failed to log " + finalSelected + " in", e);
                 }
             });
+        }
+
+        if (FCLApplication.appProp.getProperty("authlibinjector-upadte", "false").equals("true")) {
+            triggerAuthlibInjectorUpdateCheck();
         }
 
         for (AuthlibInjectorServer server : config().getAuthlibInjectorServers()) {

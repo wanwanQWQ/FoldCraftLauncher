@@ -6,15 +6,20 @@ import android.content.pm.*;
 import android.widget.Toast;
 import com.google.gson.reflect.TypeToken;
 import com.tungsten.fcl.*;
+import com.tungsten.fcl.util.ReadTools;
 import com.tungsten.fclcore.task.*;
 import com.tungsten.fclcore.util.gson.JsonUtils;
 import com.tungsten.fclcore.util.io.NetworkUtils;
+import com.tungsten.fclcore.util.Logging;
+import com.tungsten.fclauncher.utils.FCLPath;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.logging.Level;
 
 public class UpdateChecker {
 
-    public static final String UPDATE_CHECK_URL = FCLApplication.appConfig.getProperty("check-update-url","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/version_map/latest.json");
+    public static final String UPDATE_CHECK_URL = FCLApplication.appProp.getProperty("check-update-url","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/version_map/latest.json");
 
     private static UpdateChecker instance;
 
@@ -50,7 +55,14 @@ public class UpdateChecker {
                 Schedulers.androidUIThread().execute(() -> Toast.makeText(context, context.getString(R.string.update_checking), Toast.LENGTH_SHORT).show());
             }
             try {
-                String res = NetworkUtils.doGet(NetworkUtils.toURL(UPDATE_CHECK_URL));
+                String local_version_map = FCLPath.FILES_DIR + "/debug/version_map.json";
+                String res;
+                if (new File(local_version_map).exists()) {
+                    res = ReadTools.readFileTxt(local_version_map);
+                    Schedulers.androidUIThread().execute(() -> Toast.makeText(context, "DEBUG version_map.json", Toast.LENGTH_SHORT).show());
+                } else {
+                    res = NetworkUtils.doGet(NetworkUtils.toURL(UPDATE_CHECK_URL));
+                }
                 ArrayList<RemoteVersion> versions = JsonUtils.GSON.fromJson(res, new TypeToken<ArrayList<RemoteVersion>>(){}.getType());
                 isChecking = false;
                 for (RemoteVersion version : versions) {
@@ -64,7 +76,7 @@ public class UpdateChecker {
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                Logging.LOG.log(Level.SEVERE, "Unable to check update", e);
             }
             isChecking = false;
             if (showAlert) {

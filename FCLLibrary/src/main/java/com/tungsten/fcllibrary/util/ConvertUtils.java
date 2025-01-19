@@ -1,6 +1,7 @@
 package com.tungsten.fcllibrary.util;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
@@ -9,6 +10,7 @@ import android.util.TypedValue;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.IOException;
 
 public class ConvertUtils {
@@ -55,6 +57,23 @@ public class ConvertUtils {
         return BitmapFactory.decodeResource(context.getResources(), id, options);
     }
 
+    public static Bitmap getBitmapFromAssets(Context context, String imagePath) {
+        try {
+            AssetManager assetManager = context.getAssets();
+            InputStream imageInputStream = assetManager.open(imagePath);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            TypedValue value = new TypedValue();
+            options.inTargetDensity = value.density;
+            options.inScaled = false;
+            return BitmapFactory.decodeStream(imageInputStream, null, options);
+        } catch(IOException e) {
+            e.printStackTrace();
+            Bitmap newBitmap = Bitmap.createBitmap(1024, 1024, Bitmap.Config.ARGB_8888);
+            newBitmap.eraseColor(0xFFFFFFFF);
+            return newBitmap;
+        }
+    }
+
     public static void saveBitmap(Bitmap bitmap, String path) throws IOException {
         File file = new File(path);
         FileOutputStream fileOutputStream = new FileOutputStream(file);
@@ -68,6 +87,14 @@ public class ConvertUtils {
             saveBitmap(bitmap, path);
         }catch(IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static int getIntFromStr(String stringNumber, int defaultInt) {
+        try {
+            return Integer.parseInt(stringNumber);
+        } catch (Exception ignore) {
+            return defaultInt;
         }
     }
 }

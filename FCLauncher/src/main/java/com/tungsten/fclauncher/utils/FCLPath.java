@@ -2,6 +2,7 @@ package com.tungsten.fclauncher.utils;
 
 import android.content.Context;
 import android.os.Environment;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,7 +41,7 @@ public class FCLPath {
     public static String CONTROLLER_DIR;
     public static String LOG_DIR;
 
-    public static Properties APP_CONFIG_PROPERTIES;
+    public static Properties Prop;
 
     public static void loadPaths(Context context) {
         CONTEXT = context;
@@ -51,7 +52,7 @@ public class FCLPath {
         INTERNAL_DIR = new File(FILES_DIR).getParentFile().getAbsolutePath();
         CACHE_DIR = INTERNAL_DIR + "/cache";
 
-        APP_CONFIG_PROPERTIES = loadProp(context);
+        Prop = loadProp(context);
 
         PLUGIN_DIR = FILES_DIR + "/plugins";
         AUTHLIB_INJECTOR_PATH = PLUGIN_DIR + "/authlib-injector.jar";
@@ -72,8 +73,8 @@ public class FCLPath {
         CACIOCAVALLO_11_DIR = RUNTIME_DIR + "/caciocavallo11";
         CACIOCAVALLO_17_DIR = RUNTIME_DIR + "/caciocavallo17";
 
-        EXTERNAL_DIR = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + APP_CONFIG_PROPERTIES.getProperty("put-directory","FCL-Modpack");
-        if (APP_CONFIG_PROPERTIES.getProperty("put-directory-suffix","true").equals("true")) {
+        EXTERNAL_DIR = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + Prop.getProperty("put-directory","FCL-Modpack");
+        if (Prop.getProperty("put-directory-suffix","true").equals("true")) {
             EXTERNAL_DIR = EXTERNAL_DIR + "/" + context.getPackageName().substring("com.tungsten.fcl.".length());
         }
         SHARED_COMMON_DIR = EXTERNAL_DIR + "/.minecraft";
@@ -109,12 +110,13 @@ public class FCLPath {
     }
 
     private static Properties loadProp(Context context) {
-        String local_prop = EXTERNAL_DIR + "local.properties";
+        String local_prop = FILES_DIR + "/debug/local.properties";
         File local_prop_file = new File(local_prop);
         if (local_prop_file.exists()) {
             try (FileInputStream local_prop_stream = new FileInputStream(local_prop_file)) {
                 Properties properties = new Properties();
                 properties.load(local_prop_stream);
+                Toast.makeText(context, "DEBUG local.properties", Toast.LENGTH_SHORT).show();
                 return properties;
             } catch (Exception ignore) {
                 return new PropertiesFileParse("local.properties", context).getProperties();

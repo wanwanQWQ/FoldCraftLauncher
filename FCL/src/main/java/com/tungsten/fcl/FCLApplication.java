@@ -13,7 +13,7 @@ import java.util.Properties;
 
 public class FCLApplication extends Application implements Application.ActivityLifecycleCallbacks {
     private static WeakReference<Activity> currentActivity;
-    public static Properties appConfig;
+    public static Properties appProp;
 
     @Override
     public void onCreate() {
@@ -27,7 +27,7 @@ public class FCLApplication extends Application implements Application.ActivityL
          * 解决那些频繁分配内存对象导致程序崩溃问题比如Handler...
         **/
         FCLPath.loadPaths(this);
-        appConfig = FCLPath.APP_CONFIG_PROPERTIES;
+        appProp = FCLPath.Prop;
 
         this.registerActivityLifecycleCallbacks(this);
 //        PerfUtil.install();

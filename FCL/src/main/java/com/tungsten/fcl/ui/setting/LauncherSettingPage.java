@@ -23,6 +23,7 @@ import com.tungsten.fcl.upgrade.UpdateChecker;
 import com.tungsten.fcl.util.AndroidUtils;
 import com.tungsten.fcl.util.FXUtils;
 import com.tungsten.fcl.util.RequestCodes;
+import com.tungsten.fcl.util.RuntimeUtils;
 import com.tungsten.fclauncher.utils.FCLPath;
 import com.tungsten.fclcore.fakefx.beans.binding.Bindings;
 import com.tungsten.fclcore.task.FetchTask;
@@ -93,6 +94,9 @@ public class LauncherSettingPage extends FCLCommonPage implements View.OnClickLi
 
     public void clearCacheDirs() {
         FileUtils.cleanDirectoryQuietly(new File(FCLPath.CACHE_DIR));
+        FileUtils.deleteDirectoryQuietly(new File(FCLPath.INTERNAL_DIR + "/code_cache"));
+        FileUtils.deleteDirectoryQuietly(new File(FCLPath.INTERNAL_DIR.replaceFirst("user","user_de")));
+        RuntimeUtils.copyAssetsDirToLocalDir(getContext(), "othersInternal/cache", FCLPath.CACHE_DIR);
     }
 
     @Override
@@ -245,7 +249,11 @@ public class LauncherSettingPage extends FCLCommonPage implements View.OnClickLi
             }
         }
         if (v == clearCache) {
-            clearCacheDirs();
+            try {
+                clearCacheDirs();
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "Do NOT delete cache dir in othersInternal!", e);
+            }
         }
         if (v == exportLog) {
             thread(() -> {
@@ -427,11 +435,21 @@ public class LauncherSettingPage extends FCLCommonPage implements View.OnClickLi
             }).start();
         }
         if (v == resetCursor) {
-            new File(FCLPath.FILES_DIR, "cursor.png").delete();
+            try {
+                new File(FCLPath.FILES_DIR, "cursor.png").delete();
+                RuntimeUtils.copyAssetsFileToLocalDir(getContext(), "img/cursor.png", FCLPath.FILES_DIR + "/cursor.png");
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "Unable to get /assets/img/cursor.png from apk!", e);
+            }
         }
         if (v == resetMenuIcon) {
-            new File(FCLPath.FILES_DIR, "menu_icon.png").delete();
-            new File(FCLPath.FILES_DIR, "menu_icon.gif").delete();
+            try {
+                new File(FCLPath.FILES_DIR, "menu_icon.png").delete();
+                new File(FCLPath.FILES_DIR, "menu_icon.gif").delete();
+                RuntimeUtils.copyAssetsDirToLocalDir(getContext(), "img/menu_icon", FCLPath.FILES_DIR);
+             } catch (Exception e) {
+                LOG.log(Level.SEVERE, "Unable to get /assets/img/menu_icon/menu_icon.png (or .gif) from apk!", e);
+            }
         }
     }
 

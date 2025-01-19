@@ -208,6 +208,7 @@ public class CreateAccountDialog extends FCLDialog implements View.OnClickListen
                     }).executor(true);
         };
 
+        cancel.setEnabled(true);
         if (factory instanceof OfflineAccountFactory && username != null && !USERNAME_CHECKER_PATTERN.matcher(username).matches()) {
             FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
             builder.setAlertLevel(FCLAlertDialog.AlertLevel.ALERT);

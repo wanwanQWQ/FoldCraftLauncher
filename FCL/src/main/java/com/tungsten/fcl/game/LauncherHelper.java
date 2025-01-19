@@ -318,13 +318,11 @@ public final class LauncherHelper {
 
             CompletableFuture<JavaVersion> future = new CompletableFuture<>();
             Runnable continueAction = () -> future.complete(javaVersion);
+            Runnable cancelAction = () -> future.completeExceptionally(new CancellationException());
             FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(context);
             builder.setCancelable(false);
             builder.setMessage(context.getString(R.string.launch_error_java));
-            builder.setPositiveButton(context.getString(R.string.launch_error_java_auto), () -> {
-                setting.setJava(JavaVersion.JAVA_AUTO.getVersionName());
-                future.complete(suggestedJavaVersion);
-            });
+            builder.setPositiveButton(context.getString(com.tungsten.fcllibrary.R.string.dialog_negative), cancelAction::run);
             builder.setNegativeButton(context.getString(R.string.launch_error_java_continue), continueAction::run);
             builder.create().show();
             return Task.fromCompletableFuture(future);

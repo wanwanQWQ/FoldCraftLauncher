@@ -33,7 +33,6 @@ public class ReadTools {
         return content.toString().trim();
     }
 
-    // /data/user/0/com.tungsten.fcl/files/version
     public static String readFileTxt(String path){
         StringBuilder content = new StringBuilder();
 

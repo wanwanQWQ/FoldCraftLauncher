@@ -459,7 +459,7 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
             });
         }
         if (view == rendererInstallButton) {
-            String url = FCLApplication.appConfig.getProperty("renderer-plugin-url","https://github.com/hyplant-team/FCLRendererPlugin/releases/tag/Renderer");
+            String url = FCLApplication.appProp.getProperty("renderer-plugin-url","https://github.com/hyplant-team/FCLRendererPlugin/releases/tag/Renderer");
             FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
             builder.setAlertLevel(FCLAlertDialog.AlertLevel.INFO);
             builder.setCancelable(true);
@@ -471,7 +471,7 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
             builder.create().show();
         }
         if (view == driverInstallButton) {
-            String url = FCLApplication.appConfig.getProperty("driver-plugin-url","https://github.com/hyplant-team/FCLDriverPlugin/releases/tag/Renderer");
+            String url = FCLApplication.appProp.getProperty("driver-plugin-url","https://github.com/hyplant-team/FCLDriverPlugin/releases/tag/Renderer");
             FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
             builder.setAlertLevel(FCLAlertDialog.AlertLevel.INFO);
             builder.setCancelable(true);

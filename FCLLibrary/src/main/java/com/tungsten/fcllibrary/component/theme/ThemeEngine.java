@@ -49,7 +49,7 @@ public class ThemeEngine {
             theme = Theme.getTheme(context);
             if (!theme.isModified()) {
                 theme.setColor(getDefaultColor(context));
-                theme.setColor2(getDefaultColor(context));
+                theme.setColor2(getDefaultColor2(context));
             }
             runnables = new HashMap<>();
             initialized = true;
@@ -129,8 +129,8 @@ public class ThemeEngine {
         }
         Bitmap ltBitmap;
         Bitmap dkBitmap;
-        ltBitmap = ImageUtil.load(FCLPath.LT_BACKGROUND_PATH).orElse(ConvertUtils.getBitmapFromRes(context, R.drawable.background_light));
-        dkBitmap = ImageUtil.load(FCLPath.DK_BACKGROUND_PATH).orElse(ConvertUtils.getBitmapFromRes(context, R.drawable.background_dark));
+        ltBitmap = ImageUtil.load(FCLPath.LT_BACKGROUND_PATH).orElse(ConvertUtils.getBitmapFromAssets(context, "img/background/lt.png"));
+        dkBitmap = ImageUtil.load(FCLPath.DK_BACKGROUND_PATH).orElse(ConvertUtils.getBitmapFromAssets(context, "img/background/dk.png"));
         BitmapDrawable lt = new BitmapDrawable(context.getResources(), ltBitmap);
         BitmapDrawable dk = new BitmapDrawable(context.getResources(), dkBitmap);
         theme.setBackgroundLt(lt);
@@ -166,11 +166,11 @@ public class ThemeEngine {
     }
 
     public static int getDefaultColor(Context context) {
-        int color = context.getColor(R.color.default_theme_color);
+        int color = ConvertUtils.getIntFromStr(FCLPath.Prop.getProperty("theme-color", null), -531607472);
         return color;
     }
     public static int getDefaultColor2(Context context) {
-        int color2 = context.getColor(R.color.default_theme_color2);
+        int color2 = ConvertUtils.getIntFromStr(FCLPath.Prop.getProperty("theme-color2", null), -7303024);
         return color2;
     }
 

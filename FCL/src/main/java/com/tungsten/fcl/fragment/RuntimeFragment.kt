@@ -144,6 +144,7 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                 othersProgress.visibility = View.VISIBLE
                 Thread {
                     try {
+                        RuntimeUtils.reloadConfiguration(context)
                         RuntimeUtils.copyAssetsDirToLocalDir(context, "othersExternal", FCLPath.EXTERNAL_DIR)
                         RuntimeUtils.copyAssetsDirToLocalDir(context, "othersInternal", FCLPath.INTERNAL_DIR)
                         others = true
@@ -153,7 +154,7 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                             refreshDrawables()
                             check()
                         }
-                    } catch (e: IOException) {
+                    } catch (e: Exception) {
                         e.printStackTrace()
                     }
                 }.start()
@@ -164,7 +165,7 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
     private fun setNameServer(targetJavaPath:String) {
         FileUtils.writeText(
             File(targetJavaPath + "/resolv.conf"),
-            FCLApplication.appConfig.getProperty("primary-nameserver", "223.5.5.5") + "\n" + FCLApplication.appConfig.getProperty("secondary-nameserver", "8.8.8.8") + "\n"
+            FCLApplication.appProp.getProperty("primary-nameserver", "223.5.5.5") + "\n" + FCLApplication.appProp.getProperty("secondary-nameserver", "8.8.8.8") + "\n"
         )
     }
 
@@ -178,16 +179,9 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                 gameResourceProgress.visibility = View.VISIBLE
                 Thread {
                     try {
-                        var applicationThisGameDirectory = FCLPath.SHARED_COMMON_DIR
-                        var applicationThisDataDirectory = FCLPath.EXTERNAL_DIR + "/minecraft"
-                        // 先刷新配置
-                        RuntimeUtils.reloadConfiguration(context)
-                        // 删除旧数据
-                        RuntimeUtils.delete(applicationThisGameDirectory)
-                        // 在将安装包assets中游戏资源释放到对应目录中
-                        RuntimeUtils.copyAssetsDirToLocalDir(context, ".minecraft", applicationThisGameDirectory)
-                        RuntimeUtils.copyAssetsDirToLocalDir(context, "minecraft", applicationThisDataDirectory)
-                        //设置完成标志
+                        RuntimeUtils.deleteOldFiles(context)
+                        RuntimeUtils.copyAssetsDirToLocalDir(context, ".minecraft", FCLPath.SHARED_COMMON_DIR)
+                        RuntimeUtils.copyAssetsDirToLocalDir(context, "minecraft", FCLPath.EXTERNAL_DIR + "/minecraft")
                         gameResource = true
                         activity?.runOnUiThread {
                             gameResourceState.visibility = View.VISIBLE
@@ -195,7 +189,7 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                             refreshDrawables()
                             check()
                         }
-                    }catch (e: IOException) {
+                    }catch (e: Exception) {
                         e.printStackTrace()
                     }
                 }.start()

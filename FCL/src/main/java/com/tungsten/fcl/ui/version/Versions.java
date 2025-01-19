@@ -226,10 +226,11 @@ public class Versions {
     private static boolean checkVersionForLaunching(Context context, Profile profile, String id) {
         if (id == null || !profile.getRepository().isLoaded() || !profile.getRepository().hasVersion(id)) {
             FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(context);
-            builder.setCancelable(false);
+            builder.setCancelable(true);
             builder.setAlertLevel(FCLAlertDialog.AlertLevel.ALERT);
             builder.setTitle(context.getString(R.string.launch_failed));
             builder.setMessage(context.getString(R.string.version_empty_launch));
+            builder.setPositiveButton(context.getString(com.tungsten.fcllibrary.R.string.dialog_negative), null);
             builder.setNegativeButton(context.getString(com.tungsten.fcllibrary.R.string.dialog_positive), () -> {
                 MainActivity.getInstance().refreshMenuView(null);
                 MainActivity.getInstance().bind.download.setSelected(true);

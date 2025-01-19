@@ -43,13 +43,13 @@ public class CommunityPage extends FCLCommonPage implements View.OnClickListener
         Uri uri = null;
 
         if (v == community_a) {
-            uri = Uri.parse(FCLApplication.appConfig.getProperty("community-a","https://github.com/hyplant-team/FoldCraftLauncher"));
+            uri = Uri.parse(FCLApplication.appProp.getProperty("community-a","https://github.com/hyplant-team/FoldCraftLauncher"));
         }
         if (v == community_b) {
-            uri = Uri.parse(FCLApplication.appConfig.getProperty("community-b","https://github.com/hyplant-team/FoldCraftLauncher/issues"));
+            uri = Uri.parse(FCLApplication.appProp.getProperty("community-b","https://github.com/hyplant-team/FoldCraftLauncher/issues"));
         }
         if (v == community_c) {
-            uri = Uri.parse(FCLApplication.appConfig.getProperty("community-c","https://github.com/hyplant-team/FoldCraftLauncher/discussions"));
+            uri = Uri.parse(FCLApplication.appProp.getProperty("community-c","https://github.com/hyplant-team/FoldCraftLauncher/discussions"));
         }
 
 if (uri != null) {

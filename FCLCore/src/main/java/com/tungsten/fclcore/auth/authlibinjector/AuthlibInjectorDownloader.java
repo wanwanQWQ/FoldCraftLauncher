@@ -24,6 +24,7 @@ import com.google.gson.annotations.SerializedName;
 import com.tungsten.fclcore.download.DownloadProvider;
 import com.tungsten.fclcore.task.FileDownloadTask;
 import com.tungsten.fclcore.util.io.HttpRequest;
+import com.tungsten.fclauncher.utils.FCLPath;
 
 import java.io.IOException;
 import java.net.URL;
@@ -37,7 +38,7 @@ import java.util.logging.Level;
 
 public class AuthlibInjectorDownloader implements AuthlibInjectorArtifactProvider {
 
-    private static final String LATEST_BUILD_URL = "https://authlib-injector.yushi.moe/artifact/latest.json";
+    private static final String LATEST_BUILD_URL = FCLPath.Prop.getProperty("authlibinjector-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/authlibinjector/latest.json");
 
     private final Path artifactLocation;
     private final Supplier<DownloadProvider> downloadProvider;

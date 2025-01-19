@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import androidx.appcompat.widget.LinearLayoutCompat;
 
@@ -20,6 +21,7 @@ import com.tungsten.fcl.R;
 import com.tungsten.fcl.game.TexturesLoader;
 import com.tungsten.fcl.setting.Accounts;
 import com.tungsten.fcl.util.AndroidUtils;
+import com.tungsten.fcl.util.ReadTools;
 import com.tungsten.fclcore.auth.Account;
 import com.tungsten.fclcore.fakefx.beans.property.ObjectProperty;
 import com.tungsten.fclcore.fakefx.beans.property.SimpleObjectProperty;
@@ -37,7 +39,9 @@ import com.tungsten.fcllibrary.component.view.FCLUILayout;
 import com.tungsten.fcllibrary.skin.SkinCanvas;
 import com.tungsten.fcllibrary.skin.SkinRenderer;
 import com.tungsten.fcllibrary.util.LocaleUtils;
+import com.tungsten.fclauncher.utils.FCLPath;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +51,7 @@ import java.util.logging.Level;
 
 public class MainUI extends FCLCommonUI implements View.OnClickListener {
 
-    public static final String ANNOUNCEMENT_URL = FCLApplication.appConfig.getProperty("announcement-url","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/announcement/latest.json");
+    public static final String ANNOUNCEMENT_URL = FCLApplication.appProp.getProperty("announcement-url","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/announcement/latest.json");
 
     private LinearLayoutCompat announcementContainer;
     private LinearLayoutCompat announcementLayout;
@@ -132,7 +136,7 @@ public class MainUI extends FCLCommonUI implements View.OnClickListener {
     }
 
     private void checkAnnouncement() {
-        if(FCLApplication.appConfig.getProperty("enable-announcement","true").equals("true")){
+        if(FCLApplication.appProp.getProperty("enable-announcement","true").equals("true")){
             isChecking = true;
             AtomicReference<String> remoteDataRef = new AtomicReference<>();
             AtomicReference<Announcement> announcementDataRef = new AtomicReference<>();
@@ -143,7 +147,16 @@ public class MainUI extends FCLCommonUI implements View.OnClickListener {
             checkSkinDisplay();
             CompletableFuture<Announcement> future = CompletableFuture.supplyAsync(() -> {
                 try {
-                    String remoteData = NetworkUtils.doGet(NetworkUtils.toURL(ANNOUNCEMENT_URL));
+                    String remoteData;
+                    String local_announcement = FCLPath.FILES_DIR + "/debug/announcement.json";
+                    if (new File(local_announcement).exists()) {
+                        remoteData = ReadTools.readFileTxt(local_announcement);
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(getContext(), "DEBUG announcement.json", Toast.LENGTH_SHORT).show();
+                        });
+                    } else {
+                        remoteData = NetworkUtils.doGet(NetworkUtils.toURL(ANNOUNCEMENT_URL));
+                    }
                     remoteDataRef.set(remoteData);
                 }catch (Exception e) {
                     Logging.LOG.log(Level.WARNING, "Unable to load online announcement", e);

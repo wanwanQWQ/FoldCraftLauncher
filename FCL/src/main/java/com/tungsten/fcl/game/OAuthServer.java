@@ -152,7 +152,7 @@ public final class OAuthServer extends NanoHTTPD implements OAuth.Session {
         @Override
         public void openBrowser(String url) {
             lastlyOpenedURL = url;
-            AndroidUtils.openLinkWithBuiltinWebView(FCLPath.CONTEXT, url);
+            AndroidUtils.openLinkWithPopWebView(FCLPath.CONTEXT, url);
 
             onOpenBrowser.fireEvent(new OpenBrowserEvent(this, url));
         }

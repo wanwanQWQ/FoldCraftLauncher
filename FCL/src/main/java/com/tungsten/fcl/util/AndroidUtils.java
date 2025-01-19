@@ -6,6 +6,7 @@ import static android.os.Build.VERSION.SDK_INT;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentResolver;
@@ -28,8 +29,8 @@ import android.webkit.CookieManager;
 import android.widget.Toast;
 
 import com.tungsten.fcl.R;
+import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.activity.WebActivity;
-import com.tungsten.fclauncher.utils.FCLPath;
 import com.tungsten.fclcore.util.Logging;
 import com.tungsten.fclcore.util.io.FileUtils;
 import com.tungsten.fclcore.util.io.IOUtils;
@@ -38,6 +39,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.*;
 import java.util.Objects;
 import java.util.logging.Level;
 
@@ -58,9 +60,31 @@ public class AndroidUtils {
         context.startActivity(intent);
     }
 
+    public static void openLinkWithPopWebView(Context context, String link) {
+        Uri uri = Uri.parse(link);
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                ActivityOptions options = ActivityOptions.makeBasic();
+                Class<?> windowConfigurationClass = Class.forName("android.app.WindowConfiguration");
+                Field FreeformField = windowConfigurationClass.getField("WINDOWING_MODE_FREEFORM");
+                int Freeform = FreeformField.getInt(null);
+                Method setLaunchWindowingModeMethod = ActivityOptions.class.getMethod("setLaunchWindowingMode", int.class);
+                setLaunchWindowingModeMethod.invoke(options, Freeform);
+                Method setLaunchBoundsMethod = ActivityOptions.class.getMethod("setLaunchBounds", Rect.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                context.startActivity(intent, options.toBundle());
+            } catch (Exception ignore) {
+                context.startActivity(intent);
+            }
+        } else {
+            context.startActivity(intent);
+        }
+    }
+
     public static void copyText(Context context, String text) {
         ClipboardManager clip = (ClipboardManager) context.getSystemService(CLIPBOARD_SERVICE);
-        ClipData data = ClipData.newPlainText(null, text);
+        ClipData data = ClipData.newPlainText(context.getPackageName(), text);
         clip.setPrimaryClip(data);
         Toast.makeText(context, context.getString(R.string.message_copy), Toast.LENGTH_SHORT).show();
     }
@@ -100,7 +124,7 @@ public class AndroidUtils {
     public static int getScreenWidth(Activity context) {
         SharedPreferences sharedPreferences;
         sharedPreferences = context.getSharedPreferences("theme", MODE_PRIVATE);
-        boolean fullscreen = sharedPreferences.getBoolean("fullscreen", FCLPath.APP_CONFIG_PROPERTIES.getProperty("fullscreen", "false").equals("true"));
+        boolean fullscreen = sharedPreferences.getBoolean("fullscreen", FCLApplication.appProp.getProperty("fullscreen", "false").equals("true"));
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Point point = new Point();
         wm.getDefaultDisplay().getRealSize(point);

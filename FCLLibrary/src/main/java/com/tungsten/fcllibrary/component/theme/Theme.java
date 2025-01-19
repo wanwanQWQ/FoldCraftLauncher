@@ -200,15 +200,15 @@ public class Theme {
     public static Theme getTheme(Context context) {
         SharedPreferences sharedPreferences;
         sharedPreferences = context.getSharedPreferences("theme", MODE_PRIVATE);
-        int color = sharedPreferences.getInt("theme_color", context.getColor(R.color.default_theme_color));
-        int color2 = sharedPreferences.getInt("theme_color2", context.getColor(R.color.default_theme_color2));
-        boolean fullscreen = sharedPreferences.getBoolean("fullscreen", FCLPath.APP_CONFIG_PROPERTIES.getProperty("fullscreen", "true").equals("true"));
-        boolean closeSkinModel = sharedPreferences.getBoolean("close_skin_model", FCLPath.APP_CONFIG_PROPERTIES.getProperty("close-skin-model", "true").equals("true"));
+        int color = sharedPreferences.getInt("theme_color", ConvertUtils.getIntFromStr(FCLPath.Prop.getProperty("theme-color", null), -531607472));
+        int color2 = sharedPreferences.getInt("theme_color2", ConvertUtils.getIntFromStr(FCLPath.Prop.getProperty("theme-color2", null), -7303024));
+        boolean fullscreen = sharedPreferences.getBoolean("fullscreen", FCLPath.Prop.getProperty("fullscreen", "true").equals("true"));
+        boolean closeSkinModel = sharedPreferences.getBoolean("close_skin_model", false);
         boolean modified = sharedPreferences.getBoolean("modified", false);
-        int animationSpeed = sharedPreferences.getInt("animation_speed", 3);
-        Bitmap lt = ImageUtil.load(context.getFilesDir().getAbsolutePath() + "/background/lt.png").orElse(ConvertUtils.getBitmapFromRes(context, R.drawable.background_light));
+        int animationSpeed = sharedPreferences.getInt("animation_speed", ConvertUtils.getIntFromStr(FCLPath.Prop.getProperty("animation-speed", null), 0));
+        Bitmap lt = ImageUtil.load(context.getFilesDir().getAbsolutePath() + "/background/lt.png").orElse(ConvertUtils.getBitmapFromAssets(context, "img/background/lt.png"));
         BitmapDrawable backgroundLt = new BitmapDrawable(context.getResources(), lt);
-        Bitmap dk = ImageUtil.load(context.getFilesDir().getAbsolutePath() + "/background/dk.png").orElse(ConvertUtils.getBitmapFromRes(context, R.drawable.background_dark));
+        Bitmap dk = ImageUtil.load(context.getFilesDir().getAbsolutePath() + "/background/dk.png").orElse(ConvertUtils.getBitmapFromAssets(context, "img/background/dk.png"));
         BitmapDrawable backgroundDk = new BitmapDrawable(context.getResources(), dk);
         return new Theme(color, color2, fullscreen, closeSkinModel, animationSpeed, backgroundLt, backgroundDk, modified);
     }
