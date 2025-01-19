@@ -392,7 +392,8 @@ class VersionSetting : Cloneable {
                 vs.isBeGesture = json["beGesture"]?.asBoolean ?: DefaultVersionSetting.getBeGesture()
                 vs.isVKDriverSystem = json["vulkanDriverSystem"]?.asBoolean ?: DefaultVersionSetting.getVulkanDriverSystem()
                 vs.controller = json["controller"]?.asString ?: (DefaultVersionSetting.getController())
-                vs.renderer = FCLConfig.Renderer.entries.toTypedArray()[json["renderer"]?.asInt?: DefaultVersionSetting.getRenderer()]
+                val renderers = FCLConfig.Renderer.entries.toTypedArray()
+                vs.renderer = renderers[json["renderer"]?.asInt?.coerceIn(0, renderers.size - 1) ?: DefaultVersionSetting.getRenderer()]
                 vs.driver = json["driver"]?.asString ?: DefaultVersionSetting.getDriver()
                 vs.isIsolateGameDir = json["isolateGameDir"]?.asBoolean ?: DefaultVersionSetting.getIsolateGameDir()
                 vs.customRenderer = json["customRenderer"]?.asString ?: DefaultVersionSetting.getCustomRenderer()
