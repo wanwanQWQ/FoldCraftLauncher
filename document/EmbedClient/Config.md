@@ -11,58 +11,91 @@
 
 ## config.properties
 
-**APK 中文件位置：**`/assets/config.properties`  
+**APK 中文件位置：**`/assets/local.properties`  
 该文件为 FCL 直装版独有的自定义配置文件，用于调整直装版的某些选项。  
+可调试：如果存在`/data/data/<包名>/files/debug/local.properties`，则会使用本地文件。  
+`announcement.json`和`version_map.json`也支持本地调试，如果存在本地文件，则不会使用下方指定的链接。  
 
 ### 基本格式
 
 ```java-properties
-# 安装到公有目录哪个目录下
+# 安装目录在内部存储的哪个目录下
 # 值必须是英文字符，若需要使用中文目录名称请将中文转成unicode码并填写
-put-directory=FCL-Server
-
-# 是否开启公告界面，若值不是“true”则不开启
-enable-announcement=true
-
-# 公告内容链接[因为公告是在线的所以要一个直链链接读取网页内容]
-# 关于格式说明：请严格按照默认公告链接内的伪Json格式书写，若出现格式问题则会提示"无法获取公告，也许是网络问题"
-announcement-url=https://mirror.ghproxy.com/https://raw.githubusercontent.com/hyplant/FoldCraftLauncher/doc/announcement/latest.json
+put-directory=FCL-Modpack
+# 安装目录是否使用名为包名后缀的子目录，若值不是“true”则不使用
+put-directory-suffix=true
 
 # 第一次运行启动器时显示的EULA信息[因为是在线的所以要一个直链链接读取网页内容]
 # 值必须是英文字符，不能出现非英文字符
-eula-url=https://mirror.ghproxy.com/https://raw.githubusercontent.com/hyplant/FoldCraftLauncher/doc/eula/latest.txt
+eula-url=https://raw.bgithub.xyz/hyplant-team/FoldCraftLauncher/doc/eula/latest.txt
+
+# 是否开启公告界面，若值不是“true”则不开启
+enable-announcement=true
+# 公告内容链接[因为公告是在线的所以要一个直链链接读取网页内容]
+# 关于格式说明：请严格按照默认公告链接内的伪Json格式书写，若出现格式问题则会出现对应异常提示
+announcement-url=https://raw.bgithub.xyz/hyplant-team/FoldCraftLauncher/doc/announcement/latest.json
 
 # 帮助页面文档索引的链接
 # 用于在帮助页面显示文档列表
-doc-index-url=https://mirror.ghproxy.com/https://raw.githubusercontent.com/hyplant/FoldCraftLauncher/doc/document/index.json
-
+doc-index-url=https://raw.bgithub.xyz/hyplant-team/FoldCraftLauncher/doc/document/index.json
 # 帮助页面文档主页的链接
 # 点击帮助页面的按钮会前往这个链接
-doc-home-url=https://github.com/hyplant/FoldCraftLauncher/tree/doc/document
+doc-home-url=https://github.com/hyplant-team/FoldCraftLauncher/tree/doc/document
 
-# QQ群Key
-# 去这里申请Key：https://qun.qq.com/#/handy-tool/join-group
-# 获得的key前面加前缀：mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D
-qq-group-key=about:blank
-
-# Discord链接
-# 值必须是英文字符，不能出现非英文字符
-discord=about:blank
+# 控制器仓库的链接
+# 下方两个链接分别对应原版中的国际源和国内源
+# 直装版建议分别修改为官方源和自定义仓库
+# 源码res或apk的resources.arsc中可修改显示名称
+# 分别为control_download_source_a和control_download_source_b
+controller-repo-a=https://raw.bgithub.xyz/hyplant-team/FoldCraftLauncher/doc/controllerRepoCN/
+controller-repo-b=https://raw.bgithub.xyz/hyplant-team/FoldCraftLauncher/doc/controllerRepo/
+# 控制器交流群链接
+community-controller=https://github.com/hyplant-team/FoldCraftLauncher/discussions/36
 
 # 每次打开启动器是否在线检测更新，若值不是“true”则不检测
 check-update=true
-
 # 启动器检查更新链接地址，需要先开启check-update选项后该功能才有效
 # 若需要更改链接请确保必须和原连接内json格式一致，若格式不一致会导致启动器会闪退！！！
 # 值必须是英文字符，不能出现非英文字符
-check-update-url=https://mirror.ghproxy.com/https://raw.githubusercontent.com/hyplant/FoldCraftLauncher/doc/version_map/latest.json
+check-update-url=https://raw.bgithub.xyz/hyplant-team/FoldCraftLauncher/doc/version_map/latest.json
+
+# 是否允许authlib injector在线更新，若值不是“true”则不更新
+authlibinjector-update=false
+# authlib injector更新信息链接
+authlibinjector-url=https://authlib-injector.yushi.moe/artifact/latest.json
+
+# 关于页面的三个链接
+# 源码res或apk的resources.arsc中可修改显示名称
+# 分别为about_a/b/c
+about-a=https://github.com/hyplant-team/FoldCraftLauncher
+about-b=https://github.com/hyplant-team/FoldCraftLauncher/actions
+about-c=https://github.com/hyplant-team/FoldCraftLauncher/pulls
+
+# 社区页面的三个链接
+# 源码res或apk的resources.arsc中可修改显示名称
+# 分别为community_a/b/c
+community-a=https://github.com/hyplant-team/FoldCraftLauncher
+community-b=https://github.com/hyplant-team/FoldCraftLauncher/issues
+community-c=https://github.com/hyplant-team/FoldCraftLauncher/discussions
+
+# 渲染器和驱动插件的链接
+renderer-plugin-url=https://github.com/FCL-Team/FCLRendererPlugin/releases/tag/Renderer
+driver-plugin-url=https://github.com/FCL-Team/FCLDriverPlugin/releases/tag/Turnip
 
 # NS服务器地址
 primary-nameserver=223.5.5.5
 secondary-nameserver=8.8.8.8
 
-# 是否忽略刘海屏，若值不是“true”则不忽略
+# 默认主题颜色和文本颜色
+# 必须使用32位整数表示，按照ARGB格式的16进制颜色转换
+theme-color=-531607472
+theme-color2=-7303024
+# 是否默认忽略刘海屏，若值不是“true”则不忽略
 fullscreen=false
+# 是否默认关闭主界面人物模型。若值不是“true”则不关闭
+close-skin-model=false
+# 默认动画速度，必须为整数0~10
+animation-speed=0
 ```
 
 <div><br></div>
@@ -74,7 +107,7 @@ fullscreen=false
 
 ### 基本格式
 
-```json
+```json5
 {
   "accounts": [], //默认添加的账号。但不建议在此处添加，建议使用 accounts.json。
   "authlibInjectorServers": [ //默认添加的自定义第三方登录服务器。
@@ -104,7 +137,8 @@ fullscreen=false
         "beGesture": false, //是否启用基岩版触控手势。
         "vulkanDriverSystem": false, //vulkan 渲染器是否使用系统驱动。
         "controller": "Default", //默认的控制器。
-        "renderer": 4, //默认的渲染，可设为 [0, 5] 之间的整数，对应启动器中的渲染器列表。
+        "renderer": 3, //默认的渲染，可设为 [0, 5] 之间的整数，对应启动器中的渲染器列表。
+        "driver": "Turnip", //默认的驱动。
         "isolateGameDir": false //是否开启游戏目录隔离。
       },
       "selectedMinecraftVersion": "", //当前选中的游戏版本，建议留空以自动识别。
@@ -134,7 +168,7 @@ fullscreen=false
 
 ## accounts.json
 
-**APK 中文件位置：**`/assets/othersInternal/files/accounts.json`  
+**APK 中文件位置：**`/assets/othersExternal/accounts.json`  
 此文件用于保存启动器中添加的账户。
 
 ### 基本格式
@@ -258,7 +292,7 @@ fullscreen=false
 ## .bashrc
 
 **APK 中文件位置：**`/assets/othersInternal/.bashrc`  
-每次进入 fcl shell （长按**启动游戏**按钮，或进入应用程序信息中的**应用内设置**）时  
+每次进入 fcl shell （长按**FCL日志**按钮，或进入应用程序信息中的**应用内设置**）时  
 会自动运行此文件中的命令。
 
 ### 基本格式
@@ -275,11 +309,30 @@ echo "Here is the shell command line!"
 
 ## global_config.json
 
-**APK 中文件位置：**`/assets/othersInternal/files/global_config.json`  
-**该文件作用未知！**
+**APK 中文件位置：**`/assets/othersInternal/files/default_config.json`  
+**同上方 config.json**
 
 ### 基本格式
 
-```json
-{}
+```json5
+{
+  "javaArgs": "",
+  "minecraftArgs": "",
+  "maxMemory": 4096,
+  "autoMemory": true,
+  "permSize": "",
+  "serverIp": "",
+  "java": "Auto",
+  "scaleFactor": 1.0,
+  "notCheckGame": false,
+  "notCheckJVM": true,
+  "beGesture": false,
+  "vulkanDriverSystem": false,
+  "controller": "00000000",
+  "renderer": 3,
+  "driver": "Turnip",
+  "isolateGameDir": false,
+  "customRenderer": "",
+  "pojavBigCore": false
+}
 ```
