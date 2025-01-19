@@ -23,7 +23,7 @@ public class FCLService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        // FCLPath.loadPaths(this);
+        FCLPath.loadPaths(this);
         ThemeEngine.getInstance().setupThemeEngine(this);
         return super.onStartCommand(intent, flags, startId);
     }
