@@ -26,7 +26,7 @@ public class DefaultVersionSetting {
     private static boolean beGesture = false;
     private static boolean vulkanDriverSystem = false;
     private static String controller = "00000000";
-    private static int renderer = 3;
+    private static int renderer = 0;
     private static String driver = "Turnip";
     private static boolean isolateGameDir = false;
     private static String customRenderer = "";

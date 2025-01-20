@@ -27,7 +27,7 @@
         "beGesture": false,
         "vulkanDriverSystem": false,
         "controller": "",
-        "renderer": 4,
+        "renderer": 0,
         "driver": "Turnip",
         "isolateGameDir": false,
         "customRenderer": "",
