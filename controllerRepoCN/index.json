@@ -4,99 +4,55 @@
     "lang": "all",
     "name": "Default",
     "introduction": "Default controller of Fold Craft Launcher.",
-    "device": [
-      0,
-      1,
-      2
-    ],
-    "categories": [
-      1,
-      101
-    ]
+    "device": [0, 1, 2],
+    "categories": [1, 101]
   },
   {
     "id": "9329f2ce",
     "lang": "all",
     "name": "HMCL-PE Default",
     "introduction": "HMCL-PE Default controller for Fold Craft Launcher.",
-    "device": [
-      0,
-      1,
-      2
-    ],
-    "categories": [
-      1,
-      6,
-      101
-    ]
+    "device": [0, 1, 2],
+    "categories": [1, 5, 101]
   },
   {
     "id": "f9b80a8f",
     "lang": "all",
-    "name": "Default_root-S7",
-    "introduction": "多人游戏基本布局（服务器直装版基础按键）",
-    "device": [
-      0,
-      1,
-      2
-    ],
-    "categories": [
-      1,
-      2,
-      6
-    ]
+    "name": "FCL Server Default",
+    "introduction": "服务器直装版基础按键 - 修改版",
+    "device": [0, 1, 2],
+    "categories": [1, 2, 5]
   },
   {
     "id": "91a8c076",
     "lang": "all",
     "name": "HY:Pojav-lite",
     "introduction": "和 Pojav Launcher 的默认控制器几乎一模一样。",
-    "device": [
-      0
-    ],
-    "categories": [
-      100,
-      2
-    ]
+    "device": [0],
+    "categories": [100, 2]
   },
   {
     "id": "6b13be19",
     "lang": "all",
     "name": "HY:Pojav-lite_4:3",
     "introduction": "和 Pojav Launcher 的默认控制器几乎一模一样。\n适用于平板、小屏手机等4:3屏幕的设备。",
-    "device": [
-      1,
-      2
-    ],
-    "categories": [
-      100,
-      2
-    ]
+    "device": [1, 2],
+    "categories": [100, 2]
   },
   {
     "id": "c7fa40ea",
     "lang": "all",
     "name": "HyController",
     "introduction": "Hyplant's Pojav-like controller for Fold Craft Launcher.",
-    "device": [
-      0
-    ],
-    "categories": [
-      2
-    ]
+    "device": [0],
+    "categories": [2]
   },
   {
     "id": "2f0ceac4",
     "lang": "zh_CN",
     "name": "HY:FCL-JarExecutor",
     "introduction": "根据 FCL Jar 运行器界面制作，适用于文本编辑界面。",
-    "device": [
-      0,
-      1,
-      2
-    ],
-    "categories": [
-      1
-    ]
+    "device": [0, 1, 2],
+    "categories": [1]
   }
 ]

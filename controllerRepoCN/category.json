@@ -43,11 +43,11 @@
     "lang": [
       {
         "locale": "en",
-        "text": "Modpack"
+        "text": "Mods/Modpack"
       },
       {
         "locale": "zh_CN",
-        "text": "整合包"
+        "text": "模组/整合包"
       }
     ]
   },
@@ -56,16 +56,16 @@
     "lang": [
       {
         "locale": "en",
-        "text": "BE style"
+        "text": "imitation"
       },
       {
         "locale": "zh_CN",
-        "text": "基岩版"
+        "text": "仿制"
       }
     ]
   },
   {
-    "id": 6,
+    "id": 5,
     "lang": [
       {
         "locale": "en",

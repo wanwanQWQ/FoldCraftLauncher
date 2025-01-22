@@ -1,12 +1,16 @@
 {
   "screenshot": 3,
-  "description": "多人游戏基本布局（服务器直装版基础按键）\n2.4.0 - 全键盘增加更多功能按钮，新增文本编辑十字键，全键盘T不再打开键盘",
-  "author": "root-S7",
+  "description": "多人游戏基本布局（服务器直装版基础按键） - 修改版\n2.4.1 - 微调按键位置防误触",
+  "author": "root-S7 & hyplant",
   "latest": {
-    "versionCode": 6,
-    "versionName": "2.4.0"
+    "versionCode": 7,
+    "versionName": "2.4.1"
   },
   "history": [
+    {
+      "versionCode": 6,
+      "versionName": "2.4.0 - 全键盘增加更多功能按钮，新增文本编辑十字键，全键盘T不再打开键盘"
+    },
     {
       "versionCode": 5,
       "versionName": "2.3.1 - 新增鼠标按钮，改善按钮能见度"
