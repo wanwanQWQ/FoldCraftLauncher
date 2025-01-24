@@ -13,7 +13,8 @@ import java.util.Properties;
 
 public class FCLApplication extends Application implements Application.ActivityLifecycleCallbacks {
     private static WeakReference<Activity> currentActivity;
-    public static Properties appProp;
+
+    public static Properties Prop;
 
     @Override
     public void onCreate() {
@@ -26,8 +27,8 @@ public class FCLApplication extends Application implements Application.ActivityL
          * 向上和向下传递值时候如果传递的是频繁访问数据可不在经过意图传递数据值
          * 解决那些频繁分配内存对象导致程序崩溃问题比如Handler...
         **/
-        FCLPath.loadPaths(this);
-        appProp = FCLPath.Prop;
+        FCLPath.loadProp(this);
+        Prop = FCLPath.Prop;
 
         this.registerActivityLifecycleCallbacks(this);
 //        PerfUtil.install();

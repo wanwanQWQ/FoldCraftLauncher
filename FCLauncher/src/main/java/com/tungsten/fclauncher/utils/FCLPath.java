@@ -52,8 +52,6 @@ public class FCLPath {
         INTERNAL_DIR = new File(FILES_DIR).getParentFile().getAbsolutePath();
         CACHE_DIR = INTERNAL_DIR + "/cache";
 
-        Prop = loadProp(context);
-
         PLUGIN_DIR = FILES_DIR + "/plugins";
         AUTHLIB_INJECTOR_PATH = PLUGIN_DIR + "/authlib-injector.jar";
         LIB_FIXER_PATH = PLUGIN_DIR + "/MioLibFixer.jar";
@@ -109,20 +107,18 @@ public class FCLPath {
         return true;
     }
 
-    private static Properties loadProp(Context context) {
-        String local_prop = FILES_DIR + "/debug/local.properties";
-        File local_prop_file = new File(local_prop);
-        if (local_prop_file.exists()) {
-            try (FileInputStream local_prop_stream = new FileInputStream(local_prop_file)) {
-                Properties properties = new Properties();
-                properties.load(local_prop_stream);
+    public static void loadProp(Context context) {
+        File local_prop = new File(FILES_DIR + "/debug/local.properties");
+        try {
+            if (local_prop.exists()) {
                 Toast.makeText(context, "DEBUG local.properties", Toast.LENGTH_SHORT).show();
-                return properties;
-            } catch (Exception ignore) {
-                return new PropertiesFileParse("local.properties", context).getProperties();
+                Prop = new PropertiesFileParse(FILES_DIR + "/debug/local.properties").get();
+                return;
             }
-        } else {
-            return new PropertiesFileParse("local.properties", context).getProperties();
+            Prop = new PropertiesFileParse("local.properties", context).get();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Prop = new Properties();
         }
     }
 

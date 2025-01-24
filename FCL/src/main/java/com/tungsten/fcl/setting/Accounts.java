@@ -341,7 +341,7 @@ public final class Accounts {
             });
         }
 
-        if (FCLApplication.appProp.getProperty("authlibinjector-upadte", "false").equals("true")) {
+        if (FCLApplication.Prop.getProperty("authlibinjector-update", "false").equals("true")) {
             triggerAuthlibInjectorUpdateCheck();
         }
 

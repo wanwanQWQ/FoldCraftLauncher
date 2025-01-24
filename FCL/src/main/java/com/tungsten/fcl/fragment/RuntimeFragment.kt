@@ -17,11 +17,13 @@ import com.tungsten.fcl.util.RuntimeUtils
 import com.tungsten.fclauncher.utils.FCLPath
 import com.tungsten.fclcore.task.Schedulers
 import com.tungsten.fclcore.util.io.FileUtils
+import com.tungsten.fclcore.util.Logging
 import com.tungsten.fcllibrary.component.FCLFragment
 import com.tungsten.fcllibrary.util.LocaleUtils
 import java.io.File
 import java.io.IOException
 import java.util.Locale
+import java.util.logging.Level
 
 class RuntimeFragment : FCLFragment(), View.OnClickListener {
     private lateinit var bind: FragmentRuntimeBinding
@@ -88,7 +90,7 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
             gameResource = RuntimeUtils.isLatest(FCLPath.SHARED_COMMON_DIR, "/assets/.minecraft")
             others = RuntimeUtils.isLatest(FCLPath.INTERNAL_DIR, "/assets/othersInternal")
         } catch (e: IOException) {
-            e.printStackTrace()
+            Logging.LOG.log(Level.SEVERE, "Unable to check runtime version", e)
         }
     }
 
@@ -155,18 +157,11 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                             check()
                         }
                     } catch (e: Exception) {
-                        e.printStackTrace()
+                        Logging.LOG.log(Level.SEVERE, "Failed to install other resource", e)
                     }
                 }.start()
             }
         }
-    }
-
-    private fun setNameServer(targetJavaPath:String) {
-        FileUtils.writeText(
-            File(targetJavaPath + "/resolv.conf"),
-            FCLApplication.appProp.getProperty("primary-nameserver", "223.5.5.5") + "\n" + FCLApplication.appProp.getProperty("secondary-nameserver", "8.8.8.8") + "\n"
-        )
     }
 
     private var installing = false
@@ -190,7 +185,7 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                             check()
                         }
                     }catch (e: Exception) {
-                        e.printStackTrace()
+                        Logging.LOG.log(Level.SEVERE, "Failed to install game resource", e)
                     }
                 }.start()
             }
@@ -207,7 +202,7 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                         )
                         lwjgl = true
                     } catch (e: IOException) {
-                        e.printStackTrace()
+                        Logging.LOG.log(Level.SEVERE, "Failed to install lwjgl", e)
                     }
                     activity?.runOnUiThread {
                         lwjglState.visibility = View.VISIBLE
@@ -229,7 +224,7 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                         )
                         cacio = true
                     } catch (e: IOException) {
-                        e.printStackTrace()
+                        Logging.LOG.log(Level.SEVERE, "Failed to install caciocavallo", e)
                     }
                     activity?.runOnUiThread {
                         cacioState.visibility = View.VISIBLE
@@ -251,7 +246,7 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                         )
                         cacio11 = true
                     } catch (e: IOException) {
-                        e.printStackTrace()
+                        Logging.LOG.log(Level.SEVERE, "Failed to install caciocavallo11", e)
                     }
                     activity?.runOnUiThread {
                         cacio11State.visibility = View.VISIBLE
@@ -273,7 +268,7 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                         )
                         cacio17 = true
                     } catch (e: IOException) {
-                        e.printStackTrace()
+                        Logging.LOG.log(Level.SEVERE, "Failed to install caciocavallo17", e)
                     }
                     activity?.runOnUiThread {
                         cacio17State.visibility = View.VISIBLE
@@ -293,10 +288,9 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                             FCLPath.JAVA_8_PATH,
                             "app_runtime/java/jre8"
                         )
-                        setNameServer(FCLPath.JAVA_8_PATH)
                         java8 = true
                     } catch (e: IOException) {
-                        e.printStackTrace()
+                        Logging.LOG.log(Level.SEVERE, "Failed to install java8", e)
                     }
                     activity?.runOnUiThread {
                         java8State.visibility = View.VISIBLE
@@ -316,10 +310,9 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                             FCLPath.JAVA_11_PATH,
                             "app_runtime/java/jre11"
                         )
-                        setNameServer(FCLPath.JAVA_11_PATH)
                         java11 = true
                     } catch (e: IOException) {
-                        e.printStackTrace()
+                        Logging.LOG.log(Level.SEVERE, "Failed to install java11", e)
                     }
                     activity?.runOnUiThread {
                         java11State.visibility = View.VISIBLE
@@ -339,10 +332,9 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                             FCLPath.JAVA_17_PATH,
                             "app_runtime/java/jre17"
                         )
-                        setNameServer(FCLPath.JAVA_17_PATH)
                         java17 = true
                     } catch (e: IOException) {
-                        e.printStackTrace()
+                        Logging.LOG.log(Level.SEVERE, "Failed to install java17", e)
                     }
                     activity?.runOnUiThread {
                         java17State.visibility = View.VISIBLE
@@ -362,10 +354,9 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                             FCLPath.JAVA_21_PATH,
                             "app_runtime/java/jre21"
                         )
-                        setNameServer(FCLPath.JAVA_21_PATH)
                         java21 = true
                     } catch (e: IOException) {
-                        e.printStackTrace()
+                        Logging.LOG.log(Level.SEVERE, "Failed to install java21", e)
                     }
                     activity?.runOnUiThread {
                         java21State.visibility = View.VISIBLE
@@ -387,7 +378,7 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                         )
                         jna = true
                     } catch (e: IOException) {
-                        e.printStackTrace()
+                        Logging.LOG.log(Level.SEVERE, "Failed to install jna", e)
                     }
                     activity?.runOnUiThread {
                         jnaState.visibility = View.VISIBLE

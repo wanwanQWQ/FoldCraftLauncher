@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 public class RuntimeUtils {
 
@@ -179,6 +180,7 @@ public class RuntimeUtils {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void patchJava(Context context, String javaPath) throws IOException {
+        copyAssets(context, "resolv.conf", javaPath + "/resolv.conf");
         Pack200Utils.unpack(context.getApplicationInfo().nativeLibraryDir, javaPath);
         File dest = new File(javaPath);
         if(!dest.exists())
@@ -370,6 +372,7 @@ public class RuntimeUtils {
     }
 
     public static String processDir(String filePath) {
+        if (!filePath.startsWith("$"))  return filePath;
         Map<String, String> replaceFilePath = new HashMap<>();
         replaceFilePath.put("${INTERNAL_DIR}", FCLPath.INTERNAL_DIR);
         replaceFilePath.put("${FILES_DIR}", FCLPath.FILES_DIR);
@@ -377,7 +380,10 @@ public class RuntimeUtils {
         replaceFilePath.put("${EXTERNAL_DIR}", FCLPath.EXTERNAL_DIR);
         replaceFilePath.put("${SHARED_COMMON_DIR}", FCLPath.SHARED_COMMON_DIR);
         for (Map.Entry<String, String> entry : replaceFilePath.entrySet()) {
-            filePath = filePath.replace(entry.getKey(), entry.getValue());
+            if (filePath.startsWith(entry.getKey())) {
+                filePath = filePath.replaceFirst(Pattern.quote(entry.getKey()), entry.getValue());
+                break;
+            }
         }
         return filePath;
     }

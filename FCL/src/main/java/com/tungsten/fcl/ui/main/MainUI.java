@@ -51,7 +51,7 @@ import java.util.logging.Level;
 
 public class MainUI extends FCLCommonUI implements View.OnClickListener {
 
-    public static final String ANNOUNCEMENT_URL = FCLApplication.appProp.getProperty("announcement-url","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/announcement/latest.json");
+    public static final String ANNOUNCEMENT_URL = FCLApplication.Prop.getProperty("announcement-url","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/announcement/latest.json");
 
     private LinearLayoutCompat announcementContainer;
     private LinearLayoutCompat announcementLayout;
@@ -136,7 +136,7 @@ public class MainUI extends FCLCommonUI implements View.OnClickListener {
     }
 
     private void checkAnnouncement() {
-        if(FCLApplication.appProp.getProperty("enable-announcement","true").equals("true")){
+        if(FCLApplication.Prop.getProperty("enable-announcement","true").equals("true")){
             isChecking = true;
             AtomicReference<String> remoteDataRef = new AtomicReference<>();
             AtomicReference<Announcement> announcementDataRef = new AtomicReference<>();

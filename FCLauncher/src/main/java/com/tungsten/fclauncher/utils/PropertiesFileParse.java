@@ -9,12 +9,11 @@ import java.util.*;
 public class PropertiesFileParse {
 
     private final Properties properties;
-    private final InputStream in;
 
     public PropertiesFileParse(String propertiesFileName, Context context) {
         properties = new Properties();
         try {
-            in = context.getAssets().open(propertiesFileName);
+            InputStream in = context.getAssets().open(propertiesFileName);
             properties.load(in);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -24,13 +23,14 @@ public class PropertiesFileParse {
     public PropertiesFileParse(String propertiesFile) {
         properties = new Properties();
         try {
-            in = new BufferedInputStream(Files.newInputStream(Paths.get(propertiesFile)));
+            FileInputStream in = new FileInputStream(propertiesFile);
             properties.load(in);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-    public Properties getProperties() {
+
+    public Properties get() {
         return properties;
     }
 

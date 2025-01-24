@@ -63,8 +63,8 @@ import java.util.stream.Collectors;
 
 public class ControllerRepoPage extends FCLCommonPage implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
-    public static final String CONTROLLER_REPO_A = FCLApplication.appProp.getProperty("controller-repo-a","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/controllerRepoA/");
-    public static final String CONTROLLER_REPO_B = FCLApplication.appProp.getProperty("controller-repo-b","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/controllerRepoB/");
+    public static final String CONTROLLER_REPO_A = FCLApplication.Prop.getProperty("controller-repo-a","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/controllerRepoA/");
+    public static final String CONTROLLER_REPO_B = FCLApplication.Prop.getProperty("controller-repo-b","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/controllerRepoB/");
 
     private final ObjectProperty<ControllerCategory> categoryProperty = new SimpleObjectProperty<>(new ControllerCategory(0, null));
     private boolean refreshCategory = true;
