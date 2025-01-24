@@ -39,9 +39,9 @@ android {
         }
         applicationId "com.tungsten.fcl." + pkgSuffix
         minSdk 26
-        targetSdk 34
-        versionCode 1201
-        versionName "1.2.0.1"
+        targetSdk 28
+        versionCode 120201
+        versionName "1.2.0.2-1"
 
         resValue "string", "app_name", "Fold Craft Launcher " + pkgSuffix
         resValue "string", "app_version", "${defaultConfig.versionName}"

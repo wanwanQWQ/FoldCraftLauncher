@@ -1,5 +1,7 @@
 #!/system/bin/sh
-fclLang="$(cat "${FCL_PATH_INTERNAL}/shared_prefs/launcher.xml" | grep "name=\"lang\"")"
+if [[ -f "${FCL_PATH_INTERNAL}/shared_prefs/launcher.xml" ]]; then
+  fclLang="$(cat "${FCL_PATH_INTERNAL}/shared_prefs/launcher.xml" | grep "name=\"lang\"")"
+fi
 if [[ "${fclLang}" != "" ]]; then
   fclLang=${fclLang/#    <int name=\"lang\" value=\"/}
   fclLang=${fclLang/%\" \/>/}

@@ -1,5 +1,7 @@
 #!/system/bin/sh
-theme_data="$(cat "${FCL_PATH_INTERNAL}/shared_prefs/theme.xml")"
+if [[ -f "${FCL_PATH_INTERNAL}/shared_prefs/theme.xml" ]]; then
+  theme_data="$(cat "${FCL_PATH_INTERNAL}/shared_prefs/theme.xml")"
+fi
 
 theme_color="$(echo -n "${theme_data}" | grep "<int name=\"theme_color\"")"
 if [[ "${theme_color}" != "" ]]; then

@@ -8,6 +8,5 @@ Args:\n\
         display this help and exit\n\
     -v, --version\n\
         output version information and exit"
-lang_help_version="FCL othersInternal version: "
-lang_help_title="FCL othersInternal commands:"
+lang_help_title="FCL internal commands:"
 lang_help_content="use '<command> --help' to get the help of a specific command."
