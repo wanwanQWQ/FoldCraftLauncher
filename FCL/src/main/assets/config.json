@@ -33,7 +33,7 @@
         "customRenderer": "",
         "pojavBigCore": false
       },
-      "gameDir": ""
+      "gameDir": "${SHARED_COMMON_DIR}"
     }
   },
   "downloadThreads": 64,

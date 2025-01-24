@@ -24,3 +24,4 @@ else
   FCL_CONF_LANG="${FCL_CONF_LANG:0:2}"
 fi
 export FCL_CONF_LANG="${FCL_CONF_LANG}"
+unset fclLang

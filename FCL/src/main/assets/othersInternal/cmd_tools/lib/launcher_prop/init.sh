@@ -24,7 +24,7 @@ else
   if [[ "${dirSuffix}" == "true" ]]; then
     export FCL_PATH_EXTERNAL="${FCL_PATH_EXTERNAL}/${FCL_CONF_PKGID/#com.tungsten.fcl./}"
   fi
-  unset dirSuffux
+  unset dirSuffix
   unset appCfg
 
   nsCfg="$(unzip -p "${FCL_PATH_PKG}" "assets/resolv.conf")"
@@ -32,5 +32,6 @@ else
   export FCL_CONF_NSa="$(echo -n "${FCL_CONF_NSa}" | tr -d "\n")"
   FCL_CONF_NSb="$(echo -n "${nsCfg}" | sed -n "2p")"
   export FCL_CONF_NSb="$(echo -n "${FCL_CONF_NSb}" | tr -d "\n")"
+  unset nsCfg
 fi
 unset pkgs
