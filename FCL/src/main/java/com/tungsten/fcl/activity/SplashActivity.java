@@ -35,7 +35,9 @@ import com.tungsten.fcllibrary.component.ResultListener;
 import com.tungsten.fcllibrary.component.dialog.FCLAlertDialog;
 import com.tungsten.fcllibrary.component.theme.ThemeEngine;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -109,7 +111,8 @@ public class SplashActivity extends FCLActivity {
 
     public void start() {
         SharedPreferences sharedPreferences = getSharedPreferences("launcher", MODE_PRIVATE);
-        if (sharedPreferences.getBoolean("is_first_launch", true)) {
+        String local_eula = FCLPath.FILES_DIR + "/debug/eula.txt";
+        if (new File(local_eula).exists() || sharedPreferences.getBoolean("is_first_launch", true)) {
             getSupportFragmentManager().beginTransaction().setCustomAnimations(R.anim.frag_start_anim, R.anim.frag_stop_anim).replace(R.id.fragment, EulaFragment.class, null).commit();
         } else {
             getSupportFragmentManager().beginTransaction().setCustomAnimations(R.anim.frag_start_anim, R.anim.frag_stop_anim).replace(R.id.fragment, RuntimeFragment.class, null).commit();

@@ -108,11 +108,11 @@ public class FCLPath {
     }
 
     public static void loadProp(Context context) {
-        File local_prop = new File(FILES_DIR + "/debug/local.properties");
+        File local_prop = new File(context.getFilesDir().getAbsolutePath() + "/debug/local.properties");
         try {
             if (local_prop.exists()) {
+                Prop = new PropertiesFileParse(context.getFilesDir().getAbsolutePath() + "/debug/local.properties").get();
                 Toast.makeText(context, "DEBUG local.properties", Toast.LENGTH_SHORT).show();
-                Prop = new PropertiesFileParse(FILES_DIR + "/debug/local.properties").get();
                 return;
             }
             Prop = new PropertiesFileParse("local.properties", context).get();

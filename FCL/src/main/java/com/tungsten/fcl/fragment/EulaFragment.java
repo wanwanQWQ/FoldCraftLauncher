@@ -2,6 +2,7 @@ package com.tungsten.fcl.fragment;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,6 +20,8 @@ import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.activity.SplashActivity;
 import com.tungsten.fcl.util.AndroidUtils;
+import com.tungsten.fcl.util.ReadTools;
+import com.tungsten.fclauncher.utils.FCLPath;
 import com.tungsten.fclcore.util.io.IOUtils;
 import com.tungsten.fclcore.util.io.NetworkUtils;
 import com.tungsten.fcllibrary.component.FCLFragment;
@@ -25,6 +29,7 @@ import com.tungsten.fcllibrary.component.view.FCLButton;
 import com.tungsten.fcllibrary.component.view.FCLProgressBar;
 import com.tungsten.fcllibrary.component.view.FCLTextView;
 
+import java.io.File;
 import java.io.IOException;
 
 public class EulaFragment extends FCLFragment implements View.OnClickListener {
@@ -58,7 +63,15 @@ public class EulaFragment extends FCLFragment implements View.OnClickListener {
         new Thread(() -> {
             String str = getString(R.string.splash_eula_error);
             try {
-                str = NetworkUtils.doGet(NetworkUtils.toURL(EULA_URL));
+                String local_eula = FCLPath.FILES_DIR + "/debug/eula.txt";
+                if (new File(local_eula).exists()) {
+                    str = ReadTools.readFileTxt(local_eula);
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(getActivity(), "DEBUG eula.txt", Toast.LENGTH_SHORT).show();
+                    });
+                } else {
+                    str = NetworkUtils.doGet(NetworkUtils.toURL(EULA_URL));
+                }
                 load = true;
             } catch (IOException | IllegalArgumentException e) {
                 e.printStackTrace();
