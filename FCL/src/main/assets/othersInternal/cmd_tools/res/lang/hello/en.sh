@@ -1,7 +1,7 @@
 #!/system/bin/sh
 lang_hello_help="Usage: hello [Args]\n\
 Print a friendly greeting.\n\
-Args:\n\
+[Args]\n\
     (without args or unknown args)\n\
         print the greeting and exit\n\
     -h, --help\n\

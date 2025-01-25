@@ -1,7 +1,7 @@
 #!/system/bin/sh
 lang_help_help="Usage: help [Args]\n\
-List FCL othersInternal commands.\n\
-Args:\n\
+List FCL internal commands.\n\
+[Args]\n\
     (without args or unknown args)\n\
         list commands and exit\n\
     -h, --help\n\

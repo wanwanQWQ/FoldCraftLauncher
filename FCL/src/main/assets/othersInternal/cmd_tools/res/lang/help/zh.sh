@@ -1,7 +1,7 @@
 #!/system/bin/sh
-lang_help_help="用法： help [参数...]\n\
-列出 FCL othersInternal 命令。\n\
-参数：\n\
+lang_help_help="用法： help [参数]\n\
+列出 FCL 内部命令。\n\
+[参数]\n\
     (无参数或未知参数)\n\
         列出命令，然后退出\n\
     -h, --help\n\

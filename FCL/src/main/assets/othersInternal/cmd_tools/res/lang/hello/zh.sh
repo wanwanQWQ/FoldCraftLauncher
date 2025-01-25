@@ -1,7 +1,7 @@
 #!/system/bin/sh
-lang_hello_help="用法：hello [Args]\n\
+lang_hello_help="用法：hello [参数]\n\
 输出友好的问候语。\n\
-参数：\n\
+[参数]\n\
     (无参数或未知参数)\n\
         输出问候语，然后退出\n\
     -h, --help\n\

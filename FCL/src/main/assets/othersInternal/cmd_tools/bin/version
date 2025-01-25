@@ -1,0 +1,35 @@
+#!/system/bin/sh
+${fclshell_load_lang} version
+end_of_line="\n"
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "${lang_version_help}"
+  exit
+elif [[ "$1" == "-n" ]]; then
+  end_of_line=""
+  shift 1
+fi
+
+if [[ "$1" == "" ]]; then
+  for i in `ls "${FCL_PATH_SHELL}/res/version"`; do
+    echo -n "$i: "
+    cat "${FCL_PATH_INTERNAL}/$(cat "${FCL_PATH_SHELL}/res/version/$i")/version"
+    echo ""
+  done
+  echo -n "game: "
+  cat "${FCL_PATH_EXTERNAL}/.minecraft/version"
+  echo ""
+  echo -n "other: "
+  cat "${FCL_PATH_INTERNAL}/version"
+  echo ""
+elif [[ -f "${FCL_PATH_SHELL}/res/version/$1" ]]; then
+  cat "${FCL_PATH_INTERNAL}/$(cat "${FCL_PATH_SHELL}/res/version/$1")/version" 2>"/dev/null"
+  echo -n "${end_of_line}"
+elif [[ "$1" == "game" ]]; then
+  cat "${FCL_PATH_EXTERNAL}/.minecraft/version" 2>"/dev/null"
+  echo -n "${end_of_line}"
+elif [[ "$1" == "other" ]]; then
+  cat "${FCL_PATH_INTERNAL}/version" 2>"/dev/null"
+  echo -n "${end_of_line}"
+else
+  echo "version: $1: ${lang_version_notfound}" 1>&2
+fi
