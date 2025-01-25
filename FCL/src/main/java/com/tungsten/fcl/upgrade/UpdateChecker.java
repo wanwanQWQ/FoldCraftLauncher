@@ -59,7 +59,6 @@ public class UpdateChecker {
                 String res;
                 if (new File(local_version_map).exists()) {
                     res = ReadTools.readFileTxt(local_version_map);
-                    Schedulers.androidUIThread().execute(() -> Toast.makeText(context, "DEBUG version_map.json", Toast.LENGTH_SHORT).show());
                 } else {
                     res = NetworkUtils.doGet(NetworkUtils.toURL(UPDATE_CHECK_URL));
                 }

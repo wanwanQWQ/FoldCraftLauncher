@@ -234,6 +234,7 @@ public class LauncherSettingPage extends FCLCommonPage implements View.OnClickLi
         if (v == checkUpdate) {
             editor.putInt("ignore_update", -1);
             editor.putInt("ignore_announcement", -1);
+            editor.putBoolean("is_first_launch", true);
             editor.apply();
             if (!UpdateChecker.getInstance().isChecking()) {
                 UpdateChecker.getInstance().checkManually(getContext()).whenComplete(Schedulers.androidUIThread(), e -> {

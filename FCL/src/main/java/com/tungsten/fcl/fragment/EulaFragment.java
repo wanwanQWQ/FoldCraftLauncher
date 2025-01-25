@@ -11,7 +11,6 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -69,9 +68,6 @@ public class EulaFragment extends FCLFragment implements View.OnClickListener {
                 String local_eula = FCLPath.FILES_DIR + "/debug/eula.txt";
                 if (new File(local_eula).exists()) {
                     str = ReadTools.readFileTxt(local_eula);
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(getActivity(), "DEBUG eula.txt", Toast.LENGTH_SHORT).show();
-                    });
                 } else {
                     str = NetworkUtils.doGet(NetworkUtils.toURL(EULA_URL));
                     online = true;

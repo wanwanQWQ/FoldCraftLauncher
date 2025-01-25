@@ -2,7 +2,6 @@ package com.tungsten.fclauncher.utils;
 
 import android.content.Context;
 import android.os.Environment;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -112,7 +111,6 @@ public class FCLPath {
         try {
             if (local_prop.exists()) {
                 Prop = new PropertiesFileParse(context.getFilesDir().getAbsolutePath() + "/debug/local.properties").get();
-                Toast.makeText(context, "DEBUG local.properties", Toast.LENGTH_SHORT).show();
                 return;
             }
             Prop = new PropertiesFileParse("local.properties", context).get();

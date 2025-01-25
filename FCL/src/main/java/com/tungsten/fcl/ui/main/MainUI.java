@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import androidx.appcompat.widget.LinearLayoutCompat;
 
@@ -151,9 +150,6 @@ public class MainUI extends FCLCommonUI implements View.OnClickListener {
                     String local_announcement = FCLPath.FILES_DIR + "/debug/announcement.json";
                     if (new File(local_announcement).exists()) {
                         remoteData = ReadTools.readFileTxt(local_announcement);
-                        getActivity().runOnUiThread(() -> {
-                            Toast.makeText(getContext(), "DEBUG announcement.json", Toast.LENGTH_SHORT).show();
-                        });
                     } else {
                         remoteData = NetworkUtils.doGet(NetworkUtils.toURL(ANNOUNCEMENT_URL));
                     }

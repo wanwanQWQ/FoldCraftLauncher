@@ -775,7 +775,7 @@
 
     <string name="settings_launcher">启动器设置</string>
     <string name="settings_launcher_debug">调试</string>
-    <string name="settings_launcher_upgrade">启动器和公告更新</string>
+    <string name="settings_launcher_upgrade">启动器、公告和用户协议（重启以查看）更新</string>
     <string name="settings_launcher_upgrade_check">检测</string>
     <string name="settings_launcher_cache">缓存文件夹</string>
     <string name="settings_launcher_clear_cache">清理缓存</string>

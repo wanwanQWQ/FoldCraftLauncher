@@ -815,7 +815,7 @@
 
     <string name="settings_launcher">Launcher Settings</string>
     <string name="settings_launcher_debug">Debug</string>
-    <string name="settings_launcher_upgrade">Update Launcher and Announcement</string>
+    <string name="settings_launcher_upgrade">Launcher, Announcement and EULA(need restart) update</string>
     <string name="settings_launcher_upgrade_check">Check</string>
     <string name="settings_launcher_cache">Cache Directory</string>
     <string name="settings_launcher_clear_cache">Clear cache</string>
