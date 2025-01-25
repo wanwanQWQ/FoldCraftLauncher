@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView;
 import androidx.appcompat.content.res.AppCompatResources
 import com.tungsten.fcl.FCLApplication
 import com.tungsten.fcl.R
@@ -19,6 +20,8 @@ import com.tungsten.fclcore.task.Schedulers
 import com.tungsten.fclcore.util.io.FileUtils
 import com.tungsten.fclcore.util.Logging
 import com.tungsten.fcllibrary.component.FCLFragment
+import com.tungsten.fcllibrary.component.theme.Theme
+import com.tungsten.fcllibrary.component.theme.ThemeEngine
 import com.tungsten.fcllibrary.util.LocaleUtils
 import java.io.File
 import java.io.IOException
@@ -54,11 +57,22 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
         Schedulers.defaultScheduler().execute {
             initState()
             Schedulers.androidUIThread().execute {
+                setColorByTag(view, "runtime_text", ThemeEngine.getInstance().getTheme().getColor2())
                 refreshDrawables()
                 check()
             }
         }
         return view
+    }
+
+    private fun setColorByTag(view: View, tag: String, color: Int) {
+        if (view is TextView && view.tag == tag) {
+            view.setTextColor(color)
+        } else if (view is ViewGroup) {
+            for (i in 0 until view.childCount) {
+                setColorByTag(view.getChildAt(i), tag, color)
+            }
+        }
     }
 
     private fun initState() {

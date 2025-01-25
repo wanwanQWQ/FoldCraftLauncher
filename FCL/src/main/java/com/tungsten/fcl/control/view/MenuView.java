@@ -2,6 +2,7 @@ package com.tungsten.fcl.control.view;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -33,6 +34,7 @@ import com.tungsten.fclauncher.utils.FCLPath;
 import com.tungsten.fcllibrary.util.ConvertUtils;
 
 import java.io.File;
+import java.io.InputStream;
 
 public class MenuView extends View {
 
@@ -120,7 +122,17 @@ public class MenuView extends View {
                 }
             });
         } else {
-            icon = BitmapFactory.decodeResource(FCLApplication.getCurrentActivity().getResources(), R.drawable.img_app);
+            AssetManager assetManager = FCLApplication.getCurrentActivity().getAssets();
+            try (InputStream inputStream = assetManager.open("img/game_menu/menu_icon.png")) {
+                icon = BitmapFactory.decodeStream(inputStream);
+            } catch (Exception ignore) {
+                try (InputStream inputStream = assetManager.open("img/game_menu/menu_icon.gif")) {
+                    icon = BitmapFactory.decodeStream(inputStream);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    icon = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+                }
+            }
         }
     }
 

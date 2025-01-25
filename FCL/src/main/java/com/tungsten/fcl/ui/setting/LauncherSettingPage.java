@@ -435,21 +435,11 @@ public class LauncherSettingPage extends FCLCommonPage implements View.OnClickLi
             }).start();
         }
         if (v == resetCursor) {
-            try {
-                new File(FCLPath.FILES_DIR, "cursor.png").delete();
-                RuntimeUtils.copyAssetsFileToLocalDir(getContext(), "img/cursor.png", FCLPath.FILES_DIR + "/cursor.png");
-            } catch (Exception e) {
-                LOG.log(Level.SEVERE, "Unable to get /assets/img/cursor.png from apk!", e);
-            }
+            new File(FCLPath.FILES_DIR, "cursor.png").delete();
         }
         if (v == resetMenuIcon) {
-            try {
-                new File(FCLPath.FILES_DIR, "menu_icon.png").delete();
-                new File(FCLPath.FILES_DIR, "menu_icon.gif").delete();
-                RuntimeUtils.copyAssetsDirToLocalDir(getContext(), "img/menu_icon", FCLPath.FILES_DIR);
-             } catch (Exception e) {
-                LOG.log(Level.SEVERE, "Unable to get /assets/img/menu_icon/menu_icon.png (or .gif) from apk!", e);
-            }
+            new File(FCLPath.FILES_DIR, "menu_icon.png").delete();
+            new File(FCLPath.FILES_DIR, "menu_icon.gif").delete();
         }
     }
 

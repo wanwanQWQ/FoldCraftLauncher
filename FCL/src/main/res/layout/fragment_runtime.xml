@@ -34,7 +34,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_java8"
                         android:layout_gravity="center"
-                        android:textColor="@color/black"/>
+                        android:tag="runtime_text"/>
 
                     <View
                         android:layout_width="0dp"
@@ -75,7 +75,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_java11"
                         android:layout_gravity="center"
-                        android:textColor="@color/black"/>
+                        android:tag="runtime_text"/>
 
                     <View
                         android:layout_width="0dp"
@@ -116,7 +116,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_java17"
                         android:layout_gravity="center"
-                        android:textColor="@color/black"/>
+                        android:tag="runtime_text"/>
 
                     <View
                         android:layout_width="0dp"
@@ -157,7 +157,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_java21"
                         android:layout_gravity="center"
-                        android:textColor="@color/black"/>
+                        android:tag="runtime_text"/>
 
                     <View
                         android:layout_width="0dp"
@@ -198,7 +198,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/splash_game_resource"
                         android:layout_gravity="center"
-                        android:textColor="@color/black"/>
+                        android:tag="runtime_text"/>
 
                     <View
                         android:layout_width="0dp"
@@ -239,7 +239,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/splash_others"
                         android:layout_gravity="center"
-                        android:textColor="@color/black"/>
+                        android:tag="runtime_text"/>
 
                     <View
                         android:layout_width="0dp"
@@ -280,7 +280,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_jna"
                         android:layout_gravity="center"
-                        android:textColor="@color/black"/>
+                        android:tag="runtime_text"/>
 
                     <View
                         android:layout_width="0dp"
@@ -321,7 +321,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_lwjgl"
                         android:layout_gravity="center"
-                        android:textColor="@color/black"/>
+                        android:tag="runtime_text"/>
 
                     <View
                         android:layout_width="0dp"
@@ -362,7 +362,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_cacio"
                         android:layout_gravity="center"
-                        android:textColor="@color/black"/>
+                        android:tag="runtime_text"/>
 
                     <View
                         android:layout_width="0dp"
@@ -403,7 +403,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_cacio11"
                         android:layout_gravity="center"
-                        android:textColor="@color/black"/>
+                        android:tag="runtime_text"/>
 
                     <View
                         android:layout_width="0dp"
@@ -444,7 +444,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_cacio17"
                         android:layout_gravity="center"
-                        android:textColor="@color/black"/>
+                        android:tag="runtime_text"/>
 
                     <View
                         android:layout_width="0dp"
@@ -493,7 +493,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             android:textSize="18sp"
-            android:textColor="@color/black"/>
+            android:tag="runtime_text"/>
 
         <com.tungsten.fcllibrary.component.view.FCLButton
             android:text="@string/splash_runtime_install"

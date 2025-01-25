@@ -1,6 +1,7 @@
 package com.tungsten.fcl.control;
 
 import android.annotation.SuppressLint;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -74,6 +75,7 @@ import com.tungsten.fcllibrary.component.view.FCLTextView;
 import com.tungsten.fcllibrary.util.ConvertUtils;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -633,11 +635,19 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
 
         viewManager.setup();
 
+        Bitmap bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
         if (new File(FCLPath.FILES_DIR, "cursor.png").exists()) {
-            Bitmap bitmap = BitmapFactory.decodeFile(new File(FCLPath.FILES_DIR, "cursor.png").getAbsolutePath());
-            BitmapDrawable drawable = new BitmapDrawable(getActivity().getResources(), bitmap);
-            getCursor().setImageDrawable(drawable);
+            bitmap = BitmapFactory.decodeFile(new File(FCLPath.FILES_DIR, "cursor.png").getAbsolutePath());
+        } else {
+            AssetManager assetManager = getActivity().getAssets();
+            try (InputStream inputStream = assetManager.open("img/game_menu/cursor.png")) {
+                bitmap = BitmapFactory.decodeStream(inputStream);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+        BitmapDrawable drawable = new BitmapDrawable(getActivity().getResources(), bitmap);
+        getCursor().setImageDrawable(drawable);
 
         if (getBridge() != null && getBridge().hasTouchController()) {
             touchController = new TouchController(getActivity(), AndroidUtils.getScreenWidth(getActivity()), AndroidUtils.getScreenHeight(getActivity()));

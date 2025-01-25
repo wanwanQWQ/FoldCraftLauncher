@@ -16,9 +16,6 @@ android {
         minSdk 26
         targetSdk 34
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-        resValue "string", "file_browser_provider", "com.tungsten.fcl." + pkgSuffix + ".provider"
-        resValue "string", "file_browser_document_provider", "com.tungsten.fcl." + pkgSuffix + ".document.provider"
     }
 
     buildTypes {

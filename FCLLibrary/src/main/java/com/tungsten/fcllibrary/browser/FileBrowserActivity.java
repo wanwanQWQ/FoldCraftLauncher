@@ -146,6 +146,8 @@ public class FileBrowserActivity extends FCLActivity implements View.OnClickList
         }
         if (fileBrowser.getLibMode() != LibMode.FILE_BROWSER) {
             openExternal.setVisibility(View.GONE);
+        } else {
+            confirm.setVisibility(View.GONE);
         }
         switch (fileBrowser.getCode()) {
             case 100:
@@ -195,7 +197,10 @@ public class FileBrowserActivity extends FCLActivity implements View.OnClickList
         }
         currentPath = path;
         currentText.setText(path.toString());
-        ThemeEngine.getInstance().registerEvent(currentText, () -> currentText.setBackgroundColor(ThemeEngine.getInstance().getTheme().getColor()));
+        ThemeEngine.getInstance().registerEvent(currentText, () -> {
+            currentText.setBackgroundColor(ThemeEngine.getInstance().getTheme().getColor());
+            currentText.setTextColor(ThemeEngine.getInstance().getTheme().getAutoTint());
+        });
         FileBrowserAdapter adapter = new FileBrowserAdapter(this, fileBrowser, path, selectedFiles, new FileBrowserListener() {
             @Override
             public void onEnterDir(String path) {
@@ -253,7 +258,7 @@ public class FileBrowserActivity extends FCLActivity implements View.OnClickList
                 Toast.makeText(this, getString(R.string.file_browser_positive_alert), Toast.LENGTH_SHORT).show();
                 return;
             }
-            Uri uri = FileProvider.getUriForFile(this, getString(R.string.file_browser_provider), currentPath.toFile());
+            Uri uri = FileProvider.getUriForFile(this, getString(com.tungsten.fclauncher.R.string.file_browser_provider), currentPath.toFile());
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setDataAndType(uri, "*/*");
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
