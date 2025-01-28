@@ -28,19 +28,16 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:orientation="horizontal">
-
                     <com.tungsten.fcllibrary.component.view.FCLTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_java8"
                         android:layout_gravity="center"
                         android:tag="runtime_text"/>
-
                     <View
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_weight="1"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLProgressBar
                         android:visibility="gone"
                         android:layout_width="24dp"
@@ -48,7 +45,6 @@
                         android:id="@+id/java8_progress"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLImageView
                         app:auto_src_tint="false"
                         android:layout_width="wrap_content"
@@ -56,7 +52,6 @@
                         android:id="@+id/java8_state"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <View
@@ -69,19 +64,16 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:orientation="horizontal">
-
                     <com.tungsten.fcllibrary.component.view.FCLTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_java11"
                         android:layout_gravity="center"
                         android:tag="runtime_text"/>
-
                     <View
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_weight="1"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLProgressBar
                         android:visibility="gone"
                         android:layout_width="24dp"
@@ -89,7 +81,6 @@
                         android:id="@+id/java11_progress"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLImageView
                         app:auto_src_tint="false"
                         android:layout_width="wrap_content"
@@ -97,7 +88,6 @@
                         android:id="@+id/java11_state"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <View
@@ -110,19 +100,16 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:orientation="horizontal">
-
                     <com.tungsten.fcllibrary.component.view.FCLTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_java17"
                         android:layout_gravity="center"
                         android:tag="runtime_text"/>
-
                     <View
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_weight="1"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLProgressBar
                         android:visibility="gone"
                         android:layout_width="24dp"
@@ -130,7 +117,6 @@
                         android:id="@+id/java17_progress"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLImageView
                         app:auto_src_tint="false"
                         android:layout_width="wrap_content"
@@ -138,7 +124,6 @@
                         android:id="@+id/java17_state"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <View
@@ -151,19 +136,16 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:orientation="horizontal">
-
                     <com.tungsten.fcllibrary.component.view.FCLTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_java21"
                         android:layout_gravity="center"
                         android:tag="runtime_text"/>
-
                     <View
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_weight="1"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLProgressBar
                         android:visibility="gone"
                         android:layout_width="24dp"
@@ -171,7 +153,6 @@
                         android:id="@+id/java21_progress"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLImageView
                         app:auto_src_tint="false"
                         android:layout_width="wrap_content"
@@ -179,7 +160,6 @@
                         android:id="@+id/java21_state"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <View
@@ -192,19 +172,16 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:orientation="horizontal">
-
                     <com.tungsten.fcllibrary.component.view.FCLTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/splash_game_resource"
                         android:layout_gravity="center"
                         android:tag="runtime_text"/>
-
                     <View
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_weight="1"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLProgressBar
                         android:visibility="gone"
                         android:layout_width="24dp"
@@ -212,7 +189,6 @@
                         android:id="@+id/game_resource_progress"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLImageView
                         app:auto_src_tint="false"
                         android:layout_width="wrap_content"
@@ -220,7 +196,6 @@
                         android:id="@+id/game_resource_state"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <View
@@ -233,19 +208,16 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:orientation="horizontal">
-
                     <com.tungsten.fcllibrary.component.view.FCLTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/splash_others"
                         android:layout_gravity="center"
                         android:tag="runtime_text"/>
-
                     <View
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_weight="1"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLProgressBar
                         android:visibility="gone"
                         android:layout_width="24dp"
@@ -253,7 +225,6 @@
                         android:id="@+id/others_progress"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLImageView
                         app:auto_src_tint="false"
                         android:layout_width="wrap_content"
@@ -261,7 +232,6 @@
                         android:id="@+id/others_state"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <View
@@ -274,19 +244,16 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:orientation="horizontal">
-
                     <com.tungsten.fcllibrary.component.view.FCLTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_jna"
                         android:layout_gravity="center"
                         android:tag="runtime_text"/>
-
                     <View
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_weight="1"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLProgressBar
                         android:visibility="gone"
                         android:layout_width="24dp"
@@ -294,7 +261,6 @@
                         android:id="@+id/jna_progress"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLImageView
                         app:auto_src_tint="false"
                         android:layout_width="wrap_content"
@@ -302,7 +268,6 @@
                         android:id="@+id/jna_state"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <View
@@ -315,19 +280,16 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:orientation="horizontal">
-
                     <com.tungsten.fcllibrary.component.view.FCLTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_lwjgl"
                         android:layout_gravity="center"
                         android:tag="runtime_text"/>
-
                     <View
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_weight="1"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLProgressBar
                         android:visibility="gone"
                         android:layout_width="24dp"
@@ -335,7 +297,6 @@
                         android:id="@+id/lwjgl_progress"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLImageView
                         app:auto_src_tint="false"
                         android:layout_width="wrap_content"
@@ -343,7 +304,6 @@
                         android:id="@+id/lwjgl_state"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <View
@@ -356,19 +316,16 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:orientation="horizontal">
-
                     <com.tungsten.fcllibrary.component.view.FCLTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_cacio"
                         android:layout_gravity="center"
                         android:tag="runtime_text"/>
-
                     <View
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_weight="1"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLProgressBar
                         android:visibility="gone"
                         android:layout_width="24dp"
@@ -376,7 +333,6 @@
                         android:id="@+id/cacio_progress"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLImageView
                         app:auto_src_tint="false"
                         android:layout_width="wrap_content"
@@ -384,7 +340,6 @@
                         android:id="@+id/cacio_state"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <View
@@ -397,19 +352,16 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:orientation="horizontal">
-
                     <com.tungsten.fcllibrary.component.view.FCLTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_cacio11"
                         android:layout_gravity="center"
                         android:tag="runtime_text"/>
-
                     <View
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_weight="1"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLProgressBar
                         android:visibility="gone"
                         android:layout_width="24dp"
@@ -417,7 +369,6 @@
                         android:id="@+id/cacio11_progress"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLImageView
                         app:auto_src_tint="false"
                         android:layout_width="wrap_content"
@@ -425,7 +376,6 @@
                         android:id="@+id/cacio11_state"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <View
@@ -438,19 +388,16 @@
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:orientation="horizontal">
-
                     <com.tungsten.fcllibrary.component.view.FCLTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/splash_runtime_cacio17"
                         android:layout_gravity="center"
                         android:tag="runtime_text"/>
-
                     <View
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_weight="1"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLProgressBar
                         android:visibility="gone"
                         android:layout_width="24dp"
@@ -458,7 +405,6 @@
                         android:id="@+id/cacio17_progress"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                     <com.tungsten.fcllibrary.component.view.FCLImageView
                         app:auto_src_tint="false"
                         android:layout_width="wrap_content"
@@ -466,7 +412,6 @@
                         android:id="@+id/cacio17_state"
                         android:layout_gravity="center"
                         android:layout_marginStart="10dp"/>
-
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
             </androidx.appcompat.widget.LinearLayoutCompat>
@@ -482,18 +427,21 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/runtime_parent"/>
 
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/install"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/split"
+        app:layout_constraintTop_toTopOf="parent">
         <com.tungsten.fcllibrary.component.view.FCLTextView
-            android:layout_marginTop="10dp"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
             android:text="@string/splash_runtime_title"
-            app:layout_constraintStart_toEndOf="@id/split"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             android:textSize="18sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
             android:tag="runtime_text"/>
+    </ScrollView>
 
         <com.tungsten.fcllibrary.component.view.FCLButton
             android:text="@string/splash_runtime_install"

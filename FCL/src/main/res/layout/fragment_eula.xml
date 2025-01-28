@@ -14,7 +14,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
-
         <com.tungsten.fcllibrary.component.view.FCLTextView
             android:id="@+id/eula"
             android:textSize="16sp"
@@ -22,7 +21,6 @@
             android:layout_height="wrap_content"
             android:textIsSelectable="true"
             android:padding="10dp"/>
-
     </ScrollView>
 
     <com.tungsten.fcllibrary.component.view.FCLProgressBar
@@ -44,6 +42,22 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/eula_parent"/>
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/next"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/split"
+        app:layout_constraintTop_toTopOf="parent">
+        <com.tungsten.fcllibrary.component.view.FCLTextView
+            android:id="@+id/eula_title"
+            android:text="@string/splash_eula_title"
+            android:textSize="18sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"/>
+    </ScrollView>
 
     <com.tungsten.fcllibrary.component.view.FCLButton
         android:text="@string/splash_eula_next"

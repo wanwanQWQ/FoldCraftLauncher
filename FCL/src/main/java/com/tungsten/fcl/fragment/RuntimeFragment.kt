@@ -49,15 +49,16 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        sharedPreferences = requireActivity().getSharedPreferences("launcher", Context.MODE_PRIVATE)
-        editor = sharedPreferences.edit()
         val view = inflater.inflate(R.layout.fragment_runtime, container, false)
         bind = FragmentRuntimeBinding.bind(view)
+        var textColor: Int = ThemeEngine.getInstance().getTheme().getColor2()
+        setColorByTag(view, "runtime_text", textColor)
+        sharedPreferences = requireActivity().getSharedPreferences("launcher", Context.MODE_PRIVATE)
+        editor = sharedPreferences.edit()
         bind.install.setOnClickListener(this)
         Schedulers.defaultScheduler().execute {
             initState()
             Schedulers.androidUIThread().execute {
-                setColorByTag(view, "runtime_text", ThemeEngine.getInstance().getTheme().getColor2())
                 refreshDrawables()
                 check()
             }
@@ -164,14 +165,14 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                         RuntimeUtils.copyAssetsDirToLocalDir(context, "othersExternal", FCLPath.EXTERNAL_DIR)
                         RuntimeUtils.copyAssetsDirToLocalDir(context, "othersInternal", FCLPath.INTERNAL_DIR)
                         others = true
-                        activity?.runOnUiThread {
-                            othersState.visibility = View.VISIBLE
-                            othersProgress.visibility = View.GONE
-                            refreshDrawables()
-                            check()
-                        }
                     } catch (e: Exception) {
                         Logging.LOG.log(Level.SEVERE, "Failed to install other resource", e)
+                    }
+                    activity?.runOnUiThread {
+                        othersState.visibility = View.VISIBLE
+                        othersProgress.visibility = View.GONE
+                        refreshDrawables()
+                        check()
                     }
                 }.start()
             }
@@ -192,14 +193,14 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                         RuntimeUtils.copyAssetsDirToLocalDir(context, ".minecraft", FCLPath.SHARED_COMMON_DIR)
                         RuntimeUtils.copyAssetsDirToLocalDir(context, "minecraft", FCLPath.EXTERNAL_DIR + "/minecraft")
                         gameResource = true
-                        activity?.runOnUiThread {
-                            gameResourceState.visibility = View.VISIBLE
-                            gameResourceProgress.visibility = View.GONE
-                            refreshDrawables()
-                            check()
-                        }
                     }catch (e: Exception) {
                         Logging.LOG.log(Level.SEVERE, "Failed to install game resource", e)
+                    }
+                    activity?.runOnUiThread {
+                        gameResourceState.visibility = View.VISIBLE
+                        gameResourceProgress.visibility = View.GONE
+                        refreshDrawables()
+                        check()
                     }
                 }.start()
             }

@@ -39,6 +39,7 @@ public class EulaFragment extends FCLFragment implements View.OnClickListener {
 
     private FCLProgressBar progressBar;
     private FCLTextView eula;
+    private FCLTextView eulaTitle;
 
     private FCLButton next;
 
@@ -52,6 +53,11 @@ public class EulaFragment extends FCLFragment implements View.OnClickListener {
 
         progressBar = findViewById(view, R.id.progress);
         eula = findViewById(view, R.id.eula);
+        eulaTitle = findViewById(view, R.id.eula_title);
+
+        int textColor = ThemeEngine.getInstance().getTheme().getColor2();
+        eula.setTextColor(textColor);
+        eulaTitle.setTextColor(textColor);
 
         next = findViewById(view, R.id.next);
         next.setOnClickListener(this);
@@ -70,8 +76,8 @@ public class EulaFragment extends FCLFragment implements View.OnClickListener {
                     str = ReadTools.readFileTxt(local_eula);
                 } else {
                     str = NetworkUtils.doGet(NetworkUtils.toURL(EULA_URL));
-                    online = true;
                 }
+                online = true;
                 load = true;
             } catch (IOException | IllegalArgumentException e) {
                 str = e.toString();
@@ -88,7 +94,6 @@ public class EulaFragment extends FCLFragment implements View.OnClickListener {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    eula.setTextColor(ThemeEngine.getInstance().getTheme().getColor2());
                     eula.setText(s);
                 });
             }

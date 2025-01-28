@@ -9,6 +9,7 @@
     <string name="splash_permission_settings_msg">You have chosen "Never Allow" Please manually grant storage permissions in settings.</string>
 
     <string name="splash_title">Welcome to Fold Craft Launcher</string>
+    <string name="splash_eula_title">Please wait until the eula loaded and then read it carefully. \nYou must agree it in order to use the app.</string>
     <string name="splash_eula_error">Cannot get EULA, please check the network.\n\nYou can view it later by going to the doc branch of the github repository.</string>
     <string name="splash_eula_next">Agree and Continue</string>
     <string name="splash_runtime_title">Install or update app runtime\n\nYou need to restart the app after the installation completed. The app will automatically quit and be ready to use when reopened.</string>
