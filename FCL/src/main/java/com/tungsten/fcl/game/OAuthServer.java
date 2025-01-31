@@ -20,6 +20,7 @@ package com.tungsten.fcl.game;
 import static com.tungsten.fclcore.util.Lang.mapOf;
 import static com.tungsten.fclcore.util.Lang.thread;
 
+import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.util.AndroidUtils;
 import com.tungsten.fclauncher.utils.FCLPath;
@@ -159,7 +160,7 @@ public final class OAuthServer extends NanoHTTPD implements OAuth.Session {
 
         @Override
         public String getClientId() {
-            return FCLPath.CONTEXT.getString(R.string.oauth_api_key);
+            return FCLApplication.Prop.getProperty("oauth-api-key","null");
         }
 
         @Override

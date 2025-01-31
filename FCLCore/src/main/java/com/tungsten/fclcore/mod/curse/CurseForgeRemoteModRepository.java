@@ -44,7 +44,7 @@ import java.util.stream.Stream;
 public final class CurseForgeRemoteModRepository implements RemoteModRepository {
 
     private static final String PREFIX = "https://api.curseforge.com";
-    private static final String apiKey = FCLPath.CONTEXT.getString(R.string.curse_api_key);
+    private static final String apiKey = FCLPath.Prop.getProperty("curse-api-key","null";
 
     private static final int WORD_PERFECT_MATCH_WEIGHT = 50;
 

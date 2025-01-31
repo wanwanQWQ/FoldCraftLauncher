@@ -7,26 +7,27 @@
 
 <h2 align="center">FoldCraftLauncher整合包版</h2>
 
-- 该软件作用是在手机上玩Java版我的世界。[→查看原版仓库](https://github.com/FCL-Team/FoldCraftLauncher)
-- **在你的Android设备上直接运行Java版我的世界**, 支持所有游戏版本、绝大多数Mods和部分光影。
-- **Run Minecraft: Java Edition directly on your Android device**, with mod support and all versions of the Game.
-</br>
+基于曾经的 [root-S7](https://github.com/root-S7) 服务端直装版(1.1.9.8及之前)进行修改，加入更多自定义功能，主要针对默认设置覆盖。  
+[→查看原版FCL仓库](https://github.com/FCL-Team/FoldCraftLauncher)
 
-- [root-S7 的服务器直装版](https://github.com/root-S7/FoldCraftLauncher)的QQ交流群：965085729
-
-</br>
+- **该软件作用是把整合包打包进启动器。**
+  - 丰富的自定义功能，覆盖启动器的默认设置，适配您的整合包。
+- **在你的Android设备上直接运行Java版我的世界。**
+  - 支持几乎所有游戏版本、绝大多数Mods和部分光影。
 
 <h2 align="center">应用功能如下</h2>
 
-- [x] 支持服务器客户端直装！
-- [x] 支持运行绝大部分版本
+- [x] 支持服务器/整合包客户端直装！
+- [x] 可修改默认主题、启动器设置
+- [x] 可修改默认控制器
+- [x] 可修改默认游戏设置  
+
+- [x] 支持运行几乎所有版本
 - [x] 支持Forge, LiteLoader, OptiFine, Fabric, Quilt等API
-- [x] 内置Java8/Java17运行环境
+- [x] 内置Java8/11/17/21运行环境
 - [x] 虚拟鼠标
 - [x] 可在线下载Mods，地图，纹理包，整合包等
 - [x] 支持部分光影 (可使用VirGL/ZINK渲染器运行光影)
-- [x] 支持自定义按键
-- [x] 支持自定义主题
 - [x] 更多功能敬请期待！
 
 ## 下载使用
@@ -56,20 +57,6 @@ After that, use Android Studio to compile the code.
 
 </details>
 
-### 在根目录的local.properties文件内增加curse-api-key和oauth-api-key键值对
-
-
-<details markdown='1'>
-<summary>
-
-![image](https://github.com/root-S7/FoldCraftLauncher/assets/110681414/5740c883-8ec6-465f-8318-bd4ad57b30f9)
-
-</summary>
-
-* 图像来自 root-S7
-
-</details>
-
 ## License
 
 <h2 align="center">协议</h2>
@@ -92,6 +79,13 @@ along with Fold Craft Launcher.  If not, see <https://www.gnu.org/licenses/>.
 
 <h2 align="center">第三方组件</h2>
 
+- [原版 FCL](https://github.com/FCL-Team/FoldCraftLauncher)
+
+- [root-S7 FCL服务器直装版](https://github.com/root-S7/FoldCraftLauncher)
+  - 旧的提交已经删除，[我的旧版仓库](https://github.com/hyplant/FoldCraftLauncherModpack-old)保留了部分提交
+
+- [HMCL](https://github.com/HMCL-dev/HMCL)
+
 - [HMCL](https://github.com/HMCL-dev/HMCL)
 
 - [Boat and related projects](https://github.com/AOF-Dev/Boat)
@@ -105,7 +99,7 @@ along with Fold Craft Launcher.  If not, see <https://www.gnu.org/licenses/>.
 <details markdown='1'>
 <summary>
 
-<h3 align="center">关于此 Readme.md</h3>
+<h3 align="center">关于此 README.md</h3>
 
 </summary>
 
