@@ -26,6 +26,7 @@ import static com.tungsten.fclcore.util.Logging.LOG;
 import static com.tungsten.fclcore.util.Pair.pair;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
