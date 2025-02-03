@@ -3,7 +3,6 @@ package com.tungsten.fcl.util;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.system.Os;
 import android.util.Log;
 import com.google.gson.*;
@@ -14,6 +13,7 @@ import com.tungsten.fclcore.util.*;
 import com.tungsten.fclcore.util.io.*;
 import org.apache.commons.compress.archivers.tar.*;
 import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
+
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
@@ -26,11 +26,13 @@ public class RuntimeUtils {
 
     public static boolean isLatest(String targetDir, String srcDir) throws IOException {
         File targetFile = new File(targetDir + "/version");
-        return targetFile.exists() && targetDir != null && srcDir != null && Objects.equals(ReadTools.convertToString(RuntimeUtils.class.getResourceAsStream(srcDir + "/version")), ReadTools.readFileTxt(targetDir + "/version"));
-    }
-
-    public static boolean isLatest(SharedPreferences sharedPreferences, String key, String defaultValue, String srcDir) throws IOException {
-        return sharedPreferences != null && key != null && defaultValue != null && srcDir != null && Objects.equals(ReadTools.convertToString(RuntimeUtils.class.getResourceAsStream(srcDir + "/version")), sharedPreferences.getString(key,defaultValue).trim());
+        try (InputStream stream = RuntimeUtils.class.getResourceAsStream(srcDir + "/version")) {
+            if (stream == null) {
+                return true;
+            }
+        }
+        long version = Long.parseLong(IOUtils.readFullyAsString(RuntimeUtils.class.getResourceAsStream(srcDir + "/version")));
+        return targetFile.exists() && Long.parseLong(FileUtils.readText(targetFile)) == version;
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -183,7 +185,7 @@ public class RuntimeUtils {
         copyAssets(context, "resolv.conf", javaPath + "/resolv.conf");
         Pack200Utils.unpack(context.getApplicationInfo().nativeLibraryDir, javaPath);
         File dest = new File(javaPath);
-        if(!dest.exists())
+        if (!dest.exists())
             return;
         String libFolder = FCLauncher.getJreLibDir(javaPath);
         File ftIn = new File(dest, libFolder + "/libfreetype.so.6");

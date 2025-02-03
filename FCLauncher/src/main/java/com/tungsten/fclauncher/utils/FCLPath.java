@@ -18,7 +18,7 @@ public class FCLPath {
 
     public static String PLUGIN_DIR;
     public static String AUTHLIB_INJECTOR_PATH;
-    public static String LIB_FIXER_PATH;
+    public static String LIB_PATCHER_PATH;
     public static String MIO_LAUNCH_WRAPPER;
     public static String BACKGROUND_DIR;
     public static String LT_BACKGROUND_PATH;
@@ -53,7 +53,7 @@ public class FCLPath {
 
         PLUGIN_DIR = FILES_DIR + "/plugins";
         AUTHLIB_INJECTOR_PATH = PLUGIN_DIR + "/authlib-injector.jar";
-        LIB_FIXER_PATH = PLUGIN_DIR + "/MioLibFixer.jar";
+        LIB_PATCHER_PATH = PLUGIN_DIR + "/MioLibPatcher.jar";
         MIO_LAUNCH_WRAPPER = PLUGIN_DIR + "/MioLaunchWrapper.jar";
         BACKGROUND_DIR = FILES_DIR + "/background";
         LT_BACKGROUND_PATH = BACKGROUND_DIR + "/lt.png";
