@@ -1021,4 +1021,6 @@
     <string name="wiki_snapshot">https://minecraft.wiki/w/Java_Edition_%s</string>
     <string name="installed">Installed</string>
     <string name="message_install_plugin">You can open the web page to get plugins.</string>
+
+    <string name="shaderpack">ShaderPack</string>
 </resources>
