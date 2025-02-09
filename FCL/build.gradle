@@ -1,7 +1,6 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-    id "org.hidetake.ssh" version "2.11.2"
 }
 
 android {
@@ -95,6 +94,9 @@ android {
             useLegacyPackaging true
             pickFirsts += ['**/libbytehook.so']
         }
+    }
+    lintOptions {
+        disable "ExpiredTargetSdkVersion"
     }
     kotlinOptions {
         jvmTarget = "1.8"

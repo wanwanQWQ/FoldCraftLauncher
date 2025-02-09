@@ -30,7 +30,6 @@ jobs:
           chmod +x gradlew
           ./gradlew -Darch=all :FCL:mergeDebugAssets --rerun-tasks --no-build-cache
 
-
       - name: Build ALL apk
         run: |
           ./gradlew assembledebug -Darch="all" -DpkgSuffix="${{github.event.inputs.pkgSuffix}}" --stacktrace
