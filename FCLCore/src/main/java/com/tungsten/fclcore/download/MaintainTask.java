@@ -172,13 +172,6 @@ public class MaintainTask extends Task<Version> {
             optiFine.ifPresent(library -> {
                 builder.addJvmArgument("-Dhmcl.transformer.candidates=${library_directory}/" + library.getPath());
                 if (!libraryExisting) builder.addLibrary(hmclTransformerDiscoveryService);
-                Path libraryPath = repository.getLibraryFile(version, hmclTransformerDiscoveryService).toPath();
-                try (InputStream input = MaintainTask.class.getResourceAsStream("/assets/othersInternal/files/plugins/HMCLTransformerDiscoveryService-1.0.jar")) {
-                    Files.createDirectories(libraryPath.getParent());
-                    Files.copy(Objects.requireNonNull(input, "Bundled HMCLTransformerDiscoveryService is missing."), libraryPath, StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException | NullPointerException e) {
-                    Logging.LOG.log(Level.WARNING, "Unable to unpack HMCLTransformerDiscoveryService", e);
-                }
             });
         }
 

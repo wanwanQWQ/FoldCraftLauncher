@@ -26,6 +26,7 @@ import com.tungsten.fclcore.download.neoforge.NeoForgeOfficialVersionList;
 import com.tungsten.fclcore.download.optifine.OptiFine302VersionList;
 import com.tungsten.fclcore.download.quilt.QuiltAPIVersionList;
 import com.tungsten.fclcore.download.quilt.QuiltVersionList;
+import com.tungsten.fclauncher.utils.FCLPath;
 
 /**
  * @see <a href="http://wiki.vg">http://wiki.vg</a>
@@ -42,7 +43,7 @@ public class MojangDownloadProvider implements DownloadProvider {
     private final QuiltAPIVersionList quiltApi;
 
     public MojangDownloadProvider() {
-        String apiRoot = "https://bmclapi2.bangbang93.com";
+        String apiRoot = FCLPath.Prop.getProperty("bmclapi-root-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download");
 
         this.game = new GameVersionList(this);
         this.fabric = new FabricVersionList(this);
@@ -50,19 +51,19 @@ public class MojangDownloadProvider implements DownloadProvider {
         this.forge = new ForgeVersionList(this);
         this.neoforge = new NeoForgeOfficialVersionList(this);
         this.liteLoader = new LiteLoaderVersionList(this);
-        this.optifine = new OptiFine302VersionList("https://hmcl-dev.github.io/metadata/optifine/");
+        this.optifine = new OptiFine302VersionList(FCLPath.Prop.getProperty("optifine-download-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download/optifine/versionlist"));
         this.quilt = new QuiltVersionList(this);
         this.quiltApi = new QuiltAPIVersionList(this);
     }
 
     @Override
     public String getVersionListURL() {
-        return "https://piston-meta.mojang.com/mc/game/version_manifest.json";
+        return FCLPath.Prop.getProperty("minecraft-manifest-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download/mc/game/version_manifest.json");
     }
 
     @Override
     public String getAssetBaseURL() {
-        return "https://resources.download.minecraft.net/";
+        return FCLPath.Prop.getProperty("minecraft-resource-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download/mc/resource/");
     }
 
     @Override

@@ -135,7 +135,7 @@ public class MainUI extends FCLCommonUI implements View.OnClickListener {
     }
 
     private void checkAnnouncement() {
-        if(FCLApplication.Prop.getProperty("enable-announcement","true").equals("true")){
+        if(FCLApplication.Prop.getProperty("enable-announcement-component","false").equals("true")){
             isChecking = true;
             AtomicReference<String> remoteDataRef = new AtomicReference<>();
             AtomicReference<Announcement> announcementDataRef = new AtomicReference<>();

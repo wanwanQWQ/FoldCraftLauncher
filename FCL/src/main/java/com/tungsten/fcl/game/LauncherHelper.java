@@ -144,26 +144,6 @@ public final class LauncherHelper {
                             Task.composeAsync(() -> null)
                     );
                 }).withStage("launch.state.dependencies")
-                .thenComposeAsync(() -> {
-                    if ( !(new File(FCLPath.LIB_PATCHER_PATH).exists()) ) {
-                        try (InputStream input = LauncherHelper.class.getResourceAsStream("/assets/othersInternal/files/plugins/MioLibPatcher.jar")) {
-                            Files.copy(input, new File(FCLPath.LIB_PATCHER_PATH).toPath(), StandardCopyOption.REPLACE_EXISTING);
-                        } catch (IOException e) {
-                            Logging.LOG.log(Level.WARNING, "Unable to unpack MioLibPatcher.jar", e);
-                        }
-                    }
-                    return null;
-                })
-                .thenComposeAsync(() -> {
-                    if ( !(new File(FCLPath.MIO_LAUNCH_WRAPPER).exists()) ) {
-                        try (InputStream input = LauncherHelper.class.getResourceAsStream("/assets/othersInternal/files/plugins/MioLaunchWrapper.jar")) {
-                            Files.copy(input, new File(FCLPath.MIO_LAUNCH_WRAPPER).toPath(), StandardCopyOption.REPLACE_EXISTING);
-                        } catch (IOException e) {
-                            Logging.LOG.log(Level.WARNING, "Unable to unpack MioLaunchWrapper.jar", e);
-                        }
-                    }
-                    return null;
-                })
                 .thenComposeAsync(() -> gameVersion.map(s -> new GameVerificationFixTask(dependencyManager, s, version.get())).orElse(null))
                 .thenComposeAsync(() -> logIn(context, account).withStage("launch.state.logging_in"))
                 .thenComposeAsync(authInfo -> Task.supplyAsync(() -> {

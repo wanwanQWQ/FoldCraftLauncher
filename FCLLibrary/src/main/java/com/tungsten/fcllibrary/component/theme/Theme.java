@@ -82,7 +82,7 @@ public class Theme {
     }
 
     public int getAutoHintTint() {
-        return ColorUtils.calculateLuminance(getColor()) >= 0.5 ? Color.parseColor("#99000000") : Color.parseColor("#99686868");
+        return ColorUtils.calculateLuminance(getColor()) >= 0.5 ? Color.parseColor("#FF000000") : Color.parseColor("#FF676868");
     }
 
     public boolean isFullscreen() {
@@ -200,12 +200,12 @@ public class Theme {
     public static Theme getTheme(Context context) {
         SharedPreferences sharedPreferences;
         sharedPreferences = context.getSharedPreferences("theme", MODE_PRIVATE);
-        int color = sharedPreferences.getInt("theme_color", ConvertUtils.getIntFromStr(FCLPath.Prop.getProperty("theme-color", null), -531607472));
-        int color2 = sharedPreferences.getInt("theme_color2", ConvertUtils.getIntFromStr(FCLPath.Prop.getProperty("theme-color2", null), -7303024));
-        boolean fullscreen = sharedPreferences.getBoolean("fullscreen", FCLPath.Prop.getProperty("fullscreen", "true").equals("true"));
+        int color = sharedPreferences.getInt("theme_color", Color.parseColor(FCLPath.Prop.getProperty("default-theme-first-color", "#99676868")));
+        int color2 = sharedPreferences.getInt("theme_color2", Color.parseColor(FCLPath.Prop.getProperty("default-theme-second-color", "#FFA0A0A0")));
+        boolean fullscreen = sharedPreferences.getBoolean("fullscreen", FCLPath.Prop.getProperty("default-fullscreen", "true").equals("true"));
         boolean closeSkinModel = sharedPreferences.getBoolean("close_skin_model", false);
         boolean modified = sharedPreferences.getBoolean("modified", false);
-        int animationSpeed = sharedPreferences.getInt("animation_speed", ConvertUtils.getIntFromStr(FCLPath.Prop.getProperty("animation-speed", null), 0));
+        int animationSpeed = sharedPreferences.getInt("animation_speed", ConvertUtils.getIntFromStr(FCLPath.Prop.getProperty("default-animation-speed", null), 0));
         Bitmap lt = ImageUtil.load(context.getFilesDir().getAbsolutePath() + "/background/lt.png").orElse(ConvertUtils.getBitmapFromAssets(context, "img/background/lt.png"));
         BitmapDrawable backgroundLt = new BitmapDrawable(context.getResources(), lt);
         Bitmap dk = ImageUtil.load(context.getFilesDir().getAbsolutePath() + "/background/dk.png").orElse(ConvertUtils.getBitmapFromAssets(context, "img/background/dk.png"));

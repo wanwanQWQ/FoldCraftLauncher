@@ -29,6 +29,7 @@ import com.tungsten.fclcore.download.optifine.OptiFineBMCLVersionList;
 import com.tungsten.fclcore.download.quilt.QuiltAPIVersionList;
 import com.tungsten.fclcore.download.quilt.QuiltVersionList;
 import com.tungsten.fclcore.util.Pair;
+import com.tungsten.fclauncher.utils.FCLPath;
 
 import java.util.Arrays;
 import java.util.List;
@@ -67,13 +68,13 @@ public final class BMCLAPIDownloadProvider implements DownloadProvider {
                 pair("http://files.minecraftforge.net/maven", apiRoot + "/maven"),
                 pair("https://files.minecraftforge.net/maven", apiRoot + "/maven"),
                 pair("https://maven.minecraftforge.net", apiRoot + "/maven"),
-                pair("https://maven.neoforged.net/releases/net/neoforged/forge", apiRoot + "/maven/net/neoforged/forge"),
+                pair("https://maven.neoforged.net/releases", apiRoot + "/maven"),
                 pair("http://dl.liteloader.com/versions/versions.json", apiRoot + "/maven/com/mumfrey/liteloader/versions.json"),
                 pair("http://dl.liteloader.com/versions", apiRoot + "/maven"),
                 pair("https://meta.fabricmc.net", apiRoot + "/fabric-meta"),
                 pair("https://maven.fabricmc.net", apiRoot + "/maven"),
                 pair("https://authlib-injector.yushi.moe", apiRoot + "/mirrors/authlib-injector"),
-                pair("https://repo1.maven.org/maven2", "https://mirrors.cloud.tencent.com/nexus/repository/maven-public")
+                pair("https://repo1.maven.org/maven2", FCLPath.Prop.getProperty("maven2-download-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download/maven2"))
         );
     }
 

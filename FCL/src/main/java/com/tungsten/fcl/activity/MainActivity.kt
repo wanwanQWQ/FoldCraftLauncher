@@ -210,7 +210,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
 
                     setupAccountDisplay()
                     setupVersionDisplay()
-                    if (FCLApplication.Prop.getProperty("check-update", "true") == "true") UpdateChecker.getInstance().checkAuto(this@MainActivity).start()
+                    if (FCLApplication.Prop.getProperty("automatic-update-detection", "false") == "true") UpdateChecker.getInstance().checkAuto(this@MainActivity).start()
                 }
                 playAnim()
                 uiLayout.postDelayed(1500) {

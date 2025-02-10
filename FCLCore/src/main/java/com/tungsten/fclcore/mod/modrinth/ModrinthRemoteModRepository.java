@@ -34,6 +34,7 @@ import com.tungsten.fclcore.util.gson.JsonUtils;
 import com.tungsten.fclcore.util.io.HttpRequest;
 import com.tungsten.fclcore.util.io.NetworkUtils;
 import com.tungsten.fclcore.util.io.ResponseCodeException;
+import com.tungsten.fclauncher.utils.FCLPath;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +51,7 @@ public final class ModrinthRemoteModRepository implements RemoteModRepository {
     public static final ModrinthRemoteModRepository RESOURCE_PACKS = new ModrinthRemoteModRepository("resourcepack");
     public static final ModrinthRemoteModRepository SHADER_PACKS = new ModrinthRemoteModRepository("shader");
 
-    private static final String PREFIX = "https://api.modrinth.com";
+    private static final String PREFIX = FCLPath.Prop.getProperty("modrinth-api-url","https://api.modrinth.com");
 
     private final String projectType;
 

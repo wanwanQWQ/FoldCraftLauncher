@@ -337,16 +337,8 @@ public final class Accounts {
             });
         }
 
-        if (FCLApplication.Prop.getProperty("authlibinjector-update", "false").equals("true")) {
+        if (FCLApplication.Prop.getProperty("download-online-authlib-injector", "false").equals("true")) {
             triggerAuthlibInjectorUpdateCheck();
-        } else {
-            if ( !(new File(FCLPath.AUTHLIB_INJECTOR_PATH).exists()) ) {
-                try (InputStream input = FCLPath.CONTEXT.getAssets().open("/assets/othersInternal/files/plugins/authlib-injector.jar")) {
-                    Files.copy(input, new File(FCLPath.AUTHLIB_INJECTOR_PATH).toPath(), StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException e) {
-                    LOG.log(Level.WARNING, "Unable to unpack authlib-injector.jar", e);
-                }
-            }
         }
 
         for (AuthlibInjectorServer server : config().getAuthlibInjectorServers()) {
