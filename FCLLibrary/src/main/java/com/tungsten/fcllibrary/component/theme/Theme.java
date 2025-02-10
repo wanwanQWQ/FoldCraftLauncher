@@ -82,7 +82,7 @@ public class Theme {
     }
 
     public int getAutoHintTint() {
-        return ColorUtils.calculateLuminance(getColor()) >= 0.5 ? Color.parseColor("#FF000000") : Color.parseColor("#FF676868");
+        return ColorUtils.calculateLuminance(getColor()) >= 0.5 ? Color.parseColor("#FF555555") : Color.parseColor("#FFDDDDDD");
     }
 
     public boolean isFullscreen() {
@@ -200,8 +200,8 @@ public class Theme {
     public static Theme getTheme(Context context) {
         SharedPreferences sharedPreferences;
         sharedPreferences = context.getSharedPreferences("theme", MODE_PRIVATE);
-        int color = sharedPreferences.getInt("theme_color", Color.parseColor(FCLPath.Prop.getProperty("default-theme-first-color", "#99676868")));
-        int color2 = sharedPreferences.getInt("theme_color2", Color.parseColor(FCLPath.Prop.getProperty("default-theme-second-color", "#FFA0A0A0")));
+        int color = sharedPreferences.getInt("theme_color", Color.parseColor(FCLPath.Prop.getProperty("default-theme-first-color", "#7F000000")));
+        int color2 = sharedPreferences.getInt("theme_color2", Color.parseColor(FCLPath.Prop.getProperty("default-theme-second-color", "#FF7F7F7F")));
         boolean fullscreen = sharedPreferences.getBoolean("fullscreen", FCLPath.Prop.getProperty("default-fullscreen", "true").equals("true"));
         boolean closeSkinModel = sharedPreferences.getBoolean("close_skin_model", false);
         boolean modified = sharedPreferences.getBoolean("modified", false);

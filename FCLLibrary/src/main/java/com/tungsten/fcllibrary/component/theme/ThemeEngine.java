@@ -166,11 +166,11 @@ public class ThemeEngine {
     }
 
     public static int getDefaultColor(Context context) {
-        int color = Color.parseColor(FCLPath.Prop.getProperty("default-theme-first-color", "#99676868"));
+        int color = Color.parseColor(FCLPath.Prop.getProperty("default-theme-first-color", "#7F000000"));
         return color;
     }
     public static int getDefaultColor2(Context context) {
-        int color2 = Color.parseColor(FCLPath.Prop.getProperty("default-theme-second-color", "#FFA0A0A0"));
+        int color2 = Color.parseColor(FCLPath.Prop.getProperty("default-theme-second-color", "#FF7F7F7F"));
         return color2;
     }
 
