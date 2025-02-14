@@ -166,7 +166,7 @@ public class ThemeEngine {
     }
 
     public static int getDefaultColor(Context context) {
-        int color = Color.parseColor(FCLPath.Prop.getProperty("default-theme-first-color", "#7F000000"));
+        int color = Color.parseColor(FCLPath.Prop.getProperty("default-theme-first-color", "#7F7797CF"));
         return color;
     }
     public static int getDefaultColor2(Context context) {

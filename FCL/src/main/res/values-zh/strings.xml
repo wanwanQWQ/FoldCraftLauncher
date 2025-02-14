@@ -372,7 +372,7 @@
     <string name="game_crash_reason_bootstrap_failed">当前游戏因为模组 %1$s 错误，无法继续运行。\n你可以尝试删除或更新该模组以解决问题。</string>
     <string name="game_crash_reason_config">当前游戏因为无法解析模组配置文件，无法继续运行\n模组 %1$s 的配置文件 %2$s 无法被解析。</string>
     <string name="game_crash_reason_multiple">检测到多个原因：\n\n</string>
-    <string name="game_crash_reason_debug_crash">当前游戏因为手动触发崩溃，无法继续运行。\n事实上游戏并没有问题，问题都是你造成的！</string>
+    <string name="game_crash_reason_debug_crash">当前游戏因为手动触发崩溃，无法继续运行。\n事实上游戏并没有问题。</string>
     <string name="game_crash_reason_duplicated_mod">当前游戏因为模组 %1$s 重复安装，无法继续运行。\n%2$s\n每种 Mod 只能安装一个，请你删除多余的 Mod 再试。</string>
     <string name="game_crash_reason_entity">当前游戏因为某个实体不能正常工作，无法继续运行。\n你可以尝试通过 MCEdit 工具编辑存档删除该实体，或者直接删除相应的 Mod。\n实体类型：%1$s\n实体坐标：%2$s</string>
     <string name="game_crash_reason_fabric_version_0_12">Fabric 0.12 及以上版本与当前已经安装的 Mod 可能不兼容，你需要将 Fabric 降级至 0.11.7。</string>
