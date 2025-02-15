@@ -80,7 +80,6 @@ import java.lang.ref.WeakReference
 import java.util.function.Consumer
 import java.util.logging.Level
 import java.util.stream.Stream
-import kotlin.system.exitProcess
 
 class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
     companion object {
@@ -205,7 +204,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                     back.setOnClickListener(this@MainActivity)
                     home.setSelected(true)
                     back.setOnLongClickListener {
-                        exitProcess(1)
+                        throw RuntimeException("DebugLauncherCrash")
                     }
 
                     setupAccountDisplay()

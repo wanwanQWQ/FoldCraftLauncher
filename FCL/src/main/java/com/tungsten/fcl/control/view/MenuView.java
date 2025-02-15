@@ -125,13 +125,9 @@ public class MenuView extends View {
             AssetManager assetManager = FCLApplication.getCurrentActivity().getAssets();
             try (InputStream inputStream = assetManager.open("img/game_menu/menu_icon.png")) {
                 icon = BitmapFactory.decodeStream(inputStream);
-            } catch (Exception ignore) {
-                try (InputStream inputStream = assetManager.open("img/game_menu/menu_icon.gif")) {
-                    icon = BitmapFactory.decodeStream(inputStream);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    icon = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
-                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                icon = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
             }
         }
     }

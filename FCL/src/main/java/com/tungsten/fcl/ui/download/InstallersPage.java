@@ -44,7 +44,6 @@ import com.tungsten.fcllibrary.component.view.FCLEditText;
 import com.tungsten.fcllibrary.component.view.FCLImageButton;
 import com.tungsten.fcllibrary.component.view.FCLUILayout;
 
-import java.io.File;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Arrays;
@@ -210,12 +209,6 @@ public class InstallersPage extends FCLTempPage implements View.OnClickListener 
                         .thenRunAsync(Schedulers.androidUIThread(), () -> {
                             Profile profile = Profiles.getSelectedProfile();
                             profile.setSelectedVersion(name);
-                            if (!map.isEmpty()) {
-                                if (map.containsKey(LibraryAnalyzer.LibraryType.OPTIFINE.getPatchId()) && map.size() == 1) {
-                                    return;
-                                }
-                                new File(profile.getRepository().getRunDirectory(profile.getSelectedVersion()), "mods").mkdirs();
-                            }
                         });
 
                 TaskDialog pane = new TaskDialog(getContext(), new TaskCancellationAction(AppCompatDialog::dismiss));
