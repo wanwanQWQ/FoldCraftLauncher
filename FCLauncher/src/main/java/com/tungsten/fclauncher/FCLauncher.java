@@ -185,7 +185,7 @@ public class FCLauncher {
         if (FCL_VERSION_CODE != -1) {
             envMap.put("FCL_VERSION_CODE", FCL_VERSION_CODE + "");
         }
-        envMap.put("HOME", config.getLogDir());
+        envMap.put("HOME", config.getWorkingDir());
         envMap.put("JAVA_HOME", config.getJavaPath());
         envMap.put("FCL_NATIVEDIR", config.getContext().getApplicationInfo().nativeLibraryDir);
         envMap.put("POJAV_NATIVEDIR", config.getContext().getApplicationInfo().nativeLibraryDir);

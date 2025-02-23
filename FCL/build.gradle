@@ -35,8 +35,8 @@ android {
         minSdk 26
         targetSdk 28
 
-        versionCode 120601
-        versionName "1.2.0.6-01"
+        versionCode 120701
+        versionName "1.2.0.7-01"
 
         resValue "string", "app_name", "Fold Craft Launcher " + pkgSuffix
         resValue "string", "app_version", "${defaultConfig.versionName}"

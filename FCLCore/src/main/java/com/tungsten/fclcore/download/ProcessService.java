@@ -38,11 +38,12 @@ public class ProcessService extends Service {
         String[] command = intent.getExtras().getStringArray("command");
         int java = intent.getExtras().getInt("java");
         String jre = "jre" + java;
+        FCLPath.loadPaths(getApplicationContext());
         FCLConfig config = new FCLConfig(
                 getApplicationContext(),
                 FCLPath.LOG_DIR,
-                getApplicationContext().getDir("runtime", 0).getAbsolutePath() + "/java/" + jre,
-                getApplicationContext().getCacheDir() + "/fclauncher",
+                FCLPath.RUNTIME_DIR + "/java/" + jre,
+                FCLPath.EXTERNAL_DIR,
                 null,
                 command
         );
