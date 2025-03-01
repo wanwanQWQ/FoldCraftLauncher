@@ -1022,4 +1022,5 @@
     <string name="message_install_plugin">You can open the web page to get plugins.</string>
 
     <string name="shaderpack">ShaderPack</string>
+    <string name="recommend_version">Recommend version</string>
 </resources>

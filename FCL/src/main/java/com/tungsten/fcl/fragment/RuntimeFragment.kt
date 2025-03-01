@@ -77,36 +77,17 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
     }
 
     private fun initState() {
-        try {
-            lwjgl = RuntimeUtils.isLatest(
-                FCLPath.LWJGL_DIR,
-                "/assets/app_runtime/lwjgl"
-            ) && RuntimeUtils.isLatest(
-                FCLPath.LWJGL_DIR + "-boat",
-                "/assets/app_runtime/lwjgl-boat"
-            )
-            cacio = RuntimeUtils.isLatest(
-                FCLPath.CACIOCAVALLO_8_DIR,
-                "/assets/app_runtime/caciocavallo"
-            )
-            cacio11 = RuntimeUtils.isLatest(
-                FCLPath.CACIOCAVALLO_11_DIR,
-                "/assets/app_runtime/caciocavallo11"
-            )
-            cacio17 = RuntimeUtils.isLatest(
-                FCLPath.CACIOCAVALLO_17_DIR,
-                "/assets/app_runtime/caciocavallo17"
-            )
-            java8 = RuntimeUtils.isLatest(FCLPath.JAVA_8_PATH, "/assets/app_runtime/java/jre8")
-            java11 = RuntimeUtils.isLatest(FCLPath.JAVA_11_PATH, "/assets/app_runtime/java/jre11")
-            java17 = RuntimeUtils.isLatest(FCLPath.JAVA_17_PATH, "/assets/app_runtime/java/jre17")
-            java21 = RuntimeUtils.isLatest(FCLPath.JAVA_21_PATH, "/assets/app_runtime/java/jre21")
-            jna = RuntimeUtils.isLatest(FCLPath.JNA_PATH, "/assets/app_runtime/jna")
-            gameResource = RuntimeUtils.isLatest(FCLPath.SHARED_COMMON_DIR, "/assets/.minecraft")
-            others = RuntimeUtils.isLatest(FCLPath.INTERNAL_DIR, "/assets/othersInternal")
-        } catch (e: IOException) {
-            Logging.LOG.log(Level.SEVERE, "Unable to check runtime version", e)
-        }
+        lwjgl = (activity as SplashActivity).lwjgl
+        cacio = (activity as SplashActivity).cacio
+        cacio11 = (activity as SplashActivity).cacio11
+        cacio17 = (activity as SplashActivity).cacio17
+        java8 = (activity as SplashActivity).java8
+        java11 = (activity as SplashActivity).java11
+        java17 = (activity as SplashActivity).java17
+        java21 = (activity as SplashActivity).java21
+        jna = (activity as SplashActivity).jna
+        gameResource = (activity as SplashActivity).gameResource
+        others = (activity as SplashActivity).others
     }
 
     private fun refreshDrawables() {
