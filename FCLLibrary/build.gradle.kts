@@ -21,8 +21,6 @@ android {
         }
         getByName("debug") {
             initWith(getByName("debug"))
-            resValue("string", "file_browser_provider", "com.tungsten.fcl.debug.provider")
-            resValue("string", "file_browser_document_provider", "com.tungsten.fcl.debug.document.provider")
         }
     }
 

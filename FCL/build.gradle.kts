@@ -1,12 +1,9 @@
 import com.android.build.api.variant.FilterConfiguration.FilterType.ABI
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 import com.android.build.gradle.tasks.MergeSourceSetFolders
-// import java.text.SimpleDateFormat
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
-// import java.util.Date
-// import java.util.Properties
 
 fun copyAssetsFile(source: File, target: File) {
     if (source.isDirectory) {
@@ -74,15 +71,6 @@ android {
             resValue("string", "app_version", android.defaultConfig.versionName.toString())
         }
     }
-
-    // applicationVariants.all {
-        // val variantName = name.capitalize()
-        // val copyAssetsTask = tasks.register("copy${variantName}Assets", Copy::class) {
-            // from("src/main/assets")
-            // into("build/intermediates/assets/${dirName}/merge${variantName}Assets")
-        // }
-        // tasks["generate${variantName}Assets"].dependsOn(copyAssetsTask)
-    // }
 
     androidComponents {
         onVariants { variant ->
