@@ -1,9 +1,26 @@
 import com.android.build.api.variant.FilterConfiguration.FilterType.ABI
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 import com.android.build.gradle.tasks.MergeSourceSetFolders
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Properties
+// import java.text.SimpleDateFormat
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+// import java.util.Date
+// import java.util.Properties
+
+fun copyAssetsFile(source: File, target: File) {
+    if (source.isDirectory) {
+        if (!target.exists()) {
+            target.mkdirs()
+        }
+        source.listFiles()?.forEach { file ->
+            val targetFile = File(target, file.name)
+            copyAssetsFile(file, targetFile)
+        }
+    } else {
+        Files.copy(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
+    }
+}
 
 plugins {
     id("com.android.application")
@@ -83,6 +100,7 @@ android {
                         task.doLast {
                             val arch = System.getProperty("arch", "all")
                             val assetsDir = task.outputDir.get().asFile
+                            copyAssetsFile(File("${project.projectDir}/src/main/assets"), assetsDir)
                             val jreList = listOf("jre8", "jre11", "jre17", "jre21")
                             println("arch:$arch")
                             jreList.forEach { jre ->
