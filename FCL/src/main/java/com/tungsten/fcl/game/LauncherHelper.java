@@ -80,11 +80,14 @@ import java.net.URL;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.List;
 import java.util.logging.Level;
+import java.util.Objects;
+import java.util.Optional;
 
 public final class LauncherHelper {
 
@@ -171,7 +174,6 @@ public final class LauncherHelper {
                     fclBridge.setGameDir(repository.getRunDirectory(selectedVersion).getAbsolutePath());
                     fclBridge.setRenderer(repository.getVersionSetting(selectedVersion).getRenderer().toString());
                     fclBridge.setJava(Integer.toString(javaVersionRef.get().getVersion()));
-                    checkMod(fclBridge);
                     checkTouchMod(fclBridge, repository.getRunDirectory(selectedVersion).getAbsolutePath());
                     JVMActivity.setFCLBridge(fclBridge, MenuType.GAME);
                     Bundle bundle = new Bundle();
@@ -267,27 +269,6 @@ public final class LauncherHelper {
         });
 
         executor.start();
-    }
-
-    private void checkMod(FCLBridge bridge) {
-        try {
-            StringBuilder sb = new StringBuilder();
-            Profiles.getSelectedProfile().getRepository().getModManager(Profiles.getSelectedVersion()).getMods().forEach(mod -> {
-                if (!mod.isActive()) {
-                    return;
-                }
-                sb.append(mod.getFileName());
-                sb.append(" | ");
-                sb.append(mod.getId());
-                sb.append(" | ");
-                sb.append(mod.getVersion());
-                sb.append(" | ");
-                sb.append(mod.getModLoaderType());
-                sb.append("\n");
-            });
-            bridge.setModSummary(sb.toString());
-        } catch (Throwable ignore) {
-        }
     }
 
     private void checkTouchMod(FCLBridge bridge, String GameDir) {

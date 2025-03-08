@@ -53,8 +53,8 @@ android {
         minSdk = 26
         targetSdk = 28
 
-        versionCode = 120801
-        versionName = "1.2.0.8-01"
+        versionCode = 121101
+        versionName = "1.2.1.1-01"
     }
 
     buildTypes {
@@ -108,8 +108,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     packaging {
@@ -124,7 +124,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 
     buildFeatures {

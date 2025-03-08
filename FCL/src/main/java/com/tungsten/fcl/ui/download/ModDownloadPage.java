@@ -6,6 +6,7 @@ import android.view.View;
 
 import androidx.core.text.HtmlCompat;
 
+import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.game.LocalizedRemoteModRepository;
 import com.tungsten.fcl.setting.Profile;
@@ -42,8 +43,12 @@ public class ModDownloadPage extends DownloadPage {
         showIncompatible.setVisibility(View.VISIBLE);
         showIncompatible.setOnClickListener(v -> {
             try {
+                String url = FCLApplication.Prop.getProperty("mod-compatibility-url","https://github.com/hyplant-team/FoldCraftLauncher/tree/doc/compatibility");
                 FCLAlertDialog dialog = new FCLAlertDialog(context);
                 dialog.setMessage(Html.fromHtml(IOUtils.readFullyAsString(context.getAssets().open("incompatible_mod_list.html")), 0));
+                dialog.setPositiveButton(context.getString(R.string.view_incompatible_online), () -> {
+                    AndroidUtils.openLink(context, url);
+                });
                 dialog.setNegativeButton(context.getString(com.tungsten.fcllibrary.R.string.dialog_positive), null);
                 dialog.show();
             } catch (Exception ignore) {
