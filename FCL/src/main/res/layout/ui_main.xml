@@ -74,6 +74,7 @@
                     android:textIsSelectable="true"
                     android:id="@+id/announcement"
                     android:autoLink="all"
+                    android:textColorLink="@color/text_color_link"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:auto_text_tint="true"/>
