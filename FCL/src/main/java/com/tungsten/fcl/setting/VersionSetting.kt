@@ -27,6 +27,7 @@ import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.annotations.JsonAdapter
+import com.mio.JavaManager
 import com.tungsten.fclauncher.FCLConfig
 import com.tungsten.fclauncher.plugins.RendererPlugin
 import com.tungsten.fclauncher.utils.FCLPath
@@ -250,26 +251,6 @@ class VersionSetting : Cloneable {
             pojavBigCoreProperty.set(pojavBigCore)
         }
 
-    // launcher settings
-    fun getJavaVersion(version: Version?): Task<JavaVersion> {
-        return Task.runAsync(Schedulers.androidUIThread()) {
-            if (java != JavaVersion.JAVA_AUTO.versionName &&
-                java != JavaVersion.JAVA_8.versionName &&
-                java != JavaVersion.JAVA_11.versionName &&
-                java != JavaVersion.JAVA_17.versionName &&
-                java != JavaVersion.JAVA_21.versionName
-            ) {
-                java = JavaVersion.JAVA_AUTO.versionName
-            }
-        }.thenSupplyAsync {
-            if (java == JavaVersion.JAVA_AUTO.versionName) {
-                return@thenSupplyAsync JavaVersion.getSuitableJavaVersion(version)
-            } else {
-                return@thenSupplyAsync JavaVersion.getJavaFromVersionName(java)
-            }
-        }
-    }
-
     fun checkController() {
         Controllers.addCallback {
             Controllers.checkControllers()
@@ -385,7 +366,7 @@ class VersionSetting : Cloneable {
                 vs.isAutoMemory = json["autoMemory"]?.asBoolean ?: DefaultVersionSetting.getAutoMemory()
                 vs.permSize = json["permSize"]?.asString ?: DefaultVersionSetting.getPermSize()
                 vs.serverIp = json["serverIp"]?.asString ?: DefaultVersionSetting.getServerIp()
-                vs.java = json["java"]?.asString ?: DefaultVersionSetting.getJava()
+                vs.java = JavaManager.javaList.find { it.name == json["java"]?.asString }?.name ?: DefaultVersionSetting.getJava()
                 vs.scaleFactor = json["scaleFactor"]?.asDouble ?: DefaultVersionSetting.getScaleFactor()
                 vs.isNotCheckGame = json["notCheckGame"]?.asBoolean ?: DefaultVersionSetting.getNotCheckGame()
                 vs.isNotCheckJVM = json["notCheckJVM"]?.asBoolean ?: DefaultVersionSetting.getNotCheckJVM()

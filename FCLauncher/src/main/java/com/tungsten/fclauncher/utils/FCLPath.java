@@ -29,6 +29,7 @@ public class FCLPath {
     public static String JAVA_11_PATH;
     public static String JAVA_17_PATH;
     public static String JAVA_21_PATH;
+    public static String JAVA_PATH;
     public static String JNA_PATH;
     public static String LWJGL_DIR;
     public static String CACIOCAVALLO_8_DIR;
@@ -60,6 +61,7 @@ public class FCLPath {
         DK_BACKGROUND_PATH = BACKGROUND_DIR + "/dk.png";
 
         RUNTIME_DIR = context.getDir("runtime", 0).getAbsolutePath();
+        JAVA_PATH = RUNTIME_DIR + "/java";
         JAVA_8_PATH = RUNTIME_DIR + "/java/jre8";
         JAVA_11_PATH = RUNTIME_DIR + "/java/jre11";
         JAVA_17_PATH = RUNTIME_DIR + "/java/jre17";

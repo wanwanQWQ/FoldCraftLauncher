@@ -26,6 +26,7 @@ public class ShellActivity extends FCLActivity {
     private EditText logWindow;
     private FCLEditText editText;
     private ShellUtil shellUtil;
+    private File shellInit;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -33,9 +34,12 @@ public class ShellActivity extends FCLActivity {
         setContentView(R.layout.activity_shell);
         logWindow = findViewById(R.id.shell_log_window);
         editText = findViewById(R.id.shell_input);
-        shellUtil = new ShellUtil(new File(FCLPath.FILES_DIR).getParent(), output -> runOnUiThread(() -> appendLog("\t" + output + "\n")));
+        shellInit = new File(FCLPath.INTERNAL_DIR, ".bashrc");
+        shellUtil = new ShellUtil(shellInit.getParent(), output -> runOnUiThread(() -> appendLog("\t\t" + output + "\n")));
         shellUtil.start();
-        shellUtil.append(". \"./.bashrc\"\n");
+        if (shellInit.exists() && shellInit.isFile()) {
+            shellUtil.append(". ./.bashrc\n");
+        }
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {

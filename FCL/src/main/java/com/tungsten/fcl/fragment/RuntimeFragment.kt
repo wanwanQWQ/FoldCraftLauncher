@@ -22,10 +22,7 @@ import com.tungsten.fclcore.util.Logging
 import com.tungsten.fcllibrary.component.FCLFragment
 import com.tungsten.fcllibrary.component.theme.Theme
 import com.tungsten.fcllibrary.component.theme.ThemeEngine
-import com.tungsten.fcllibrary.util.LocaleUtils
-import java.io.File
 import java.io.IOException
-import java.util.Locale
 import java.util.logging.Level
 
 class RuntimeFragment : FCLFragment(), View.OnClickListener {

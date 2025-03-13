@@ -12,11 +12,11 @@ import android.view.ViewGroup
 import android.view.animation.BounceInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.forEach
 import androidx.core.view.postDelayed
-import androidx.databinding.DataBindingUtil
 import com.mio.util.AnimUtil
 import com.mio.util.AnimUtil.Companion.interpolator
 import com.tungsten.fcl.FCLApplication
@@ -85,7 +85,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
         }
     }
 
-    lateinit var bind: ActivityMainBinding
+    lateinit var binding: ActivityMainBinding
     private var _uiManager: UIManager? = null
     private lateinit var uiManager: UIManager
     private lateinit var currentAccount: ObjectProperty<Account?>
@@ -96,9 +96,10 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         instance = WeakReference(this)
-        bind = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        bind.background.background = ThemeEngine.getInstance().getTheme().getBackground(this)
+        binding.background.background = ThemeEngine.getInstance().getTheme().getBackground(this)
 
         RemoteMod.registerEmptyRemoteMod(
             RemoteMod(
@@ -132,7 +133,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
             Logging.LOG.log(Level.WARNING, e.message)
         }
 
-        bind.apply {
+        binding.apply {
             uiLayout.post {
                 ThemeEngine.getInstance().registerEvent(leftMenu) {
                     leftMenu.setBackgroundColor(
@@ -142,40 +143,10 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
 
                 account.setOnClickListener(this@MainActivity)
                 version.setOnClickListener(this@MainActivity)
-                executeJar.setOnClickListener(this@MainActivity)
-                executeJar.setOnLongClickListener {
-                    val editText = FCLEditText(this@MainActivity).apply {
-                        hint = "-jar xxx"
-                        setLines(1)
-                        maxLines = 1
-                        layoutParams = FrameLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT
-                        )
-                    }
-                    AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.jar_execute_custom_args)
-                        .setView(editText)
-                        .setPositiveButton(com.tungsten.fcllibrary.R.string.dialog_positive) { _: DialogInterface?, _: Int ->
-                            JarExecutorHelper.exec(
-                                this@MainActivity,
-                                null,
-                                JarExecutorHelper.getJava(null),
-                                editText.text.toString()
-                            )
-                        }
-                        .setNegativeButton(com.tungsten.fcllibrary.R.string.dialog_negative, null)
-                        .create()
-                        .show()
-                    true
-                }
-                viewLogs.setOnClickListener(this@MainActivity)
-                viewLogs.setOnLongClickListener {
-                    startActivity(Intent(this@MainActivity, ShellActivity::class.java))
-                    true
-                }
                 launchPojav.setOnClickListener(this@MainActivity)
                 launchBoat.setOnClickListener(this@MainActivity)
+                viewLogs.setOnClickListener(this@MainActivity)
+                fclShell.setOnClickListener(this@MainActivity)
                 OnLongClickListener { openRendererMenu(it);true }.apply {
                     launchPojav.setOnLongClickListener(this)
                     launchBoat.setOnLongClickListener(this)
@@ -195,10 +166,45 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                     controller.setOnSelectListener(this@MainActivity)
                     multiplayer.setOnSelectListener(this@MainActivity)
                     setting.setOnSelectListener(this@MainActivity)
-                    back.setOnClickListener(this@MainActivity)
                     home.setSelected(true)
+
+                    jar.setOnClickListener(this@MainActivity)
+                    back.setOnClickListener(this@MainActivity)
                     back.setOnLongClickListener {
                         throw RuntimeException("DebugLauncherCrash")
+                    }
+                    fclShell.setOnLongClickListener {
+                        startActivity(Intent(this@MainActivity, ShellActivity::class.java))
+                        true
+                    }
+                    jar.setOnLongClickListener {
+                        val editText = FCLEditText(this@MainActivity).apply {
+                            hint = getString(R.string.jar_execute_custom_args_hint)
+                            setLines(1)
+                            maxLines = 1
+                            layoutParams = FrameLayout.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT
+                            )
+                        }
+                        AlertDialog.Builder(this@MainActivity)
+                            .setTitle(R.string.jar_execute_custom_args)
+                            .setView(editText)
+                            .setPositiveButton(com.tungsten.fcllibrary.R.string.dialog_positive) { _: DialogInterface?, _: Int ->
+                                JarExecutorHelper.exec(
+                                    this@MainActivity,
+                                    null,
+                                    JarExecutorHelper.getJava(null),
+                                    editText.text.toString()
+                                )
+                            }
+                            .setNegativeButton(
+                                com.tungsten.fcllibrary.R.string.dialog_negative,
+                                null
+                            )
+                            .create()
+                            .show()
+                        true
                     }
 
                     setupAccountDisplay()
@@ -212,6 +218,12 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                         setting,
                         getString(R.string.guide_theme2),
                         GuideUtil.TAG_GUIDE_THEME_2
+                    )
+                    GuideUtil.show(
+                        this@MainActivity,
+                        jar,
+                        getString(R.string.jar_execute),
+                        GuideUtil.TAG_GUIDE_EXECUTE_JAR
                     )
                 }
             }
@@ -245,7 +257,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
             .start()
         AnimUtil.playScaleY(view, speed * 100L, 1f, 2f, 1f)
             .start()
-        bind.apply {
+        binding.apply {
             when (view) {
                 home -> {
                     title.setTextWithAnim(getString(R.string.app_name) + " " + getString(R.string.app_version))
@@ -289,7 +301,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
     }
 
     fun refreshMenuView(view: FCLMenuView?) {
-        bind.leftMenu.forEach {
+        binding.leftMenu.forEach {
             if (it is FCLMenuView && it != view) {
                 it.isSelected = false
             }
@@ -297,7 +309,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
     }
 
     override fun onClick(view: View) {
-        bind.apply {
+        binding.apply {
             if (view === account && uiManager.currentUI !== uiManager.accountUI) {
                 refreshMenuView(null)
                 title.setTextWithAnim(getString(R.string.account))
@@ -311,7 +323,8 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
             if (view === back) {
                 uiManager.onBackPressed()
             }
-            if (view === executeJar) {
+            if (view === jar) {
+                jar.isSelected = false
                 JarExecutorHelper.start(this@MainActivity, this@MainActivity)
             }
             if (view === viewLogs) {
@@ -319,6 +332,9 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                 builder.setLibMode(LibMode.FILE_BROWSER)
                 builder.setInitDir(File(FCLPath.LOG_DIR).absolutePath)
                 builder.create().browse(this@MainActivity, RequestCodes.BROWSE_DIR_CODE, null)
+            }
+            if (view === fclShell) {
+                Toast.makeText(this@MainActivity, getString(R.string.fcl_shell_warn), Toast.LENGTH_SHORT).show()
             }
 
             fun launch() {
@@ -355,7 +371,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
     }
 
     private fun setupAccountDisplay() {
-        bind.apply {
+        binding.apply {
             currentAccount = object : SimpleObjectProperty<Account?>() {
                 override fun invalidated() {
                     val account = get()
@@ -399,8 +415,8 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
     fun refreshAvatar(account: Account) {
         Schedulers.androidUIThread().execute {
             if (currentAccount.get() === account) {
-                bind.avatar.imageProperty().unbind()
-                bind.avatar.imageProperty().bind(
+                binding.avatar.imageProperty().unbind()
+                binding.avatar.imageProperty().bind(
                     TexturesLoader.avatarBinding(
                         currentAccount.get(), ConvertUtils.dip2px(
                             this@MainActivity, 30f
@@ -412,7 +428,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
     }
 
     private fun loadVersion(version: String?) {
-        bind.versionProgress.visibility = View.VISIBLE
+        binding.versionProgress.visibility = View.VISIBLE
         if (Profiles.getSelectedProfile() != profile) {
             profile = Profiles.getSelectedProfile()
             if (profile != null) {
@@ -433,7 +449,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                         .orElse(getString(R.string.message_unknown))
                 }
                 if (game == null) return@execute
-                val libraries = StringBuilder(game!!)
+                val libraries = StringBuilder(game)
                 val analyzer = LibraryAnalyzer.analyze(
                     Profiles.getSelectedProfile().repository.getResolvedPreservingPatchesVersion(
                         version
@@ -464,17 +480,17 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                 }
                 val drawable = Profiles.getSelectedProfile().repository.getVersionIconImage(version)
                 Schedulers.androidUIThread().execute {
-                    bind.versionProgress.visibility = View.GONE
-                    bind.versionName.text = version
-                    bind.versionHint.text = libraries.toString()
-                    bind.icon.setBackgroundDrawable(drawable)
+                    binding.versionProgress.visibility = View.GONE
+                    binding.versionName.text = version
+                    binding.versionHint.text = libraries.toString()
+                    binding.icon.setBackgroundDrawable(drawable)
                 }
             }
         } else {
-            bind.versionProgress.visibility = View.GONE
-            bind.versionName.text = getString(R.string.version_no_version)
-            bind.versionHint.text = getString(R.string.version_manage)
-            bind.icon.setBackgroundDrawable(
+            binding.versionProgress.visibility = View.GONE
+            binding.versionName.text = getString(R.string.version_no_version)
+            binding.versionHint.text = getString(R.string.version_manage)
+            binding.icon.setBackgroundDrawable(
                 AppCompatResources.getDrawable(
                     this,
                     R.drawable.img_grass
@@ -505,11 +521,11 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
     private fun openRendererMenu(view: View) {
         RendererUtil.openRendererMenu(
             this,
-            bind.rightMenu,
-            bind.rightMenu.x.toInt(),
+            binding.rightMenu,
+            binding.rightMenu.x.toInt(),
             0,
-            bind.rightMenu.width,
-            view.y.toInt(),
+            binding.rightMenu.width,
+            binding.rightMenu.height,
             false
         ) {
             onClick(view)
@@ -517,7 +533,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
     }
 
     private fun playAnim() {
-        bind.apply {
+        binding.apply {
             val speed = ThemeEngine.getInstance().theme.animationSpeed
             AnimUtil.playTranslationX(
                 listOf(leftMenu),
@@ -536,7 +552,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                 it.interpolator(BounceInterpolator()).start()
             }
             AnimUtil.playTranslationY(
-                listOf(executeJar, viewLogs, launchPojav, launchBoat),
+                listOf(viewLogs, fclShell, launchPojav, launchBoat),
                 speed * 100L,
                 -200f,
                 0f
@@ -544,7 +560,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                 objectAnimator.interpolator(BounceInterpolator()).startAfter((index + 1) * 100L)
             }
             AnimUtil.playTranslationY(
-                listOf(home, manage, download, controller, setting, back),
+                listOf(home, manage, download, controller, setting, jar, back),
                 speed * 100L,
                 -300f,
                 0f
@@ -552,7 +568,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                 objectAnimator.interpolator(BounceInterpolator()).startAfter((index + 1) * 100L)
             }
             AnimUtil.playTranslationX(
-                listOf(home, manage, download, controller, setting, back),
+                listOf(home, manage, download, controller, setting, jar, back),
                 speed * 100L,
                 -100f,
                 0f

@@ -29,6 +29,7 @@
         app:layout_constraintWidth_percent="0.7">
         <com.tungsten.fcllibrary.component.view.FCLTextView
             android:id="@+id/eula"
+            android:autoLink="all"
             android:textSize="16sp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

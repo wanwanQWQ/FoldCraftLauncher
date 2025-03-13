@@ -12,6 +12,7 @@ import android.provider.Settings
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.mio.JavaManager
 import com.tungsten.fcl.R
 import com.tungsten.fcl.fragment.EulaFragment
 import com.tungsten.fcl.fragment.RuntimeFragment
@@ -29,9 +30,12 @@ import com.tungsten.fcllibrary.component.ResultListener
 import com.tungsten.fcllibrary.component.dialog.FCLAlertDialog
 import com.tungsten.fcllibrary.component.dialog.FCLAlertDialog.ButtonListener
 import com.tungsten.fcllibrary.component.theme.ThemeEngine
+import com.tungsten.fcllibrary.util.LocaleUtils
+import java.io.File
 import java.io.IOException
 import java.nio.file.Paths
 import java.util.logging.Level
+import java.util.Locale
 import kotlin.system.exitProcess
 
 @SuppressLint("CustomSplashScreen")
@@ -173,6 +177,7 @@ class SplashActivity : FCLActivity() {
     fun enterLauncher() {
         RendererPlugin.init(this)
         DriverPlugin.init(this)
+        JavaManager.init()
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
