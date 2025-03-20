@@ -399,9 +399,7 @@ public class CreateAccountDialog extends FCLDialog implements View.OnClickListen
                 if (links.get("homepage") != null) {
                     home.setVisibility(View.VISIBLE);
                     home.setOnClickListener(view -> {
-                        Uri uri = Uri.parse(links.get("homepage"));
-                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                        context.startActivity(intent);
+                        AndroidUtils.openLink(context, links.get("homepage"));
                     });
                 } else {
                     home.setVisibility(View.GONE);
@@ -409,9 +407,7 @@ public class CreateAccountDialog extends FCLDialog implements View.OnClickListen
                 if (links.get("register") != null) {
                     register.setVisibility(View.VISIBLE);
                     register.setOnClickListener(view -> {
-                        Uri uri = Uri.parse(links.get("register"));
-                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                        context.startActivity(intent);
+                        AndroidUtils.openLink(context, links.get("register"));
                     });
                 } else {
                     register.setVisibility(View.GONE);

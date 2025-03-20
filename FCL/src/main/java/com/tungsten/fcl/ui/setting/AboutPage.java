@@ -7,6 +7,7 @@ import android.view.View;
 
 import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
+import com.tungsten.fcl.util.AndroidUtils;
 import com.tungsten.fclcore.task.Task;
 import com.tungsten.fcllibrary.component.ui.FCLCommonPage;
 import com.tungsten.fcllibrary.component.view.FCLLinearLayout;
@@ -40,21 +41,20 @@ public class AboutPage extends FCLCommonPage implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        Uri uri = null;
+        String url = null;
 
         if (v == about_a) {
-            uri = Uri.parse(FCLApplication.Prop.getProperty("about-a","https://github.com/hyplant-team/FoldCraftLauncher"));
+            url = FCLApplication.Prop.getProperty("about-a","https://github.com/hyplant-team/FoldCraftLauncher");
         }
         if (v == about_b) {
-            uri = Uri.parse(FCLApplication.Prop.getProperty("about-b","https://github.com/hyplant-team/FoldCraftLauncher/actions"));
+            url = FCLApplication.Prop.getProperty("about-b","https://github.com/hyplant-team/FoldCraftLauncher/actions");
         }
         if (v == about_c) {
-            uri = Uri.parse(FCLApplication.Prop.getProperty("about-c","https://github.com/hyplant-team/FoldCraftLauncher/pulls"));
+            url = FCLApplication.Prop.getProperty("about-c","https://github.com/hyplant-team/FoldCraftLauncher/pulls");
         }
 
-        if (uri != null) {
-            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-            getContext().startActivity(intent);
+        if (url != null) {
+            AndroidUtils.openLink(getContext(), url);
         }
     }
 }

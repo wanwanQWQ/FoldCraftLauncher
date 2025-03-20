@@ -19,6 +19,8 @@ import com.tungsten.fcl.R;
 import com.tungsten.fcl.ui.TaskDialog;
 import com.tungsten.fcl.util.AndroidUtils;
 import com.tungsten.fcl.util.TaskCancellationAction;
+import com.tungsten.fclauncher.bridge.FCLBridge;
+import com.tungsten.fclauncher.utils.Architecture;
 import com.tungsten.fclauncher.utils.FCLPath;
 import com.tungsten.fclcore.task.FileDownloadTask;
 import com.tungsten.fclcore.task.Schedulers;
@@ -113,7 +115,7 @@ public class UpdateDialog extends FCLDialog implements View.OnClickListener {
             dismiss();
         }
         if (v == positive) {
-            String upgradeUrl = version.getUrl();
+            String upgradeUrl = getTargetArchUrl();
             if (upgradeUrl != null) {
                 TaskDialog dialog = new TaskDialog(getContext(), new TaskCancellationAction(AppCompatDialog::dismiss));
                 dialog.setTitle(getContext().getString(R.string.update_launcher));
@@ -160,5 +162,27 @@ public class UpdateDialog extends FCLDialog implements View.OnClickListener {
             }
             dismiss();
         }
+    }
+
+    @NonNull
+    private String getTargetArchUrl() {
+        String url = version.getUrl();
+        String arch = "all";
+        switch (Architecture.getDeviceArchitecture()) {
+            case Architecture.ARCH_ARM:
+                arch = "armeabi-v7a";
+                break;
+            case Architecture.ARCH_ARM64:
+                arch = "arm64-v8a";
+                break;
+            case Architecture.ARCH_X86:
+                arch = "x86";
+                break;
+            case Architecture.ARCH_X86_64:
+                arch = "x86_64";
+                break;
+        }
+        url = url.replace("-all", "-" + arch);
+        return url;
     }
 }

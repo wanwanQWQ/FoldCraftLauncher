@@ -7,6 +7,7 @@ import android.view.View;
 
 import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
+import com.tungsten.fcl.util.AndroidUtils;
 import com.tungsten.fclcore.task.Task;
 import com.tungsten.fcllibrary.component.ui.FCLCommonPage;
 import com.tungsten.fcllibrary.component.view.FCLLinearLayout;
@@ -40,21 +41,20 @@ public class CommunityPage extends FCLCommonPage implements View.OnClickListener
 
     @Override
     public void onClick(View v) {
-        Uri uri = null;
+        String url = null;
 
         if (v == community_a) {
-            uri = Uri.parse(FCLApplication.Prop.getProperty("community-a","https://github.com/hyplant-team/FoldCraftLauncher"));
+            url = FCLApplication.Prop.getProperty("community-a","https://github.com/hyplant-team/FoldCraftLauncher");
         }
         if (v == community_b) {
-            uri = Uri.parse(FCLApplication.Prop.getProperty("community-b","https://github.com/hyplant-team/FoldCraftLauncher/issues"));
+            url = FCLApplication.Prop.getProperty("community-b","https://github.com/hyplant-team/FoldCraftLauncher/issues");
         }
         if (v == community_c) {
-            uri = Uri.parse(FCLApplication.Prop.getProperty("community-c","https://github.com/hyplant-team/FoldCraftLauncher/discussions"));
+            url = FCLApplication.Prop.getProperty("community-c","https://github.com/hyplant-team/FoldCraftLauncher/discussions");
         }
 
-if (uri != null) {
-            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-            getContext().startActivity(intent);
+        if (url != null) {
+            AndroidUtils.openLink(getContext(), url);
         }
     }
 }

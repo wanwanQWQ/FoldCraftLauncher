@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#000000</color>
+    <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="text_color_link">#7797CF</color>
-    <color name="ui_bg_color">#60C0C0C0</color>
-    <color name="icon_background_color">#FFFFFF</color>
-    <color name="primary_text">#0E0E0E</color>
+    <color name="ui_bg_color">#60D0D0D0</color>
+    <color name="right_menu_color">#90D0D0D0</color>
+    <color name="icon_background_color">#30F0F0F0</color>
+    <color name="primary_text">#FF0E0E0E</color>
 </resources>

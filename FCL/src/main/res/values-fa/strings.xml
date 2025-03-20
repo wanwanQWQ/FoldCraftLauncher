@@ -445,6 +445,7 @@
     <string name="jar_executor_crash_title">مجری کوزه سقوط کرد</string>
     <string name="jar_executor_crash_reason">تحلیل دلیل خرابی Jar Executor اکنون پشتیبانی نمی‌شود.</string>
 
+    <string name="launch_pojav">راه اندازی</string>
     <string name="launch_error_java">شما از یک نسخه جاوا منسوخ استفاده می کنید، آیا مطمئن هستید که می خواهید ادامه دهید؟</string>
     <string name="launch_error_java_auto">انتخاب خودکار</string>
     <string name="launch_error_java_continue">ادامه هید</string>
@@ -695,7 +696,6 @@
     <string name="mods_url">صفحه رسمی</string>
     <string name="mods_update_modpack_mod_warning">به‌روزرسانی مود‌ها در یک مودپک می‌تواند منجر به نتایج جبران‌ناپذیری شود و احتمالاً مودپک را خراب کند به طوری که شروع به کار نشود. آیا مطمئن هستید که می خواهید به روز رسانی کنید؟</string>
 
-    <string name="profile_shared">دایرکتوری مشترک</string>
     <string name="profile_name">نام</string>
     <string name="profile_path">مسیر</string>
     <string name="profile_select">دایرکتوری را انتخاب کنید</string>
@@ -815,7 +815,7 @@
     <string name="update_check">به روز رسانی ها را بررسی کنید</string>
     <string name="update_checking">بررسی به‌روزرسانی‌ها</string>
     <string name="update_check_failed">به روز رسانی بررسی نشد</string>
-    <string name="update_date">تاریخ</string>
+    <string name="update_date">تاریخ:%s</string>
     <string name="update_description">توضیحات:\n%s</string>
     <string name="update_exist">نسخه قابل به روز رسانی شناسایی شد</string>
     <string name="update_failed">آخرین نسخه دانلود نشد، لطفا دوباره امتحان کنید یا آن را از وب سایت رسمی دانلود کنید.</string>

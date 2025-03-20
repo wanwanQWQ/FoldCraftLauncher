@@ -5,7 +5,6 @@ import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
@@ -47,10 +46,6 @@ public class ThemeEngine {
         if (!initialized) {
             handler = new Handler();
             theme = Theme.getTheme(context);
-            if (!theme.isModified()) {
-                theme.setColor(getDefaultColor(context));
-                theme.setColor2(getDefaultColor2(context));
-            }
             runnables = new HashMap<>();
             initialized = true;
         }
@@ -99,11 +94,13 @@ public class ThemeEngine {
         theme.setFullscreen(fullscreen);
         if (window != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                WindowManager.LayoutParams params = window.getAttributes();
                 if (fullscreen) {
-                    window.getAttributes().layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+                    params.layoutInDisplayCutoutMode = WindowManager.LayoutParams. LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES ;
                 } else {
-                    window.getAttributes().layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER;
+                    params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER;
                 }
+                window.setAttributes(params);
             }
             window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
             window.getDecorView().setSystemUiVisibility(
@@ -127,26 +124,24 @@ public class ThemeEngine {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Bitmap ltBitmap;
-        Bitmap dkBitmap;
-        ltBitmap = ImageUtil.load(FCLPath.LT_BACKGROUND_PATH).orElse(ConvertUtils.getBitmapFromAssets(context, "img/background/lt.png"));
-        dkBitmap = ImageUtil.load(FCLPath.DK_BACKGROUND_PATH).orElse(ConvertUtils.getBitmapFromAssets(context, "img/background/dk.png"));
+        final Bitmap ltBitmap = ImageUtil.load(FCLPath.LT_BACKGROUND_PATH).orElse(ConvertUtils.getBitmapFromAssets(context, "img/background/lt.png"));
+        final Bitmap dkBitmap = ImageUtil.load(FCLPath.DK_BACKGROUND_PATH).orElse(ConvertUtils.getBitmapFromAssets(context, "img/background/dk.png"));
         BitmapDrawable lt = new BitmapDrawable(context.getResources(), ltBitmap);
         BitmapDrawable dk = new BitmapDrawable(context.getResources(), dkBitmap);
         theme.setBackgroundLt(lt);
         theme.setBackgroundDk(dk);
         boolean isNightMode = (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
-        view.setBackground(isNightMode ? dk : lt);
+        ImageUtil.loadInto(view, isNightMode ? dk : lt);
     }
 
-    public void applyAndSave(Context context, int color, boolean modified) {
+    public void applyAndSave(Context context, int color) {
         applyColor(color);
-        Theme.saveTheme(context, theme, modified);
+        Theme.saveTheme(context, theme);
     }
 
-    public void applyAndSave2(Context context, int color, boolean modified) {
+    public void applyAndSave2(Context context, int color) {
         applyColor2(color);
-        Theme.saveTheme(context, theme, modified);
+        Theme.saveTheme(context, theme);
     }
 
     public void applyAndSave(Context context, Window window, boolean fullscreen) {

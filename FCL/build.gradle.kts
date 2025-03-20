@@ -53,8 +53,8 @@ android {
         minSdk = 26
         targetSdk = 28
 
-        versionCode = 121301
-        versionName = "1.2.1.3-01"
+        versionCode = 121401
+        versionName = "1.2.1.4-01"
     }
 
     buildTypes {
@@ -166,4 +166,5 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.2.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("top.fifthlight.touchcontroller:proxy-client-android:0.0.2")
+    implementation("androidx.palette:palette-ktx:1.0.0")
 }

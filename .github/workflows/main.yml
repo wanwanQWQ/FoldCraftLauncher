@@ -15,7 +15,7 @@ jobs:
         arch: [ "all", "arm", "arm64", "x86", "x86_64" ]
       fail-fast: false
     name: Build ${{matrix.arch}}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,6 +26,7 @@ jobs:
         with:
           distribution: "temurin"
           java-version: 17
+          cache: 'gradle'
 
       - name: Build ${{matrix.arch}} apk
         run: |
