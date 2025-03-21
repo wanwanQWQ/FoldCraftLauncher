@@ -500,7 +500,6 @@
     При обращении к кому-то за помощью еще, пожалуйста, поделитесь с ними полным игровым логом и файлом отчета об аварийной ошибки!"</string>
     <string name="game_crash_reason_unsatisfied_link_error">Невозможно запустить Minecraft из-за отсутствия библиотек: %1$s.</string>
     <string name="game_crash_title">Произошла ошибка.</string>
-    <string name="game_crash_title_add">Вместо скриншота отправьте лог</string>
 
     <string name="help">Помощь</string>
     <string name="help_category">Категории</string>

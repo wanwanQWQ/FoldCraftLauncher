@@ -400,7 +400,6 @@
     <string name="game_crash_reason_unknown">Não foi possível identificar a causa da falha do jogo, por favor consulte as logs do jogo.\n\nCaso for pedir por ajuda, por favor compartilhe a log completa e arquivos de erro relacionados.</string>
     <string name="game_crash_reason_unsatisfied_link_error">Não foi possível iniciar o Minecraft por causa de bibliotecas faltantes: %1$s.</string>
     <string name="game_crash_title">O jogo fechou</string>
-    <string name="game_crash_title_add">Você deve mandar a log completa ao invés de uma captura de tela.</string>
 
     <string name="help">Ajuda</string>
     <string name="help_category">Categoria</string>
