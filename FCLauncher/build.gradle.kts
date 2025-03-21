@@ -10,14 +10,14 @@ android {
     }
 
     namespace = "com.tungsten.fclauncher"
-    compileSdk = 34
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 26
+        minSdk = libs.versions.minSdk.get().toInt()
     }
 
     lint {
-        targetSdk = 28
+        targetSdk = libs.versions.targetSdk.get().toInt()
     }
 
     buildTypes {

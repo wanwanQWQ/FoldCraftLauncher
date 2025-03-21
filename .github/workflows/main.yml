@@ -9,7 +9,7 @@ on:
         default: "modpack"
 
 jobs:
-  DebugBuild:
+  ReleaseBuild:
     strategy:
       matrix:
         arch: [ "all", "arm", "arm64", "x86", "x86_64" ]

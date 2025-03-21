@@ -1,8 +1,7 @@
 <?xml version='1.0' encoding='utf-8' standalone='yes' ?>
 <map>
-    <int name="theme_color" value="0" />
-    <int name="theme_color2" value="0" />
-    <boolean name="modified" value="false" />
+    <int name="theme_color" value="" />
+    <int name="theme_color2" value="" />
     <boolean name="fullscreen" value="false" />
     <int name="animation_speed" value="0" />
     <boolean name="close_skin_model" value="false" />

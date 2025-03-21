@@ -26,7 +26,7 @@ plugins {
 
 android {
     namespace = "com.tungsten.fcl"
-    compileSdk = 34
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     var pkgSuffix = System.getProperty("pkgSuffix", "modpack")
     if (pkgSuffix.isEmpty()) {
@@ -50,11 +50,11 @@ android {
 
     defaultConfig {
         applicationId = "com.tungsten.fcl." + pkgSuffix
-        minSdk = 26
-        targetSdk = 28
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
 
-        versionCode = 121401
-        versionName = "1.2.1.4-01"
+        versionCode = 121501
+        versionName = "1.2.1.5-01"
     }
 
     buildTypes {
@@ -67,7 +67,7 @@ android {
             signingConfig = signingConfigs.getByName("FCLDebugKey")
         }
         configureEach {
-            resValue("string", "app_name", "Fold Craft Launcher " + pkgSuffix)
+            resValue("string", "app_name", "FCL " + pkgSuffix)
             resValue("string", "app_version", android.defaultConfig.versionName.toString())
         }
     }

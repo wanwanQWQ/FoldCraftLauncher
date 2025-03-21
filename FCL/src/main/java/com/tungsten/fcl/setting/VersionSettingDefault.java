@@ -12,7 +12,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.logging.Level;
 
-public class DefaultVersionSetting {
+public class VersionSettingDefault {
     private static String javaArgs = "";
     private static String minecraftArgs = "";
     private static int maxMemory = MemoryUtils.findBestRAMAllocation(FCLPath.CONTEXT);

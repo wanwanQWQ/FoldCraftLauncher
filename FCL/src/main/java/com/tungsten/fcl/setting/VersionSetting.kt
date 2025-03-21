@@ -73,14 +73,14 @@ class VersionSetting : Cloneable {
 
     // java
     val javaProperty: StringProperty =
-        SimpleStringProperty(this, "java", DefaultVersionSetting.getJava())
+        SimpleStringProperty(this, "java", VersionSettingDefault.getJava())
     var java: String
         get() = javaProperty.get()
         set(java) {
             javaProperty.set(java)
         }
 
-    val permSizeProperty: StringProperty = SimpleStringProperty(this, "permSize", DefaultVersionSetting.getPermSize())
+    val permSizeProperty: StringProperty = SimpleStringProperty(this, "permSize", VersionSettingDefault.getPermSize())
     var permSize: String
         /**
          * The permanent generation size of JVM garbage collection.
@@ -91,7 +91,7 @@ class VersionSetting : Cloneable {
         }
 
     val maxMemoryProperty: IntegerProperty =
-        SimpleIntegerProperty(this, "maxMemory", DefaultVersionSetting.getMaxMemory())
+        SimpleIntegerProperty(this, "maxMemory", VersionSettingDefault.getMaxMemory())
     var maxMemory: Int
         /**
          * The maximum memory/MB that JVM can allocate for heap.
@@ -112,7 +112,7 @@ class VersionSetting : Cloneable {
             minMemoryProperty.set(minMemory)
         }
 
-    val autoMemoryProperty: BooleanProperty = SimpleBooleanProperty(this, "autoMemory", DefaultVersionSetting.getAutoMemory())
+    val autoMemoryProperty: BooleanProperty = SimpleBooleanProperty(this, "autoMemory", VersionSettingDefault.getAutoMemory())
     var isAutoMemory: Boolean
         get() = autoMemoryProperty.get()
         set(memory) {
@@ -120,7 +120,7 @@ class VersionSetting : Cloneable {
         }
 
     // options
-    val javaArgsProperty: StringProperty = SimpleStringProperty(this, "javaArgs", DefaultVersionSetting.getJavaArgs())
+    val javaArgsProperty: StringProperty = SimpleStringProperty(this, "javaArgs", VersionSettingDefault.getJavaArgs())
     var javaArgs: String
         /**
          * The user customized arguments passed to JVM.
@@ -131,7 +131,7 @@ class VersionSetting : Cloneable {
         }
 
     val minecraftArgsProperty: StringProperty =
-        SimpleStringProperty(this, "minecraftArgs", DefaultVersionSetting.getMinecraftArgs())
+        SimpleStringProperty(this, "minecraftArgs", VersionSettingDefault.getMinecraftArgs())
     var minecraftArgs: String
         /**
          * The user customized arguments passed to Minecraft.
@@ -142,7 +142,7 @@ class VersionSetting : Cloneable {
         }
 
     val notCheckJVMProperty: BooleanProperty =
-        SimpleBooleanProperty(this, "notCheckJVM", DefaultVersionSetting.getNotCheckJVM())
+        SimpleBooleanProperty(this, "notCheckJVM", VersionSettingDefault.getNotCheckJVM())
     var isNotCheckJVM: Boolean
         /**
          * True if FCL does not check JVM validity.
@@ -153,7 +153,7 @@ class VersionSetting : Cloneable {
         }
 
     val notCheckGameProperty: BooleanProperty =
-        SimpleBooleanProperty(this, "notCheckGame", DefaultVersionSetting.getNotCheckGame())
+        SimpleBooleanProperty(this, "notCheckGame", VersionSettingDefault.getNotCheckGame())
     var isNotCheckGame: Boolean
         /**
          * True if FCL does not check game's completeness.
@@ -164,7 +164,7 @@ class VersionSetting : Cloneable {
         }
 
     // Minecraft settings.
-    val serverIpProperty: StringProperty = SimpleStringProperty(this, "serverIp", DefaultVersionSetting.getServerIp())
+    val serverIpProperty: StringProperty = SimpleStringProperty(this, "serverIp", VersionSettingDefault.getServerIp())
     var serverIp: String
         /**
          * The server ip that will be entered after Minecraft successfully loaded ly.
@@ -177,7 +177,7 @@ class VersionSetting : Cloneable {
             serverIpProperty.set(serverIp)
         }
 
-    val scaleFactorProperty: DoubleProperty = SimpleDoubleProperty(this, "scaleFactor", DefaultVersionSetting.getScaleFactor())
+    val scaleFactorProperty: DoubleProperty = SimpleDoubleProperty(this, "scaleFactor", VersionSettingDefault.getScaleFactor())
     var scaleFactor: Double
         get() = scaleFactorProperty.get()
         set(scaleFactor) {
@@ -189,14 +189,14 @@ class VersionSetting : Cloneable {
      * 1 - .minecraft/versions/&lt;version&gt;/<br></br>
      */
     val isolateGameDirProperty: BooleanProperty =
-        SimpleBooleanProperty(this, "isolateGameDir", DefaultVersionSetting.getIsolateGameDir())
+        SimpleBooleanProperty(this, "isolateGameDir", VersionSettingDefault.getIsolateGameDir())
     var isIsolateGameDir: Boolean
         get() = isolateGameDirProperty.get()
         set(isolate) {
             isolateGameDirProperty.set(isolate)
         }
 
-    val beGestureProperty: BooleanProperty = SimpleBooleanProperty(this, "beGesture", DefaultVersionSetting.getBeGesture())
+    val beGestureProperty: BooleanProperty = SimpleBooleanProperty(this, "beGesture", VersionSettingDefault.getBeGesture())
     var isBeGesture: Boolean
         get() = beGestureProperty.get()
         set(beGesture) {
@@ -204,7 +204,7 @@ class VersionSetting : Cloneable {
         }
 
     val vkDriverSystemProperty: BooleanProperty =
-        SimpleBooleanProperty(this, "vulkanDriverSystem", DefaultVersionSetting.getVulkanDriverSystem())
+        SimpleBooleanProperty(this, "vulkanDriverSystem", VersionSettingDefault.getVulkanDriverSystem())
     var isVKDriverSystem: Boolean
         get() = vkDriverSystemProperty.get()
         set(vulkanDriverSystem) {
@@ -212,7 +212,7 @@ class VersionSetting : Cloneable {
         }
 
     val controllerProperty: StringProperty =
-        SimpleStringProperty(this, "controller", DefaultVersionSetting.getController())
+        SimpleStringProperty(this, "controller", VersionSettingDefault.getController())
     var controller: String
         get() = controllerProperty.get()
         set(controller) {
@@ -220,7 +220,7 @@ class VersionSetting : Cloneable {
         }
 
     val rendererProperty: ObjectProperty<FCLConfig.Renderer> =
-        SimpleObjectProperty(this, "render", FCLConfig.Renderer.entries.toTypedArray()[DefaultVersionSetting.getRenderer()])
+        SimpleObjectProperty(this, "render", FCLConfig.Renderer.entries.toTypedArray()[VersionSettingDefault.getRenderer()])
     var renderer: FCLConfig.Renderer
         get() = rendererProperty.get()
         set(renderer) {
@@ -228,7 +228,7 @@ class VersionSetting : Cloneable {
         }
 
     val customRendererProperty: ObjectProperty<String> =
-        SimpleObjectProperty(this, "customRenderer", DefaultVersionSetting.getCustomRenderer())
+        SimpleObjectProperty(this, "customRenderer", VersionSettingDefault.getCustomRenderer())
     var customRenderer: String
         get() = customRendererProperty.get()
         set(renderer) {
@@ -236,7 +236,7 @@ class VersionSetting : Cloneable {
         }
 
     val driverProperty: StringProperty =
-        SimpleStringProperty(this, "driver", DefaultVersionSetting.getDriver())
+        SimpleStringProperty(this, "driver", VersionSettingDefault.getDriver())
     var driver: String
         get() = driverProperty.get()
         set(driver) {
@@ -244,7 +244,7 @@ class VersionSetting : Cloneable {
         }
 
     val pojavBigCoreProperty: BooleanProperty =
-        SimpleBooleanProperty(this, "pojavBigCore", DefaultVersionSetting.getPojavBigCore())
+        SimpleBooleanProperty(this, "pojavBigCore", VersionSettingDefault.getPojavBigCore())
     var isPojavBigCore: Boolean
         get() = pojavBigCoreProperty.get()
         set(pojavBigCore) {
@@ -354,31 +354,31 @@ class VersionSetting : Cloneable {
 
             var maxMemoryN = parseJsonPrimitive(
                 json["maxMemory"]?.asJsonPrimitive,
-                DefaultVersionSetting.getMaxMemory()
+                VersionSettingDefault.getMaxMemory()
             )
             if (maxMemoryN <= 0) maxMemoryN = MemoryUtils.findBestRAMAllocation(FCLPath.CONTEXT)
             return VersionSetting().also { vs ->
                 vs.isUsesGlobal = json["usesGlobal"]?.asBoolean ?: false
-                vs.javaArgs = json["javaArgs"]?.asString ?: DefaultVersionSetting.getJavaArgs()
-                vs.minecraftArgs = json["minecraftArgs"]?.asString ?: DefaultVersionSetting.getMinecraftArgs()
+                vs.javaArgs = json["javaArgs"]?.asString ?: VersionSettingDefault.getJavaArgs()
+                vs.minecraftArgs = json["minecraftArgs"]?.asString ?: VersionSettingDefault.getMinecraftArgs()
                 vs.maxMemory = maxMemoryN
                 vs.minMemory = json["minMemory"]?.asInt
-                vs.isAutoMemory = json["autoMemory"]?.asBoolean ?: DefaultVersionSetting.getAutoMemory()
-                vs.permSize = json["permSize"]?.asString ?: DefaultVersionSetting.getPermSize()
-                vs.serverIp = json["serverIp"]?.asString ?: DefaultVersionSetting.getServerIp()
-                vs.java = JavaManager.javaList.find { it.name == json["java"]?.asString }?.name ?: DefaultVersionSetting.getJava()
-                vs.scaleFactor = json["scaleFactor"]?.asDouble ?: DefaultVersionSetting.getScaleFactor()
-                vs.isNotCheckGame = json["notCheckGame"]?.asBoolean ?: DefaultVersionSetting.getNotCheckGame()
-                vs.isNotCheckJVM = json["notCheckJVM"]?.asBoolean ?: DefaultVersionSetting.getNotCheckJVM()
-                vs.isBeGesture = json["beGesture"]?.asBoolean ?: DefaultVersionSetting.getBeGesture()
-                vs.isVKDriverSystem = json["vulkanDriverSystem"]?.asBoolean ?: DefaultVersionSetting.getVulkanDriverSystem()
-                vs.controller = json["controller"]?.asString ?: (DefaultVersionSetting.getController())
+                vs.isAutoMemory = json["autoMemory"]?.asBoolean ?: VersionSettingDefault.getAutoMemory()
+                vs.permSize = json["permSize"]?.asString ?: VersionSettingDefault.getPermSize()
+                vs.serverIp = json["serverIp"]?.asString ?: VersionSettingDefault.getServerIp()
+                vs.java = JavaManager.javaList.find { it.name == json["java"]?.asString }?.name ?: VersionSettingDefault.getJava()
+                vs.scaleFactor = json["scaleFactor"]?.asDouble ?: VersionSettingDefault.getScaleFactor()
+                vs.isNotCheckGame = json["notCheckGame"]?.asBoolean ?: VersionSettingDefault.getNotCheckGame()
+                vs.isNotCheckJVM = json["notCheckJVM"]?.asBoolean ?: VersionSettingDefault.getNotCheckJVM()
+                vs.isBeGesture = json["beGesture"]?.asBoolean ?: VersionSettingDefault.getBeGesture()
+                vs.isVKDriverSystem = json["vulkanDriverSystem"]?.asBoolean ?: VersionSettingDefault.getVulkanDriverSystem()
+                vs.controller = json["controller"]?.asString ?: (VersionSettingDefault.getController())
                 val renderers = FCLConfig.Renderer.entries.toTypedArray()
-                vs.renderer = renderers[json["renderer"]?.asInt?.coerceIn(0, renderers.size - 1) ?: DefaultVersionSetting.getRenderer()]
-                vs.driver = json["driver"]?.asString ?: DefaultVersionSetting.getDriver()
-                vs.isIsolateGameDir = json["isolateGameDir"]?.asBoolean ?: DefaultVersionSetting.getIsolateGameDir()
-                vs.customRenderer = json["customRenderer"]?.asString ?: DefaultVersionSetting.getCustomRenderer()
-                vs.isPojavBigCore = json["pojavBigCore"]?.asBoolean ?: DefaultVersionSetting.getPojavBigCore()
+                vs.renderer = renderers[json["renderer"]?.asInt?.coerceIn(0, renderers.size - 1) ?: VersionSettingDefault.getRenderer()]
+                vs.driver = json["driver"]?.asString ?: VersionSettingDefault.getDriver()
+                vs.isIsolateGameDir = json["isolateGameDir"]?.asBoolean ?: VersionSettingDefault.getIsolateGameDir()
+                vs.customRenderer = json["customRenderer"]?.asString ?: VersionSettingDefault.getCustomRenderer()
+                vs.isPojavBigCore = json["pojavBigCore"]?.asBoolean ?: VersionSettingDefault.getPojavBigCore()
                 if (!RendererPlugin.isAvailable() && vs.customRenderer != "") {
                     vs.renderer = FCLConfig.Renderer.entries.toTypedArray()[0]
                     vs.customRenderer = ""

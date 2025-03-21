@@ -17,7 +17,6 @@ import com.tungsten.fclauncher.plugins.DriverPlugin;
 import com.tungsten.fclauncher.plugins.FFmpegPlugin;
 import com.tungsten.fclauncher.plugins.RendererPlugin;
 import com.tungsten.fclauncher.utils.Architecture;
-import com.tungsten.fclauncher.utils.FCLPath;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,7 +44,7 @@ public class FCLauncher {
 
     private static void logStartInfo(FCLConfig config, FCLBridge bridge, String task) {
         printTaskTitle(bridge, "Start " + task);
-        log(bridge, "Device: " + Build.MODEL);
+        log(bridge, "Device: " + getDeviceName());
         log(bridge, "Architecture: " + Architecture.archAsString(Architecture.getDeviceArchitecture()));
         log(bridge, "CPU: " + getSocName());
         log(bridge, "Android SDK: " + Build.VERSION.SDK_INT);
@@ -59,12 +58,6 @@ public class FCLauncher {
         } catch (PackageManager.NameNotFoundException e) {
             log(bridge, "FCL Version Code: Can't get current version code, exception = " + e.getMessage());
         }
-    }
-
-    private static void logModList(FCLBridge bridge) {
-        printTaskTitle(bridge, "Mods");
-        log(bridge, bridge.getModSummary());
-        bridge.setModSummary(null);
     }
 
     private static Map<String, String> readJREReleaseProperties(String javaPath) throws IOException {
@@ -176,7 +169,7 @@ public class FCLauncher {
         String[] args = new String[argList.size()];
         for (int i = 0; i < argList.size(); i++) {
             String a = argList.get(i).replace("${natives_directory}", getLibraryPath(config.getContext(), config.getJavaPath(), config.getRenderer() == FCLConfig.Renderer.RENDERER_CUSTOM ? RendererPlugin.getSelected().getPath() : null));
-            args[i] = config.getRenderer() == null ? a : a.replace("${gl_lib_name}", config.getRenderer() == FCLConfig.Renderer.RENDERER_CUSTOM ? RendererPlugin.getSelected().getPath() + "/" +RendererPlugin.getSelected().getGlName() : config.getRenderer().getGlLibName());
+            args[i] = config.getRenderer() == null ? a : a.replace("${gl_lib_name}", config.getRenderer() == FCLConfig.Renderer.RENDERER_CUSTOM ? RendererPlugin.getSelected().getPath() + "/" + RendererPlugin.getSelected().getGlName() : config.getRenderer().getGlLibName());
         }
         return args;
     }
@@ -250,7 +243,7 @@ public class FCLauncher {
             }
             envList.forEach(env -> {
                 String[] split = env.split("=");
-                if (split[0].equals("DLOPEN")){
+                if (split[0].equals("DLOPEN")) {
                     return;
                 }
                 if (split[0].equals("LIB_MESA_NAME")) {
@@ -345,7 +338,7 @@ public class FCLauncher {
             log(bridge, "Env: " + key + "=" + envMap.get(key));
             bridge.setenv(key, envMap.get(key));
         }
-        printTaskTitle(bridge, "Env Map");
+        printTaskTitle(bridge, "Set Up Java Runtime");
     }
 
     private static void setUpJavaRuntime(FCLConfig config, FCLBridge bridge) throws IOException {
@@ -406,7 +399,7 @@ public class FCLauncher {
             long handle = bridge.dlopen(RendererPlugin.getSelected().getPath() + "/" + RendererPlugin.getSelected().getGlName());
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
                 try {
-                    Os.setenv("RENDERER_HANDLE",handle + "", true);
+                    Os.setenv("RENDERER_HANDLE", handle + "", true);
                 } catch (ErrnoException ignore) {
                 }
             }
@@ -447,7 +440,6 @@ public class FCLauncher {
         Thread gameThread = new Thread(() -> {
             try {
                 logStartInfo(config, bridge, "Minecraft");
-                logModList(bridge);
 
                 // env
                 setEnv(config, bridge, true);
@@ -551,7 +543,18 @@ public class FCLauncher {
             reader.close();
         } catch (Exception ignore) {
         }
-        return  (name == null || name.trim().isEmpty()) ? Build.HARDWARE : name;
+        return (name == null || name.trim().isEmpty()) ? Build.HARDWARE : name;
+    }
+
+    public static String getDeviceName() {
+        String modelName = Build.MODEL;
+        String manufacturer = Build.MANUFACTURER;
+        String product = Build.PRODUCT;
+        if (!manufacturer.isEmpty()) {
+            manufacturer = Character.toUpperCase(manufacturer.charAt(0))
+                    + manufacturer.substring(1).toLowerCase();
+        }
+        return String.format("%s %s %s", manufacturer, product, modelName);
     }
 
 }
