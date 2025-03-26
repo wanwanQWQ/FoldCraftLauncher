@@ -7,6 +7,10 @@ on:
         description: "Package Suffix"
         required: true
         default: "modpack"
+      cleanBuildCache:
+        description: "input 1 to clean build cache"
+        required: true
+        default: "0"
 
 jobs:
   DebugBuild:
@@ -25,6 +29,12 @@ jobs:
           distribution: "temurin"
           java-version: 17
           cache: 'gradle'
+
+      - name: Clean Build Cache
+        if: ${{ github.event.inputs.pkgSuffix == "1" }}
+        run: |
+          chmod +x gradlew
+          ./gradlew clean
 
       - name: Prepare to Build ALL
         run: |
