@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       pkgSuffix:
-        description: "Package Suffix"
+        description: 'Package Suffix'
         required: true
-        default: "modpack"
+        default: 'modpack'
 
 jobs:
   ReleaseBuild:
     strategy:
       matrix:
-        arch: [ "all", "arm", "arm64", "x86", "x86_64" ]
+        arch: [ 'all', 'arm', 'arm64', 'x86', 'x86_64' ]
       fail-fast: false
     name: Build ${{matrix.arch}}
     runs-on: ubuntu-22.04
@@ -24,7 +24,7 @@ jobs:
       - name: set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: "temurin"
+          distribution: 'temurin'
           java-version: 17
 
       - name: Build ${{matrix.arch}} apk
