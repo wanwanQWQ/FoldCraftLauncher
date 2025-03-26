@@ -360,6 +360,7 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
         FCLNumberSeekBar windowScaleSeekbar = findViewById(R.id.window_scale);
         FCLNumberSeekBar cursorOffsetSeekbar = findViewById(R.id.cursor_offset);
         FCLNumberSeekBar mouseSensitivitySeekbar = findViewById(R.id.mouse_sensitivity);
+        FCLNumberSeekBar mouseSensitivityCursorSeekbar = findViewById(R.id.mouse_sensitivity_cursor);
         FCLNumberSeekBar mouseSizeSeekbar = findViewById(R.id.mouse_size);
         FCLNumberSeekBar gamepadDeadzoneSeekbar = findViewById(R.id.gamepad_deadzone_size);
         FCLNumberSeekBar gyroSensitivitySeekbar = findViewById(R.id.gyro_sensitivity);
@@ -468,6 +469,7 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
         });
 
         initSeekbar(mouseSensitivitySeekbar, (int) (menuSetting.getMouseSensitivity() * 100), observable -> menuSetting.setMouseSensitivity(mouseSensitivitySeekbar.progressProperty().get() / 100d));
+        initSeekbar(mouseSensitivityCursorSeekbar, (int) (menuSetting.getMouseSensitivityCursor() * 100), observable -> menuSetting.setMouseSensitivityCursor(mouseSensitivityCursorSeekbar.progressProperty().get() / 100d));
         initSeekbar(mouseSizeSeekbar, menuSetting.getMouseSizeProperty().get(), observable -> menuSetting.setMouseSize(mouseSizeSeekbar.progressProperty().get()));
         initSeekbar(gamepadDeadzoneSeekbar, (int) (menuSetting.getGamepadDeadzone() * 100), observable -> menuSetting.setGamepadDeadzone(gamepadDeadzoneSeekbar.progressProperty().get() / 100d));
         initSeekbar(gyroSensitivitySeekbar, menuSetting.getGyroscopeSensitivityProperty().get(), observable -> menuSetting.setGyroscopeSensitivity(gyroSensitivitySeekbar.progressProperty().get()));
@@ -776,6 +778,7 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
             getInput().resetMapper();
         }
         if (v == gamepadButtonBinding) {
+            fclInput.checkGamepad();
             if (fclInput.getGamepad() != null) {
                 new GamepadMapDialog(getActivity(), fclInput).show();
             }
