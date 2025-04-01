@@ -84,7 +84,7 @@ public class EulaFragment extends FCLFragment implements View.OnClickListener {
             }
             if (!load) {
                 try {
-                    str = IOUtils.readFullyAsString(requireActivity().getAssets().open( "eula.txt"));
+                    str = IOUtils.readFullyAsString(requireActivity().getAssets().open( "local_eula.txt"));
                     load = true;
                 } catch (IOException e) {
                     str = e.toString();

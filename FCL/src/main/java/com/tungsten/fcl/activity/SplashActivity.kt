@@ -219,8 +219,8 @@ class SplashActivity : FCLActivity() {
             java17 = RuntimeUtils.isLatest(FCLPath.JAVA_17_PATH, "/assets/app_runtime/java/jre17")
             java21 = RuntimeUtils.isLatest(FCLPath.JAVA_21_PATH, "/assets/app_runtime/java/jre21")
             jna = RuntimeUtils.isLatest(FCLPath.JNA_PATH, "/assets/app_runtime/jna")
-            gameResource = RuntimeUtils.isLatest(FCLPath.SHARED_COMMON_DIR, "/assets/.minecraft")
-            others = RuntimeUtils.isLatest(FCLPath.INTERNAL_DIR, "/assets/othersInternal")
+            gameResource = RuntimeUtils.isLatest(FCLPath.EXTERNAL_DIR, "/assets/modpackExternal")
+            others = RuntimeUtils.isLatest(FCLPath.INTERNAL_DIR, "/assets/modpackInternal")
         } catch (e: IOException) {
             Logging.LOG.log(Level.SEVERE, "Unable to check runtime version", e)
         }

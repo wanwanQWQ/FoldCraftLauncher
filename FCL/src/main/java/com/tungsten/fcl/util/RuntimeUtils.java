@@ -362,7 +362,7 @@ public class RuntimeUtils {
     public static void deleteOldFiles(Context context) {
         try {
             Gson gson = new Gson();
-            JsonArray jsonArray = gson.fromJson(ReadTools.getAssetReader(context, "remove.json"), JsonArray.class);
+            JsonArray jsonArray = gson.fromJson(ReadTools.getAssetReader(context, "local_reinstall.json"), JsonArray.class);
             for (int i = 0; i < jsonArray.size(); i++) {
                 String filePath = jsonArray.get(i).getAsString();
                 filePath = processDir(filePath);
@@ -377,8 +377,6 @@ public class RuntimeUtils {
         if (!filePath.startsWith("$"))  return filePath;
         Map<String, String> replaceFilePath = new HashMap<>();
         replaceFilePath.put("${INTERNAL_DIR}", FCLPath.INTERNAL_DIR);
-        replaceFilePath.put("${FILES_DIR}", FCLPath.FILES_DIR);
-        replaceFilePath.put("${CACHE_DIR}", FCLPath.CACHE_DIR);
         replaceFilePath.put("${EXTERNAL_DIR}", FCLPath.EXTERNAL_DIR);
         replaceFilePath.put("${SHARED_COMMON_DIR}", FCLPath.SHARED_COMMON_DIR);
         for (Map.Entry<String, String> entry : replaceFilePath.entrySet()) {

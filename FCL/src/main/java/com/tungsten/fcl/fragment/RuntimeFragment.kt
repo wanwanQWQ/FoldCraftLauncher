@@ -140,11 +140,10 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                 Thread {
                     try {
                         RuntimeUtils.reloadConfiguration(context)
-                        RuntimeUtils.copyAssetsDirToLocalDir(context, "othersExternal", FCLPath.EXTERNAL_DIR)
-                        RuntimeUtils.copyAssetsDirToLocalDir(context, "othersInternal", FCLPath.INTERNAL_DIR)
+                        RuntimeUtils.copyAssetsDirToLocalDir(context, "modpackInternal", FCLPath.INTERNAL_DIR)
                         others = true
                     } catch (e: Exception) {
-                        Logging.LOG.log(Level.SEVERE, "Failed to install other resource", e)
+                        Logging.LOG.log(Level.SEVERE, "Failed to install internal resource", e)
                     }
                     activity?.runOnUiThread {
                         othersState.visibility = View.VISIBLE
@@ -168,8 +167,7 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
                 Thread {
                     try {
                         RuntimeUtils.deleteOldFiles(context)
-                        RuntimeUtils.copyAssetsDirToLocalDir(context, ".minecraft", FCLPath.SHARED_COMMON_DIR)
-                        RuntimeUtils.copyAssetsDirToLocalDir(context, "minecraft", FCLPath.EXTERNAL_DIR + "/minecraft")
+                        RuntimeUtils.copyAssetsDirToLocalDir(context, "modpackExternal", FCLPath.EXTERNAL_DIR)
                         gameResource = true
                     }catch (e: Exception) {
                         Logging.LOG.log(Level.SEVERE, "Failed to install game resource", e)
