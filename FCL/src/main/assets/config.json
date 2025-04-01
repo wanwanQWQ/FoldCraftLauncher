@@ -11,7 +11,7 @@
   "commonpath": "",
   "_version": 0,
   "configurations": {
-    "Default Directory": {
+    "Default_Dir": {
       "global": {
         "usesGlobal": true,
         "javaArgs": "",
@@ -33,12 +33,14 @@
         "customRenderer": "",
         "pojavBigCore": false
       },
-      "gameDir": "${SHARED_COMMON_DIR}"
+      "gameDir": "${SHARED_COMMON_DIR}",
+      "selectedMinecraftVersion": ""
     }
   },
   "downloadThreads": 64,
   "downloadType": "mojang",
-  "last": "Default Directory",
+  "last": "Default_Dir",
+  "selectedAccount": "$GLOBAL:Player:Player",
   "uiVersion": 0,
   "versionListSource": "balanced"
 }

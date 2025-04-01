@@ -167,6 +167,9 @@ public class UpdateDialog extends FCLDialog implements View.OnClickListener {
     @NonNull
     private String getTargetArchUrl() {
         String url = version.getUrl();
+        if (url == null) {
+            return null;
+        }
         String arch = "all";
         switch (Architecture.getDeviceArchitecture()) {
             case Architecture.ARCH_ARM:
