@@ -53,8 +53,8 @@ android {
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
 
-        versionCode = 121701
-        versionName = "1.2.1.7-01"
+        versionCode = 121801
+        versionName = "1.2.1.8-01"
     }
 
     buildTypes {

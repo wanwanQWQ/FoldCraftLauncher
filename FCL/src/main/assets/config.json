@@ -11,7 +11,7 @@
   "commonpath": "",
   "_version": 0,
   "configurations": {
-    "Default_Dir": {
+    "DefaultGameDir": {
       "global": {
         "usesGlobal": true,
         "javaArgs": "",
@@ -39,7 +39,7 @@
   },
   "downloadThreads": 64,
   "downloadType": "mojang",
-  "last": "Default_Dir",
+  "last": "DefaultGameDir",
   "selectedAccount": "$GLOBAL:Player:Player",
   "uiVersion": 0,
   "versionListSource": "balanced"

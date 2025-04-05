@@ -551,6 +551,7 @@
     <string name="menu_settings_debug">Debug</string>
     <string name="menu_settings_disable_be_gesture">Disable Advanced Gesture</string>
     <string name="menu_settings_disable_gesture">Disable Gesture</string>
+    <string name="menu_settings_disable_left_touch">Disable left half screen touch</string>
     <string name="menu_settings_force_exit">Force Exit</string>
     <string name="menu_settings_force_exit_button">Exit</string>
     <string name="menu_settings_force_exit_msg">Are you sure to force exit?</string>
@@ -754,7 +755,7 @@
     <string name="mods_update_modpack_mod_warning">Updating mods in a modpack can lead to irreparable results, possibly corrupting the modpack so that it cannot start. Are you sure you want to update?</string>
     <string name="mods_screenshot_no_result">No screenshots available to display</string>
 
-    <string name="profile_shared" translatable="false">Default_Dir</string>
+    <string name="profile_shared" translatable="false">DefaultGameDir</string>
     <string name="profile_name">Name</string>
     <string name="profile_path">Path</string>
     <string name="profile_select">Select Directory</string>
@@ -1039,4 +1040,5 @@
     <string name="open_link_failed">Failed to automatically redirect to the browser. The link has been copied automatically. Please manually open the browser and paste it in.</string>
 
     <string name="launch">Launch</string>
+    <string name="tip_hide_menu_view">The menu view is hidden. Press the volume key to open the menu.</string>
 </resources>

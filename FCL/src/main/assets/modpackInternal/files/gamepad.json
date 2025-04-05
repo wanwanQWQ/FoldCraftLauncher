@@ -1,0 +1,154 @@
+{
+  "BUTTON_A": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      57
+    ]
+  },
+  "BUTTON_B": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      16
+    ]
+  },
+  "BUTTON_SELECT": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      15
+    ]
+  },
+  "BUTTON_START": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      1
+    ]
+  },
+  "BUTTON_X": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      18
+    ]
+  },
+  "BUTTON_Y": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      33
+    ]
+  },
+  "DIRECTION_BACKWARD": {
+    "isDown": false,
+    "keycodes": [
+      31
+    ]
+  },
+  "DIRECTION_FORWARD": {
+    "isDown": false,
+    "keycodes": [
+      17
+    ]
+  },
+  "DIRECTION_LEFT": {
+    "isDown": false,
+    "keycodes": [
+      30
+    ]
+  },
+  "DIRECTION_RIGHT": {
+    "isDown": false,
+    "keycodes": [
+      32
+    ]
+  },
+  "DPAD_DOWN": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      24
+    ]
+  },
+  "DPAD_LEFT": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      36
+    ]
+  },
+  "DPAD_RIGHT": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      37
+    ]
+  },
+  "DPAD_UP": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      42
+    ]
+  },
+  "SHOULDER_LEFT": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      1003
+    ]
+  },
+  "SHOULDER_RIGHT": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      1004
+    ]
+  },
+  "THUMBSTICK_LEFT": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      29
+    ]
+  },
+  "THUMBSTICK_RIGHT": {
+    "isToggleable": true,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      42
+    ]
+  },
+  "TRIGGER_LEFT": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      1000
+    ]
+  },
+  "TRIGGER_RIGHT": {
+    "isToggleable": false,
+    "isToggled": false,
+    "isDown": false,
+    "keycodes": [
+      1002
+    ]
+  }
+}
