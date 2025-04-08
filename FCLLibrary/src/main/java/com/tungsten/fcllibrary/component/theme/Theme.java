@@ -189,10 +189,9 @@ public class Theme {
         sharedPreferences = context.getSharedPreferences("theme", MODE_PRIVATE);
         int color = sharedPreferences.getInt("theme_color", Color.parseColor(FCLPath.Prop.getProperty("default-theme-first-color", "#7F7797CF")));
         int color2 = sharedPreferences.getInt("theme_color2", Color.parseColor(FCLPath.Prop.getProperty("default-theme-second-color", "#FF7F7F7F")));
-        boolean fullscreen = sharedPreferences.getBoolean("fullscreen", FCLPath.Prop.getProperty("default-fullscreen", "true").equals("true"));
-        boolean closeSkinModel = sharedPreferences.getBoolean("close_skin_model", false);
-        boolean modified = sharedPreferences.getBoolean("modified", false);
-        int animationSpeed = sharedPreferences.getInt("animation_speed", ConvertUtils.getIntFromStr(FCLPath.Prop.getProperty("default-animation-speed", null), 0));
+        boolean fullscreen = sharedPreferences.getBoolean("fullscreen", FCLPath.Prop.getProperty("default-fullscreen", "false").equals("true"));
+        boolean closeSkinModel = sharedPreferences.getBoolean("close_skin_model", FCLPath.Prop.getProperty("close-skin-model", "false").equals("true"));
+        int animationSpeed = sharedPreferences.getInt("animation_speed", ConvertUtils.getIntFromStr(FCLPath.Prop.getProperty("default-animation-speed", "0")));
         Bitmap lt = ImageUtil.load(context.getFilesDir().getAbsolutePath() + "/background/lt.png").orElse(ConvertUtils.getBitmapFromAssets(context, "img/background/lt.png"));
         BitmapDrawable backgroundLt = new BitmapDrawable(context.getResources(), lt);
         Bitmap dk = ImageUtil.load(context.getFilesDir().getAbsolutePath() + "/background/dk.png").orElse(ConvertUtils.getBitmapFromAssets(context, "img/background/dk.png"));

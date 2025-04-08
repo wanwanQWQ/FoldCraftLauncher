@@ -12,7 +12,7 @@ import com.tungsten.fcl.game.LocalizedRemoteModRepository;
 import com.tungsten.fcl.setting.Profile;
 import com.tungsten.fcl.setting.Profiles;
 import com.tungsten.fcl.util.AndroidUtils;
-import com.tungsten.fcl.util.RuntimeUtils;
+import com.tungsten.fcl.util.ReadTools;
 import com.tungsten.fclcore.mod.ModManager;
 import com.tungsten.fclcore.mod.RemoteModRepository;
 import com.tungsten.fclcore.mod.curse.CurseForgeRemoteModRepository;
@@ -20,7 +20,9 @@ import com.tungsten.fclcore.mod.modrinth.ModrinthRemoteModRepository;
 import com.tungsten.fclcore.util.io.IOUtils;
 import com.tungsten.fcllibrary.component.dialog.FCLAlertDialog;
 import com.tungsten.fcllibrary.component.view.FCLUILayout;
+import com.tungsten.fclauncher.utils.FCLPath;
 
+import java.io.File;
 import java.io.IOException;
 
 public class ModDownloadPage extends DownloadPage {
@@ -45,7 +47,14 @@ public class ModDownloadPage extends DownloadPage {
             try {
                 String url = FCLApplication.Prop.getProperty("mod-compatibility-url","https://github.com/hyplant-team/FoldCraftLauncher/tree/doc/compatibility");
                 FCLAlertDialog dialog = new FCLAlertDialog(context);
-                dialog.setMessage(Html.fromHtml(IOUtils.readFullyAsString(context.getAssets().open("incompatible_mod_list.html")), 0));
+                String local_incompatible_mods = FCLPath.FILES_DIR + "/debug/incompatible_mod_list.html";
+                String message;
+                if (new File(local_incompatible_mods).exists()) {
+                    message = ReadTools.readFileTxt(local_incompatible_mods);
+                } else {
+                    message = IOUtils.readFullyAsString(context.getAssets().open("incompatible_mod_list.html"));
+                }
+                dialog.setMessage(Html.fromHtml(message, 0));
                 dialog.setPositiveButton(context.getString(R.string.view_incompatible_online), () -> {
                     AndroidUtils.openLink(context, url);
                 });

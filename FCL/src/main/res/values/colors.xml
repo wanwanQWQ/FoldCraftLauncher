@@ -5,6 +5,6 @@
     <color name="text_color_link">#7797CF</color>
     <color name="ui_bg_color">#60D0D0D0</color>
     <color name="right_menu_color">#90D0D0D0</color>
-    <color name="icon_background_color">#30F0F0F0</color>
+    <color name="icon_background_color">#FFF0F0F0</color>
     <color name="primary_text">#FF0E0E0E</color>
 </resources>

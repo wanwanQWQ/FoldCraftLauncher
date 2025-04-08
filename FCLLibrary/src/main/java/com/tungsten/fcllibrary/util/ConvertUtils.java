@@ -90,11 +90,11 @@ public class ConvertUtils {
         }
     }
 
-    public static int getIntFromStr(String stringNumber, int defaultInt) {
+    public static int getIntFromStr(String stringNumber) {
         try {
             return Integer.parseInt(stringNumber);
         } catch (Exception ignore) {
-            return defaultInt;
+            return 0;
         }
     }
 }
