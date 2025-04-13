@@ -1,0 +1,41 @@
+#!/system/bin/sh
+${fclshell_load_lang} version
+end_of_line="\n"
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "${lang_version_help}"
+  exit
+elif [[ "$1" == "-n" ]]; then
+  end_of_line=""
+  shift 1
+fi
+
+if [[ "$1" == "" ]]; then
+  for i in `ls "${FCL_PATH_SHELL}/res/version/internal"`; do
+    echo -n "$i: "
+    p="$(cat "${FCL_PATH_SHELL}/res/version/internal/$i")"
+    cat "${FCL_PATH_INTERNAL}/${p}/version"
+    echo ""
+  done
+  for i in `ls "${FCL_PATH_SHELL}/res/version/external"`; do
+    echo -n "$i: "
+    p="$(cat "${FCL_PATH_SHELL}/res/version/external/$i")"
+    cat "${FCL_PATH_EXTERNAL}/${p}/version"
+    echo ""
+  done
+  unset i
+  unset p
+
+elif [[ -f "${FCL_PATH_SHELL}/res/version/internal/$1" ]]; then
+  p="$(cat "${FCL_PATH_SHELL}/res/version/internal/$1")"
+  cat "${FCL_PATH_INTERNAL}/${p}/version" 2>"/dev/null"
+  echo -n "${end_of_line}"
+  unset p
+elif [[ -f "${FCL_PATH_SHELL}/res/version/external/$1" ]]; then
+  p="$(cat "${FCL_PATH_SHELL}/res/version/external/$1")"
+  cat "${FCL_PATH_EXTERNAL}/${p}/version" 2>"/dev/null"
+  echo -n "${end_of_line}"
+  unset p
+
+else
+  echo "version: $1: ${lang_version_notfound}" 1>&2
+fi

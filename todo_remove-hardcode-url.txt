@@ -1,0 +1,39 @@
+FCL/src/main/java/com/tungsten/fcl/fragment/EulaFragment.java:    public static final String EULA_URL = FCLApplication.Prop.getProperty("eula-url","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/eula/latest.txt");
+
+FCL/src/main/java/com/tungsten/fcl/ui/controller/ControllerRepoPage.java:    public static final String CONTROLLER_REPO_A = FCLApplication.Prop.getProperty("controller-repo-a","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/controllerRepoA/");
+FCL/src/main/java/com/tungsten/fcl/ui/controller/ControllerRepoPage.java:    public static final String CONTROLLER_REPO_B = FCLApplication.Prop.getProperty("controller-repo-b","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/controllerRepoB/");
+FCL/src/main/java/com/tungsten/fcl/ui/controller/ControllerUploadPage.java:        Uri uri = Uri.parse(FCLApplication.Prop.getProperty("community-controller","https://github.com/hyplant-team/FoldCraftLauncher/discussions"));
+
+FCL/src/main/java/com/tungsten/fcl/ui/download/ModDownloadPage.java:                String url = FCLApplication.Prop.getProperty("mod-compatibility-url","https://github.com/hyplant-team/FoldCraftLauncher/tree/doc/compatibility");
+
+FCL/src/main/java/com/tungsten/fcl/ui/main/MainUI.java:    public static final String ANNOUNCEMENT_URL = FCLApplication.Prop.getProperty("announcement-url","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/announcement/latest.json");
+
+FCL/src/main/java/com/tungsten/fcl/ui/manage/VersionSettingPage.java:            String url = FCLApplication.Prop.getProperty("renderer-plugin-url","https://github.com/hyplant-team/FCLRendererPlugin/releases/tag/Renderer");
+FCL/src/main/java/com/tungsten/fcl/ui/manage/VersionSettingPage.java:            String url = FCLApplication.Prop.getProperty("driver-plugin-url","https://github.com/hyplant-team/FCLDriverPlugin/releases/tag/Renderer");
+
+FCL/src/main/java/com/tungsten/fcl/ui/setting/AboutPage.java:            url = FCLApplication.Prop.getProperty("about-a","https://github.com/hyplant-team/FoldCraftLauncher");
+FCL/src/main/java/com/tungsten/fcl/ui/setting/AboutPage.java:            url = FCLApplication.Prop.getProperty("about-b","https://github.com/hyplant-team/FoldCraftLauncher/actions");
+FCL/src/main/java/com/tungsten/fcl/ui/setting/AboutPage.java:            url = FCLApplication.Prop.getProperty("about-c","https://github.com/hyplant-team/FoldCraftLauncher/pulls");
+
+FCL/src/main/java/com/tungsten/fcl/ui/setting/CommunityPage.java:            url = FCLApplication.Prop.getProperty("community-a","https://github.com/hyplant-team/FoldCraftLauncher");
+FCL/src/main/java/com/tungsten/fcl/ui/setting/CommunityPage.java:            url = FCLApplication.Prop.getProperty("community-b","https://github.com/hyplant-team/FoldCraftLauncher/issues");
+FCL/src/main/java/com/tungsten/fcl/ui/setting/CommunityPage.java:            url = FCLApplication.Prop.getProperty("community-c","https://github.com/hyplant-team/FoldCraftLauncher/discussions");
+
+FCL/src/main/java/com/tungsten/fcl/ui/setting/HelpPage.java:    public static final String DOC_INDEX_URL = FCLApplication.Prop.getProperty("doc-index-url","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/document/index.json");
+FCL/src/main/java/com/tungsten/fcl/ui/setting/HelpPage.java:            AndroidUtils.openLink(getContext(), FCLApplication.Prop.getProperty("doc-home-url","https://github.com/hyplant-team/FoldCraftLauncher/tree/doc/document"));
+
+FCL/src/main/java/com/tungsten/fcl/upgrade/UpdateChecker.java:    public static final String UPDATE_CHECK_URL = FCLApplication.Prop.getProperty("update-detection-url","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/version_map/latest.json");
+
+FCLCore/src/main/java/com/tungsten/fclcore/auth/authlibinjector/AuthlibInjectorDownloader.java:    private static final String LATEST_BUILD_URL = FCLPath.Prop.getProperty("authlib-injector-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/authlibinjector/latest.json");
+
+FCLCore/src/main/java/com/tungsten/fclcore/download/BMCLAPIDownloadProvider.java:                pair("https://repo1.maven.org/maven2", FCLPath.Prop.getProperty("maven2-download-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download/maven2"))
+
+FCLCore/src/main/java/com/tungsten/fclcore/download/MojangDownloadProvider.java:        String apiRoot = FCLPath.Prop.getProperty("bmclapi-root-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download");
+FCLCore/src/main/java/com/tungsten/fclcore/download/MojangDownloadProvider.java:        this.optifine = new OptiFine302VersionList(FCLPath.Prop.getProperty("optifine-download-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download/optifine/versionlist"));
+FCLCore/src/main/java/com/tungsten/fclcore/download/MojangDownloadProvider.java:        return FCLPath.Prop.getProperty("minecraft-manifest-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download/mc/game/version_manifest.json");
+FCLCore/src/main/java/com/tungsten/fclcore/download/MojangDownloadProvider.java:        return FCLPath.Prop.getProperty("minecraft-resource-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download/mc/resource/");
+
+FCLCore/src/main/java/com/tungsten/fclcore/mod/curse/CurseForgeRemoteModRepository.java:    private static final String PREFIX = FCLPath.Prop.getProperty("curse-api-url","https://api.curseforge.com");
+FCLCore/src/main/java/com/tungsten/fclcore/mod/curse/CurseForgeRemoteModRepository.java:    private static final String apiKey = FCLPath.Prop.getProperty("curse-api-key","null");
+
+FCLCore/src/main/java/com/tungsten/fclcore/mod/modrinth/ModrinthRemoteModRepository.java:    private static final String PREFIX = FCLPath.Prop.getProperty("modrinth-api-url","https://api.modrinth.com");

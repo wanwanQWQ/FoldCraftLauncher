@@ -52,9 +52,8 @@ android {
         applicationId = "com.tungsten.fcl." + pkgSuffix
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-
-        versionCode = 121801
-        versionName = "1.2.1.8-01"
+        versionCode = 1219
+        versionName = "1.2.1.9"
     }
 
     buildTypes {
@@ -168,4 +167,5 @@ dependencies {
     implementation("top.fifthlight.touchcontroller:proxy-client-android:0.0.2")
     implementation("androidx.palette:palette-ktx:1.0.0")
     implementation("com.github.Mathias-Boulay:android_gamepad_remapper:2.0.3")
+    implementation("com.github.addisonElliott:SegmentedButton:3.1.9")
 }

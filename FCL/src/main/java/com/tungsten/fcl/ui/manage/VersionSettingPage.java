@@ -86,6 +86,7 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
     private FCLSwitch noJVMCheckSwitch;
 
     private FCLImageButton javaButton;
+    private FCLImageButton javaInstallButton;
     private FCLImageButton editIconButton;
     private FCLImageButton deleteIconButton;
     private FCLImageButton controllerButton;
@@ -141,6 +142,7 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
         scaleFactorSeekbar.addProgressListener();
 
         javaButton = findViewById(R.id.edit_java);
+        javaInstallButton = findViewById(R.id.install_java);
         editIconButton = findViewById(R.id.edit_icon);
         deleteIconButton = findViewById(R.id.delete_icon);
         controllerButton = findViewById(R.id.edit_controller);
@@ -150,6 +152,7 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
         driverInstallButton = findViewById(R.id.install_driver);
 
         javaButton.setOnClickListener(this);
+        javaInstallButton.setOnClickListener(this);
         editIconButton.setOnClickListener(this);
         deleteIconButton.setOnClickListener(this);
         controllerButton.setOnClickListener(this);
@@ -411,6 +414,18 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
                 }
                 return null;
             }).show();
+        }
+        if (view == javaInstallButton) {
+            String url = FCLApplication.Prop.getProperty("java-plugin-url","null://");
+            FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
+            builder.setAlertLevel(FCLAlertDialog.AlertLevel.INFO);
+            builder.setCancelable(true);
+            builder.setMessage(getContext().getString(R.string.message_install_java));
+            builder.setPositiveButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_negative), null);
+            builder.setNegativeButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_positive), () -> {
+                AndroidUtils.openLink(getContext(), url);
+            });
+            builder.create().show();
         }
         if (view == rendererButton) {
             int[] pos = new int[2];

@@ -979,7 +979,8 @@
     <string name="wiki_release">https://zh.minecraft.wiki/w/Java版%s?variant=zh-cn</string>
     <string name="wiki_snapshot">https://zh.minecraft.wiki/w/%s?variant=zh-cn</string>
     <string name="installed">已安装</string>
-    <string name="message_install_plugin">你可以打开插件网页获取插件。</string>
+    <string name="message_install_plugin">你可以打开网页获取插件。</string>
+    <string name="message_install_java">你可以打开网页获取Java。</string>
 
     <string name="shaderpack">光影</string>
     <string name="recommend_version">推荐的版本</string>
@@ -994,4 +995,5 @@
     <string name="open_link_failed">未能自动跳转至浏览器，已自动复制链接，请手动打开浏览器粘贴进入。</string>
     <string name="launch">启动</string>
     <string name="tip_hide_menu_view">菜单按键已隐藏，按下音量键打开菜单。</string>
+    <string name="modloader">模组加载器</string>
 </resources>

@@ -138,7 +138,7 @@ public class AndroidUtils {
     public static int getScreenWidth(Activity context) {
         SharedPreferences sharedPreferences;
         sharedPreferences = context.getSharedPreferences("theme", MODE_PRIVATE);
-        boolean fullscreen = sharedPreferences.getBoolean("fullscreen", FCLApplication.Prop.getProperty("fullscreen", "false").equals("true"));
+        boolean fullscreen = sharedPreferences.getBoolean("fullscreen", FCLApplication.Prop.getProperty("default-fullscreen", "false").equals("true"));
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Point point = new Point();
         wm.getDefaultDisplay().getRealSize(point);

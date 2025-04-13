@@ -1026,6 +1026,7 @@
     <string name="wiki_snapshot">https://minecraft.wiki/w/Java_Edition_%s</string>
     <string name="installed">Installed</string>
     <string name="message_install_plugin">You can open the web page to get plugins.</string>
+    <string name="message_install_java">You can open the web page to get Java.</string>
 
     <string name="shaderpack">ShaderPack</string>
     <string name="recommend_version">Recommend version</string>
@@ -1041,4 +1042,5 @@
 
     <string name="launch">Launch</string>
     <string name="tip_hide_menu_view">The menu view is hidden. Press the volume key to open the menu.</string>
+    <string name="modloader">ModLoader</string>
 </resources>
