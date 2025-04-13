@@ -356,7 +356,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginStart="10dp"
-                    android:backgroundTint="@android:color/darker_gray"
+                    android:tint="@android:color/darker_gray"
                     app:auto_src_tint="false" />
             </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -393,7 +393,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginStart="10dp"
-                    android:backgroundTint="@android:color/darker_gray"
+                    android:tint="@android:color/darker_gray"
                     app:auto_src_tint="false" />
             </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -430,7 +430,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginStart="10dp"
-                    android:backgroundTint="@android:color/darker_gray"
+                    android:tint="@android:color/darker_gray"
                     app:auto_src_tint="false" />
             </androidx.appcompat.widget.LinearLayoutCompat>
 
