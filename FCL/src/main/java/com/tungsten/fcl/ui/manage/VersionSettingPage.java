@@ -450,7 +450,7 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
             RendererUtil.openDriverMenu(getContext(), view, globalSetting, name -> driverText.setText(name));
         }
         if (view == rendererInstallButton) {
-            String url = FCLApplication.Prop.getProperty("renderer-plugin-url","https://github.com/hyplant-team/FCLRendererPlugin/releases/tag/Renderer");
+            String url = FCLApplication.Prop.getProperty("renderer-plugin-url","null://");
             FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
             builder.setAlertLevel(FCLAlertDialog.AlertLevel.INFO);
             builder.setCancelable(true);
@@ -462,7 +462,7 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
             builder.create().show();
         }
         if (view == driverInstallButton) {
-            String url = FCLApplication.Prop.getProperty("driver-plugin-url","https://github.com/hyplant-team/FCLDriverPlugin/releases/tag/Renderer");
+            String url = FCLApplication.Prop.getProperty("driver-plugin-url","null://");
             FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
             builder.setAlertLevel(FCLAlertDialog.AlertLevel.INFO);
             builder.setCancelable(true);

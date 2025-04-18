@@ -44,13 +44,13 @@ public class CommunityPage extends FCLCommonPage implements View.OnClickListener
         String url = null;
 
         if (v == community_a) {
-            url = FCLApplication.Prop.getProperty("community-a","https://github.com/hyplant-team/FoldCraftLauncher");
+            url = FCLApplication.Prop.getProperty("community-a","null://");
         }
         if (v == community_b) {
-            url = FCLApplication.Prop.getProperty("community-b","https://github.com/hyplant-team/FoldCraftLauncher/issues");
+            url = FCLApplication.Prop.getProperty("community-b","null://");
         }
         if (v == community_c) {
-            url = FCLApplication.Prop.getProperty("community-c","https://github.com/hyplant-team/FoldCraftLauncher/discussions");
+            url = FCLApplication.Prop.getProperty("community-c","null://");
         }
 
         if (url != null) {

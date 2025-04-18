@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 public class HelpPage extends FCLCommonPage implements View.OnClickListener {
 
-    public static final String DOC_INDEX_URL = FCLApplication.Prop.getProperty("doc-index-url","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/document/index.json");
+    public static final String DOC_INDEX_URL = FCLApplication.Prop.getProperty("doc-index-url","null://");
 
     private ListView categoryListView;
     private ListView listView;
@@ -113,7 +113,7 @@ public class HelpPage extends FCLCommonPage implements View.OnClickListener {
             refresh();
         }
         if (v == website) {
-            AndroidUtils.openLink(getContext(), FCLApplication.Prop.getProperty("doc-home-url","https://github.com/hyplant-team/FoldCraftLauncher/tree/doc/document"));
+            AndroidUtils.openLink(getContext(), FCLApplication.Prop.getProperty("doc-home-url","null://"));
         }
     }
 }

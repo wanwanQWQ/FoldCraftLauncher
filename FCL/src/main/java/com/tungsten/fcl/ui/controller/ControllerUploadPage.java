@@ -131,7 +131,7 @@ public class ControllerUploadPage extends FCLTempPage implements View.OnClickLis
 
 
     public boolean joinCommunity() {
-        Uri uri = Uri.parse(FCLApplication.Prop.getProperty("community-controller","https://github.com/hyplant-team/FoldCraftLauncher/discussions"));
+        Uri uri = Uri.parse(FCLApplication.Prop.getProperty("community-controller","null://"));
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         try {
             getContext().startActivity(intent);

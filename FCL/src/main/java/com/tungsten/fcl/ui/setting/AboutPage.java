@@ -44,13 +44,13 @@ public class AboutPage extends FCLCommonPage implements View.OnClickListener {
         String url = null;
 
         if (v == about_a) {
-            url = FCLApplication.Prop.getProperty("about-a","https://github.com/hyplant-team/FoldCraftLauncher");
+            url = FCLApplication.Prop.getProperty("about-a","null://");
         }
         if (v == about_b) {
-            url = FCLApplication.Prop.getProperty("about-b","https://github.com/hyplant-team/FoldCraftLauncher/actions");
+            url = FCLApplication.Prop.getProperty("about-b","null://");
         }
         if (v == about_c) {
-            url = FCLApplication.Prop.getProperty("about-c","https://github.com/hyplant-team/FoldCraftLauncher/pulls");
+            url = FCLApplication.Prop.getProperty("about-c","null://");
         }
 
         if (url != null) {

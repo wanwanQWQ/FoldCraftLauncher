@@ -19,7 +19,7 @@ import java.util.logging.Level;
 
 public class UpdateChecker {
 
-    public static final String UPDATE_CHECK_URL = FCLApplication.Prop.getProperty("update-detection-url","https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/doc/version_map/latest.json");
+    public static final String UPDATE_CHECK_URL = FCLApplication.Prop.getProperty("update-detection-url","null://");
 
     private static UpdateChecker instance;
 

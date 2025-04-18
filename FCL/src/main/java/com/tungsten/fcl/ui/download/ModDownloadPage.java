@@ -49,7 +49,7 @@ public class ModDownloadPage extends DownloadPage {
         showIncompatible.setVisibility(View.VISIBLE);
         showIncompatible.setOnClickListener(v -> {
             try {
-                String url = FCLApplication.Prop.getProperty("mod-compatibility-url","https://github.com/hyplant-team/FoldCraftLauncher/tree/doc/compatibility");
+                String url = FCLApplication.Prop.getProperty("mod-compatibility-url","null://");
                 FCLAlertDialog dialog = new FCLAlertDialog(context);
                 String local_incompatible_mods = FCLPath.FILES_DIR + "/debug/incompatible_mod_list.html";
                 String message;
