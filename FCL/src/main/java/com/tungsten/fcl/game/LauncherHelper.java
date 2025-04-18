@@ -279,7 +279,8 @@ public final class LauncherHelper {
                 LOG.log(Level.INFO, "Enable touch controller mod!");
                 bridge.setHasTouchController(true);
             }
-        } catch (Exception ignore) {
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "CheckMod() failed", e);
         }
     }
 

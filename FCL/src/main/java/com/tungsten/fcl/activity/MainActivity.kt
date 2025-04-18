@@ -13,6 +13,7 @@ import android.view.animation.BounceInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.content.FileProvider
 import androidx.core.view.forEach
 import androidx.core.view.postDelayed
 import com.mio.util.AnimUtil
@@ -39,9 +40,9 @@ import com.tungsten.fcl.util.FXUtils
 import com.tungsten.fcl.util.RequestCodes
 import com.tungsten.fcl.util.WeakListenerHolder
 import com.tungsten.fclauncher.bridge.FCLBridge
-import com.tungsten.fclauncher.utils.FCLPath
 import com.tungsten.fclauncher.plugins.DriverPlugin
 import com.tungsten.fclauncher.plugins.RendererPlugin
+import com.tungsten.fclauncher.utils.FCLPath
 import com.tungsten.fclcore.auth.Account
 import com.tungsten.fclcore.auth.authlibinjector.AuthlibInjectorAccount
 import com.tungsten.fclcore.auth.authlibinjector.AuthlibInjectorServer
@@ -60,9 +61,11 @@ import com.tungsten.fclcore.mod.RemoteMod.IMod
 import com.tungsten.fclcore.mod.RemoteModRepository
 import com.tungsten.fclcore.task.Schedulers
 import com.tungsten.fclcore.util.Logging
+import com.tungsten.fclcore.util.Logging.LOG
 import com.tungsten.fclcore.util.fakefx.BindingMapping
 import com.tungsten.fcllibrary.browser.FileBrowser
 import com.tungsten.fcllibrary.browser.options.LibMode
+import com.tungsten.fclcore.util.io.FileUtils
 import com.tungsten.fcllibrary.component.FCLActivity
 import com.tungsten.fcllibrary.component.dialog.EditDialog
 import com.tungsten.fcllibrary.component.theme.ThemeEngine
@@ -157,8 +160,6 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
 
                 account.setOnClickListener(this@MainActivity)
                 version.setOnClickListener(this@MainActivity)
-                viewLogs.setOnClickListener(this@MainActivity)
-                fclShell.setOnClickListener(this@MainActivity)
                 start.setOnClickListener(this@MainActivity)
                 start.setOnLongClickListener { view ->
                     RendererUtil.openRendererMenu(
@@ -191,6 +192,16 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                     }.show()
                     true
                 }
+                viewLogs.setOnClickListener(this@MainActivity)
+                viewLogs.setOnLongClickListener {
+                    shareLog()
+                    true
+                }
+                fclShell.setOnClickListener(this@MainActivity)
+                fclShell.setOnLongClickListener {
+                    startActivity(Intent(this@MainActivity, ShellActivity::class.java))
+                    true
+                }
 
                 uiManager = UIManager(this@MainActivity, uiLayout)
                 _uiManager = uiManager
@@ -206,13 +217,9 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                     controller.setOnSelectListener(this@MainActivity)
                     setting.setOnSelectListener(this@MainActivity)
                     home.setSelected(true)
-
                     back.setOnClickListener(this@MainActivity)
                     back.setOnLongClickListener {
                         throw RuntimeException("DebugLauncherCrash")
-                    }
-                    fclShell.setOnLongClickListener {
-                        startActivity(Intent(this@MainActivity, ShellActivity::class.java))
                         true
                     }
 
@@ -236,6 +243,12 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                         setting,
                         getString(R.string.guide_theme2),
                         GuideUtil.TAG_GUIDE_THEME_2
+                    )
+                    GuideUtil.show(
+                        this@MainActivity,
+                        viewLogs,
+                        getString(R.string.guide_share_log),
+                        GuideUtil.TAG_GUIDE_SHARE_LOG
                     )
                 }
             }
@@ -622,6 +635,30 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
             ).forEachIndexed { index, objectAnimator ->
                 objectAnimator.interpolator(BounceInterpolator()).startAfter((index + 1) * 100L)
             }
+        }
+    }
+
+    private fun shareLog() {
+        try {
+            val file = File(FCLPath.LOG_DIR).resolve("latest_game.log")
+            if (!file.exists()) return
+            val intent = Intent(Intent.ACTION_SEND)
+            val uri = FileProvider.getUriForFile(
+                this,
+                getString(com.tungsten.fclauncher.R.string.file_browser_provider),
+                file
+            )
+            intent.setType("text/plain")
+            intent.putExtra(Intent.EXTRA_STREAM, uri)
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            startActivity(
+                Intent.createChooser(
+                    intent,
+                    getString(com.tungsten.fcllibrary.R.string.crash_reporter_share)
+                )
+            )
+        } catch (e: Exception) {
+            LOG.log(Level.INFO, "Share error: $e");
         }
     }
 }

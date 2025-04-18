@@ -967,6 +967,7 @@
     <string name="view_incompatible">查看不兼容的模组</string>
     <string name="view_incompatible_online">在线查看详情</string>
     <string name="guide_theme2">如果你发现右侧的文字颜色看不清可以在点击这里，再点击“启动器设置”，设置里面的“次要主题色”即可</string>
+    <string name="guide_share_log">长按这里分享游戏日志（latest_game.log）。</string>
     <string name="menu_settings_gamepad_button_binding">按键绑定</string>
     <string name="menu_settings_gamepad_open_button">打开</string>
     <string name="joystick_l">左摇杆</string>

@@ -1012,6 +1012,7 @@
     <string name="view_incompatible">View incompatible mods</string>
     <string name="view_incompatible_online">Online Details</string>
     <string name="guide_theme2">If you find the color of the text on the right side is not clear, you can click here, then click \"Launcher Settings\", and select \"Secondary Theme Color\"</string>
+    <string name="guide_share_log">Long press here to share the game log (latest_game.log).</string>
     <string name="joystick_l">Left joystick</string>
     <string name="gamepad_dpad">DPAD</string>
     <string name="gamepad_button_binding">Gamepad button binding</string>
