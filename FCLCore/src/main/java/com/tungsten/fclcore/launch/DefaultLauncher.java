@@ -399,6 +399,7 @@ public class DefaultLauncher extends Launcher {
                 pair("${auth_access_token}", authInfo.getAccessToken()),
                 pair("${auth_uuid}", UUIDTypeAdapter.fromUUID(authInfo.getUUID())),
                 pair("${version_name}", Optional.ofNullable(options.getVersionName()).orElse(version.getId())),
+                pair("${version_type}", version.getType().getId()),
                 pair("${profile_name}", Optional.ofNullable(options.getProfileName()).orElse("Minecraft")),
                 pair("${game_directory}", repository.getRunDirectory(version.getId()).getAbsolutePath()),
                 pair("${user_type}", "msa"),
@@ -410,6 +411,8 @@ public class DefaultLauncher extends Launcher {
                 pair("${classpath_separator}", File.pathSeparator),
                 pair("${primary_jar}", repository.getVersionJar(version).getAbsolutePath()),
                 pair("${language}", Locale.getDefault().toString()),
+                pair("${launcher_name}", ""),
+                pair("${launcher_version}", ""),
 
                 // file_separator is used in -DignoreList
                 pair("${file_separator}", File.pathSeparator),

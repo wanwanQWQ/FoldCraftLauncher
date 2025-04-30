@@ -338,13 +338,14 @@ public class FCLGameRepository extends DefaultGameRepository {
 
     public LaunchOptions getLaunchOptions(String version, JavaVersion javaVersion, File gameDir, List<String> javaAgents) {
         VersionSetting vs = getVersionSetting(version);
+        String profileName = (gameDir.getParentFile() != null) ? gameDir.getParentFile().getName() : "Minecraft";
 
         LaunchOptions.Builder builder = new LaunchOptions.Builder()
                 .setGameDir(gameDir)
                 .setJava(javaVersion)
-                .setVersionType(FCLPath.CONTEXT.getString(R.string.app_name))
+                .setVersionType("error")    // Please use version.getType().getId()
                 .setVersionName(version)
-                .setProfileName(FCLPath.CONTEXT.getString(R.string.app_name))
+                .setProfileName(profileName)
                 .setGameArguments(StringUtils.tokenize(vs.getMinecraftArgs()))
                 .setOverrideJavaArguments(StringUtils.tokenize(vs.getJavaArgs()))
                 .setMaxMemory((int) (getAllocatedMemory(

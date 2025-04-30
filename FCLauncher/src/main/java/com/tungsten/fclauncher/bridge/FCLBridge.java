@@ -290,17 +290,17 @@ public class FCLBridge implements Serializable {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 String targetLink = link;
-                if (targetLink.startsWith("file://")) {
-                    targetLink = targetLink.replace("file://", "");
-                } else if (targetLink.startsWith("file:")) {
-                    targetLink = targetLink.replace("file:", "");
-                }
                 Uri uri;
-                if (targetLink.startsWith("http")) {
+                if (targetLink.startsWith("file")) {
+                    if (targetLink.startsWith("file://")) {
+                        targetLink = targetLink.replaceFirst("file://", "");
+                    } else if (targetLink.startsWith("file:")) {
+                        targetLink = targetLink.replaceFirst("file:", "");
+                    }
+                    uri = FileProvider.getUriForFile(((Activity) context), ((Activity) context).getString(R.string.file_browser_provider), new File(targetLink));
+                }
+                else {
                     uri = Uri.parse(targetLink);
-                } else {
-                    //can`t get authority by R.string.file_browser_provider
-                    uri = FileProvider.getUriForFile(context, context.getString(R.string.file_browser_provider), new File(targetLink));
                 }
                 intent.setDataAndType(uri, "*/*");
                 context.startActivity(intent);

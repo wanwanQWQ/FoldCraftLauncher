@@ -20,6 +20,7 @@ package com.tungsten.fclcore.game;
 public enum ReleaseType {
     RELEASE("release"),
     SNAPSHOT("snapshot"),
+    DEBUG("debug"),
     MODIFIED("modified"),
     OLD_BETA("old-beta"),
     OLD_ALPHA("old-alpha"),

@@ -121,13 +121,14 @@ public class UpdateDialog extends FCLDialog implements View.OnClickListener {
                 dialog.setTitle(getContext().getString(R.string.update_launcher));
                 Schedulers.androidUIThread().execute(() -> {
                     TaskExecutor executor = Task.composeAsync(() -> {
-                        FileDownloadTask task = new FileDownloadTask(NetworkUtils.toURL(upgradeUrl), new File(FCLPath.CACHE_DIR, "FoldCraftLauncher.apk"));
-                        task.setName("FoldCraftLauncher");
+                        File updradeFile = new File(FCLPath.SHARED_COMMON_DIR, "FCL_Upgrade.apk");
+                        FileDownloadTask task = new FileDownloadTask(NetworkUtils.toURL(upgradeUrl), updradeFile);
+                        task.setName("FCL_Upgrade.apk");
                         return task.whenComplete(Schedulers.androidUIThread(), exception -> {
                             if (exception == null) {
                                 Intent intent = new Intent(Intent.ACTION_VIEW);
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                Uri apkUri = FileProvider.getUriForFile(getContext(), getContext().getString(com.tungsten.fclauncher.R.string.file_browser_provider), new File(FCLPath.CACHE_DIR, "FoldCraftLauncher.apk"));
+                                Uri apkUri = FileProvider.getUriForFile(getContext(), getContext().getString(com.tungsten.fclauncher.R.string.file_browser_provider), updradeFile);
                                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                                 intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
                                 getContext().startActivity(intent);
@@ -137,6 +138,9 @@ public class UpdateDialog extends FCLDialog implements View.OnClickListener {
                                 builder.setAlertLevel(FCLAlertDialog.AlertLevel.ALERT);
                                 builder.setMessage(getContext().getString(R.string.update_failed) + "\n" + exception.getMessage());
                                 builder.setNegativeButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_positive), null);
+                                builder.setPositiveButton(getContext().getString(R.string.update_netdisk), ()->{
+                                    AndroidUtils.openLink(getContext(), version.getNetdiskUrl());
+                                });
                                 builder.create().show();
                             }
                         });

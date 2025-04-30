@@ -106,8 +106,6 @@ public final class Arguments {
     static {
         List<Argument> jvm = new ArrayList<>(5);
         jvm.add(new StringArgument("-Djava.library.path=${natives_directory}"));
-        jvm.add(new StringArgument("-Dminecraft.launcher.brand=${launcher_name}"));
-        jvm.add(new StringArgument("-Dminecraft.launcher.version=${launcher_version}"));
         jvm.add(new StringArgument("-cp"));
         jvm.add(new StringArgument("${classpath}"));
         DEFAULT_JVM_ARGUMENTS = Collections.unmodifiableList(jvm);

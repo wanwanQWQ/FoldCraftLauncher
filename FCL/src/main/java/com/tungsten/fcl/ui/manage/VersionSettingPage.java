@@ -9,11 +9,13 @@ import com.mio.ui.dialog.JavaManageDialog;
 import com.mio.util.RendererUtil;
 import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
+import com.tungsten.fcl.activity.MainActivity;
 import com.tungsten.fcl.control.SelectControllerDialog;
 import com.tungsten.fcl.game.FCLGameRepository;
 import com.tungsten.fcl.setting.Profile;
 import com.tungsten.fcl.setting.VersionSetting;
-import com.tungsten.fcl.ui.setting.SettingPageManager;
+import com.tungsten.fcl.ui.UIManager;
+import com.tungsten.fcl.ui.controller.ControllerPageManager;
 import com.tungsten.fcl.util.AndroidUtils;
 import com.tungsten.fcl.util.FXUtils;
 import com.tungsten.fcl.util.RequestCodes;
@@ -409,7 +411,9 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
             dialog.show();
         }
         if (view == controllerInstallButton) {
-            SettingPageManager.getInstance().switchPage(SettingPageManager.PAGE_ID_SETTING_CONTROLLER_REPO);
+            UIManager uiManager = MainActivity.getInstance().getUiManager();
+            MainActivity.getInstance().binding.controller.setSelected(true);
+            uiManager.getControllerUI().checkPageManager(() -> uiManager.getControllerUI().getPageManager().switchPage(ControllerPageManager.PAGE_ID_CONTROLLER_REPO));
         }
         if (view == javaButton) {
             new JavaManageDialog(getContext(), java -> {
