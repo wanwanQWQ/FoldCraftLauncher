@@ -54,6 +54,14 @@ class MenuSetting {
             hideMenuViewViewProperty.set(hideMenuView)
         }
 
+    val showFpsProperty: BooleanProperty =
+        SimpleBooleanProperty(this, "showFps", false)
+    var isShowFps: Boolean
+        get() = showFpsProperty.get()
+        set(v) {
+            showFpsProperty.set(v)
+        }
+
     val disableSoftKeyAdjustProperty: BooleanProperty =
         SimpleBooleanProperty(this, "disableSoftKeyAdjust", false)
     var isDisableSoftKeyAdjust: Boolean
@@ -67,6 +75,13 @@ class MenuSetting {
         get() = showLogProperty.get()
         set(showLog) {
             showLogProperty.set(showLog)
+        }
+
+    val autoShowLogProperty: BooleanProperty = SimpleBooleanProperty(this, "autoShowLog", false)
+    var isAutoShowLog: Boolean
+        get() = autoShowLogProperty.get()
+        set(v) {
+            autoShowLogProperty.set(v)
         }
 
     val menuPositionXProperty: DoubleProperty =
@@ -200,8 +215,10 @@ class MenuSetting {
         autoFitDistProperty.addListener(listener)
         lockMenuViewProperty.addListener(listener)
         hideMenuViewViewProperty.addListener(listener)
+        showFpsProperty.addListener(listener)
         disableSoftKeyAdjustProperty.addListener(listener)
         showLogProperty.addListener(listener)
+        autoShowLogProperty.addListener(listener)
         menuPositionXProperty.addListener(listener)
         menuPositionYProperty.addListener(listener)
         disableGestureProperty.addListener(listener)
@@ -232,8 +249,10 @@ class MenuSetting {
                 addProperty("autoFitDist", src.autoFitDist)
                 addProperty("lockMenuView", src.isLockMenuView)
                 addProperty("hideMenuView", src.isHideMenuView)
+                addProperty("showFps", src.isShowFps)
                 addProperty("disableSoftKeyAdjust", src.isDisableSoftKeyAdjust)
                 addProperty("showLog", src.isShowLog)
+                addProperty("autoShowLog", src.isAutoShowLog)
                 addProperty("menuPositionX", src.menuPositionX)
                 addProperty("menuPositionY", src.menuPositionY)
                 addProperty("disableGesture", src.isDisableGesture)
@@ -265,8 +284,10 @@ class MenuSetting {
                 ms.autoFitDist = json["autoFitDist"]?.asInt ?: 0
                 ms.isLockMenuView = json["lockMenuView"]?.asBoolean ?: false
                 ms.isHideMenuView = json["hideMenuView"]?.asBoolean ?: false
+                ms.isShowFps = json["showFps"]?.asBoolean ?: false
                 ms.isDisableSoftKeyAdjust = json["disableSoftKeyAdjust"]?.asBoolean ?: false
                 ms.isShowLog = json["showLog"]?.asBoolean ?: false
+                ms.isAutoShowLog = json["autoShowLog"]?.asBoolean ?: false
                 ms.menuPositionX = json["menuPositionX"]?.asDouble ?: 0.5
                 ms.menuPositionY = json["menuPositionY"]?.asDouble ?: 0.5
                 ms.isDisableGesture = json["disableGesture"]?.asBoolean ?: false

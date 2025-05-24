@@ -183,7 +183,7 @@ public class FCLGameRepository extends DefaultGameRepository {
         Files.copy(fromJson, toJson);
 
         FileUtils.writeText(toJson.toFile(), JsonUtils.GSON.toJson(fromVersion.setId(dstId)));
-        
+
         VersionSetting oldVersionSetting = getVersionSetting(srcId).clone();
         GameDirectoryType originalGameDirType = (oldVersionSetting.isIsolateGameDir() ? GameDirectoryType.VERSION_FOLDER : GameDirectoryType.ROOT_FOLDER);
         oldVersionSetting.setUsesGlobal(false);
@@ -216,6 +216,7 @@ public class FCLGameRepository extends DefaultGameRepository {
 
     /**
      * Create new version setting if version id has no version setting.
+     *
      * @param id the version id.
      * @return new version setting, null if given version does not exist.
      */
@@ -238,7 +239,6 @@ public class FCLGameRepository extends DefaultGameRepository {
      * Get the version setting for version id.
      *
      * @param id version id
-     *
      * @return corresponding version setting, null if the version has no its own version setting.
      */
     @Nullable
@@ -317,6 +317,7 @@ public class FCLGameRepository extends DefaultGameRepository {
 
     /**
      * Make version use self version settings instead of the global one.
+     *
      * @param id the version id.
      * @return specialized version setting, null if given version does not exist.
      */
@@ -355,8 +356,8 @@ public class FCLGameRepository extends DefaultGameRepository {
                 ) / 1024 / 1024))
                 .setMinMemory(vs.getMinMemory())
                 .setMetaspace(Lang.toIntOrNull(vs.getPermSize()))
-                .setWidth((int) (AndroidUtils.getScreenWidth(FCLApplication.getCurrentActivity()) * vs.getScaleFactor()))
-                .setHeight((int) (AndroidUtils.getScreenHeight(FCLApplication.getCurrentActivity()) * vs.getScaleFactor()))
+                .setWidth((int) (AndroidUtils.getScreenWidth(FCLApplication.getCurrentActivity()) * vs.getScaleFactor() / 100.0))
+                .setHeight((int) (AndroidUtils.getScreenHeight(FCLApplication.getCurrentActivity()) * vs.getScaleFactor() / 100.0))
                 .setServerIp(vs.getServerIp())
                 .setJavaAgents(javaAgents)
                 .setBEGesture(vs.isBeGesture())

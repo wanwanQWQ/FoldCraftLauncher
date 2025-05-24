@@ -20,7 +20,7 @@ public class VersionSettingDefault {
     private static String permSize = "";
     private static String serverIp = "";
     private static String java = "Auto";
-    private static double scaleFactor = 1.0;
+    private static int newScaleFactor = 100;
     private static boolean notCheckGame = false;
     private static boolean notCheckJVM = true;
     private static boolean beGesture = false;
@@ -57,8 +57,8 @@ public class VersionSettingDefault {
     public static String getJava() {
         return java;
     }
-    public static double getScaleFactor() {
-        return scaleFactor;
+    public static int getNewScaleFactor() {
+        return newScaleFactor;
     }
     public static boolean getNotCheckGame() {
         return notCheckGame;
@@ -103,7 +103,7 @@ public class VersionSettingDefault {
             permSize = defaultConfig.has("permSize") ? defaultConfig.get("permSize").getAsString() : permSize;
             serverIp = defaultConfig.has("serverIp") ? defaultConfig.get("serverIp").getAsString() : serverIp;
             java = defaultConfig.has("java") ? defaultConfig.get("java").getAsString() : java;
-            scaleFactor = defaultConfig.has("scaleFactor") ? defaultConfig.get("scaleFactor").getAsDouble() : scaleFactor;
+            newScaleFactor = defaultConfig.has("newScaleFactor") ? defaultConfig.get("newScaleFactor").getAsInt() : newScaleFactor;
             notCheckGame = defaultConfig.has("notCheckGame") ? defaultConfig.get("notCheckGame").getAsBoolean() : notCheckGame;
             notCheckJVM = defaultConfig.has("notCheckJVM") ? defaultConfig.get("notCheckJVM").getAsBoolean() : notCheckJVM;
             beGesture = defaultConfig.has("beGesture") ? defaultConfig.get("beGesture").getAsBoolean() : beGesture;

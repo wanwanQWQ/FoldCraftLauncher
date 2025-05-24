@@ -151,38 +151,40 @@ public final class LauncherHelper {
                 .thenComposeAsync(() -> gameVersion.map(s -> new GameVerificationFixTask(dependencyManager, s, version.get())).orElse(null))
                 .thenComposeAsync(() -> logIn(context, account).withStage("launch.state.logging_in"))
                 .thenComposeAsync(authInfo -> Task.supplyAsync(() -> {
-                    LaunchOptions launchOptions = repository.getLaunchOptions(selectedVersion, javaVersionRef.get(), profile.getGameDir(), javaAgents);
-                    FCLGameLauncher launcher = new FCLGameLauncher(
-                            context,
-                            repository,
-                            version.get(),
-                            authInfo,
-                            launchOptions
-                    );
-                    version.get().getLibraries().forEach(library -> {
-                        if (library.getName().startsWith("net.java.dev.jna:jna:")) {
-                            launcher.setJnaVersion(library.getVersion());
-                        }
-                    });
-                    return launcher;
-                }).thenComposeAsync(launcher -> { // launcher is prev task's result
-                    return Task.supplyAsync(launcher::launch);
-                }).thenAcceptAsync(fclBridge -> Schedulers.androidUIThread().execute(() -> {
-                    CallbackBridge.nativeSetUseInputStackQueue(version.get().getArguments().isPresent());
-                    Intent intent = new Intent(context, JVMActivity.class);
-                    fclBridge.setScaleFactor(repository.getVersionSetting(selectedVersion).getScaleFactor());
-                    fclBridge.setController(repository.getVersionSetting(selectedVersion).getController());
-                    fclBridge.setGameDir(repository.getRunDirectory(selectedVersion).getAbsolutePath());
-                    fclBridge.setRenderer(repository.getVersionSetting(selectedVersion).getRenderer().toString());
-                    fclBridge.setJava(Integer.toString(javaVersionRef.get().getVersion()));
-                    checkTouchMod(fclBridge, repository.getRunDirectory(selectedVersion).getAbsolutePath());
-                    JVMActivity.setFCLBridge(fclBridge, MenuType.GAME);
-                    Bundle bundle = new Bundle();
-                    bundle.putString("controller", repository.getVersionSetting(selectedVersion).getController());
-                    intent.putExtras(bundle);
-                    LOG.log(Level.INFO, "Start JVMActivity!");
-                    context.startActivity(intent);
-                })).withStage("launch.state.waiting_launching"))
+                            LaunchOptions launchOptions = repository.getLaunchOptions(selectedVersion, javaVersionRef.get(), profile.getGameDir(), javaAgents);
+                            FCLGameLauncher launcher = new FCLGameLauncher(
+                                    context,
+                                    repository,
+                                    version.get(),
+                                    authInfo,
+                                    launchOptions
+                            );
+                            version.get().getLibraries().forEach(library -> {
+                                if (library.getName().startsWith("net.java.dev.jna:jna:")) {
+                                    launcher.setJnaVersion(library.getVersion());
+                                }
+                            });
+                            return launcher;
+                        }).thenComposeAsync(launcher -> { // launcher is prev task's result
+                            return Task.supplyAsync(launcher::launch);
+                        })
+                        .thenAcceptAsync(fclBridge -> Schedulers.androidUIThread().execute(() -> {
+                            CallbackBridge.nativeSetUseInputStackQueue(version.get().getArguments().isPresent());
+                            Intent intent = new Intent(context, JVMActivity.class);
+                            fclBridge.setScaleFactor(repository.getVersionSetting(selectedVersion).getScaleFactor() / 100.0);
+                            fclBridge.setController(repository.getVersionSetting(selectedVersion).getController());
+                            fclBridge.setGameDir(repository.getRunDirectory(selectedVersion).getAbsolutePath());
+                            fclBridge.setRenderer(repository.getVersionSetting(selectedVersion).getRenderer().toString());
+                            fclBridge.setJava(Integer.toString(javaVersionRef.get().getVersion()));
+                            checkTouchMod(fclBridge, repository.getRunDirectory(selectedVersion).getAbsolutePath());
+                            JVMActivity.setFCLBridge(fclBridge, MenuType.GAME);
+                            Bundle bundle = new Bundle();
+                            bundle.putString("controller", repository.getVersionSetting(selectedVersion).getController());
+                            intent.putExtras(bundle);
+                            LOG.log(Level.INFO, "Start JVMActivity!");
+                            context.startActivity(intent);
+                        }))
+                        .withStage("launch.state.waiting_launching"))
                 .withStagesHint(Lang.immutableListOf(
                         "launch.state.java",
                         "launch.state.dependencies",

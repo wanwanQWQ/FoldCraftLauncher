@@ -177,12 +177,10 @@ class VersionSetting : Cloneable {
             serverIpProperty.set(serverIp)
         }
 
-    val scaleFactorProperty: DoubleProperty = SimpleDoubleProperty(this, "scaleFactor", VersionSettingDefault.getScaleFactor())
-    var scaleFactor: Double
+    val scaleFactorProperty: IntegerProperty = SimpleIntegerProperty(this, "newScaleFactor", VersionSettingDefault.getNewScaleFactor())
+    var scaleFactor: Int
         get() = scaleFactorProperty.get()
-        set(scaleFactor) {
-            scaleFactorProperty.set(scaleFactor)
-        }
+        set(v) = scaleFactorProperty.set(v)
 
     /**
      * 0 - .minecraft<br></br>
@@ -330,7 +328,7 @@ class VersionSetting : Cloneable {
                 addProperty("permSize", src.permSize)
                 addProperty("serverIp", src.serverIp)
                 addProperty("java", src.java)
-                addProperty("scaleFactor", src.scaleFactor)
+                addProperty("newScaleFactor", src.scaleFactor)
                 addProperty("notCheckGame", src.isNotCheckGame)
                 addProperty("notCheckJVM", src.isNotCheckJVM)
                 addProperty("beGesture", src.isBeGesture)
@@ -366,8 +364,10 @@ class VersionSetting : Cloneable {
                 vs.isAutoMemory = json["autoMemory"]?.asBoolean ?: VersionSettingDefault.getAutoMemory()
                 vs.permSize = json["permSize"]?.asString ?: VersionSettingDefault.getPermSize()
                 vs.serverIp = json["serverIp"]?.asString ?: VersionSettingDefault.getServerIp()
-                vs.java = JavaManager.javaList.find { it.name == json["java"]?.asString }?.name ?: VersionSettingDefault.getJava()
-                vs.scaleFactor = json["scaleFactor"]?.asDouble ?: VersionSettingDefault.getScaleFactor()
+                vs.java =
+                    JavaManager.javaList.find { it.name == json["java"]?.asString }?.name
+                        ?: VersionSettingDefault.getJava()
+                vs.scaleFactor = json["newScaleFactor"]?.asInt ?: VersionSettingDefault.getNewScaleFactor()
                 vs.isNotCheckGame = json["notCheckGame"]?.asBoolean ?: VersionSettingDefault.getNotCheckGame()
                 vs.isNotCheckJVM = json["notCheckJVM"]?.asBoolean ?: VersionSettingDefault.getNotCheckJVM()
                 vs.isBeGesture = json["beGesture"]?.asBoolean ?: VersionSettingDefault.getBeGesture()
