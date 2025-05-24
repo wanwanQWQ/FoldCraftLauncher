@@ -3,6 +3,7 @@ package com.tungsten.fcl.ui.manage;
 import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 import android.view.View;
 
 import com.mio.ui.dialog.JavaManageDialog;
@@ -12,7 +13,9 @@ import com.tungsten.fcl.R;
 import com.tungsten.fcl.activity.MainActivity;
 import com.tungsten.fcl.control.SelectControllerDialog;
 import com.tungsten.fcl.game.FCLGameRepository;
+import com.tungsten.fcl.setting.Controllers;
 import com.tungsten.fcl.setting.Profile;
+import com.tungsten.fcl.setting.Profiles;
 import com.tungsten.fcl.setting.VersionSetting;
 import com.tungsten.fcl.ui.UIManager;
 import com.tungsten.fcl.ui.controller.ControllerPageManager;
@@ -100,6 +103,7 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
     private FCLImageButton driverInstallButton;
 
     private FCLTextView javaText;
+    private FCLTextView controllerText;
     private FCLTextView rendererText;
     private FCLTextView driverText;
 
@@ -168,6 +172,7 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
         driverInstallButton.setOnClickListener(this);
 
         javaText = findViewById(R.id.java);
+        controllerText = findViewById(R.id.controller);
         rendererText = findViewById(R.id.renderer);
         driverText = findViewById(R.id.driver);
 
@@ -310,6 +315,7 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
         maxMemory.bindBidirectional(versionSetting.getMaxMemoryProperty());
 
         javaText.setText(versionSetting.getJava().equals("Auto") ? getContext().getString(R.string.settings_game_java_version_auto) : versionSetting.getJava());
+        controllerText.setText(Controllers.findControllerById(versionSetting.getController()).getName());
         FCLConfig.Renderer renderer = versionSetting.getRenderer();
         if (renderer == FCLConfig.Renderer.RENDERER_CUSTOM) {
             rendererText.setText(versionSetting.getCustomRenderer());
@@ -407,7 +413,10 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
             onDeleteIcon();
         }
         if (view == controllerButton) {
-            SelectControllerDialog dialog = new SelectControllerDialog(getContext(), lastVersionSetting.getController(), controller -> lastVersionSetting.setController(controller.getId()));
+            SelectControllerDialog dialog = new SelectControllerDialog(getContext(), lastVersionSetting.getController(), controller -> {
+                lastVersionSetting.setController(controller.getId());
+                controllerText.setText(controller.getName());
+            });
             dialog.show();
         }
         if (view == controllerInstallButton) {
@@ -448,7 +457,16 @@ public class VersionSettingPage extends FCLCommonPage implements ManageUI.Versio
             } else {
                 y = 0;
             }
-            RendererUtil.openRendererMenu(getContext(), view, pos[0], y, ConvertUtils.dip2px(getContext(), 200), windowHeight - y, globalSetting, name -> rendererText.setText(name));
+            RendererUtil.openRendererMenu(getContext(), view, pos[0], y, ConvertUtils.dip2px(getContext(), 200), windowHeight - y, globalSetting, name -> {
+                if(globalSetting && Profiles.getSelectedProfile().getVersionSetting() != null && !Profiles.getSelectedProfile().getVersionSetting().isGlobal()) {
+                    FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
+                    builder.setAlertLevel(FCLAlertDialog.AlertLevel.INFO);
+                    builder.setMessage(getContext().getString(R.string.message_warn_renderer_global_setting));
+                    builder.setNegativeButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_positive),null);
+                    builder.create().show();
+                }
+                rendererText.setText(name);
+            });
         }
         if (view == driverButton) {
             RendererUtil.openDriverMenu(getContext(), view, globalSetting, name -> driverText.setText(name));

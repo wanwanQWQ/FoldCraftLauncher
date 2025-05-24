@@ -90,6 +90,7 @@ public class AccountListAdapter extends FCLAdapter {
         viewHolder.name.stringProperty().bind(account.titleProperty());
         viewHolder.type.stringProperty().unbind();
         viewHolder.type.stringProperty().bind(account.subtitleProperty());
+        viewHolder.type.setSelected(true);
         viewHolder.skin.setVisibility(account.canUploadSkin().get() ? View.VISIBLE : View.GONE);
         viewHolder.radioButton.setOnClickListener(v -> {
             Accounts.setSelectedAccount(account.getAccount());
@@ -178,8 +179,15 @@ public class AccountListAdapter extends FCLAdapter {
             }
         });
         viewHolder.delete.setOnClickListener(v -> {
-            account.remove();
-            UIManager.getInstance().getAccountUI().refresh().start();
+            FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
+            builder.setAlertLevel(FCLAlertDialog.AlertLevel.ALERT);
+            builder.setMessage(String.format(getContext().getString(R.string.version_manage_remove_confirm), account.getTitle()));
+            builder.setPositiveButton(() -> {
+                account.remove();
+                UIManager.getInstance().getAccountUI().refresh().start();
+            });
+            builder.setNegativeButton(null);
+            builder.create().show();
         });
         return view;
     }

@@ -70,7 +70,7 @@ public class JVMCrashActivity extends FCLActivity implements View.OnClickListene
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_jvm_crash);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+        // getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
 
         restart = findViewById(R.id.restart);
         close = findViewById(R.id.close);
