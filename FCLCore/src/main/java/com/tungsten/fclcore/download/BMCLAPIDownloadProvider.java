@@ -74,7 +74,7 @@ public final class BMCLAPIDownloadProvider implements DownloadProvider {
                 pair("https://meta.fabricmc.net", apiRoot + "/fabric-meta"),
                 pair("https://maven.fabricmc.net", apiRoot + "/maven"),
                 pair("https://authlib-injector.yushi.moe", apiRoot + "/mirrors/authlib-injector"),
-                pair("https://repo1.maven.org/maven2", FCLPath.Prop.getProperty("maven2-download-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download/maven2"))
+                pair("https://repo1.maven.org/maven2", FCLPath.Prop.getProperty("maven2-download-url", "null://"))
         );
     }
 

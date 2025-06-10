@@ -43,7 +43,7 @@ public class MojangDownloadProvider implements DownloadProvider {
     private final QuiltAPIVersionList quiltApi;
 
     public MojangDownloadProvider() {
-        String apiRoot = FCLPath.Prop.getProperty("bmclapi-root-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download");
+        String apiRoot = FCLPath.Prop.getProperty("bmclapi-root-url", "null://");
 
         this.game = new GameVersionList(this);
         this.fabric = new FabricVersionList(this);
@@ -51,19 +51,19 @@ public class MojangDownloadProvider implements DownloadProvider {
         this.forge = new ForgeVersionList(this);
         this.neoforge = new NeoForgeOfficialVersionList(this);
         this.liteLoader = new LiteLoaderVersionList(this);
-        this.optifine = new OptiFine302VersionList(FCLPath.Prop.getProperty("optifine-download-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download/optifine/versionlist"));
+        this.optifine = new OptiFine302VersionList(FCLPath.Prop.getProperty("optifine-download-url", "null://"));
         this.quilt = new QuiltVersionList(this);
         this.quiltApi = new QuiltAPIVersionList(this);
     }
 
     @Override
     public String getVersionListURL() {
-        return FCLPath.Prop.getProperty("minecraft-manifest-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download/mc/game/version_manifest.json");
+        return FCLPath.Prop.getProperty("minecraft-manifest-url", "null://");
     }
 
     @Override
     public String getAssetBaseURL() {
-        return FCLPath.Prop.getProperty("minecraft-resource-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/download/mc/resource/");
+        return FCLPath.Prop.getProperty("minecraft-resource-url", "null://");
     }
 
     @Override

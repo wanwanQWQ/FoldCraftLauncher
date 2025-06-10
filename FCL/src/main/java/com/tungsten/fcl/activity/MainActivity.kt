@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.KeyEvent
@@ -14,8 +13,10 @@ import android.view.animation.OvershootInterpolator
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.FileProvider
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.forEach
 import androidx.core.view.postDelayed
+import androidx.lifecycle.lifecycleScope
 import com.mio.ui.dialog.RendererSelectDialog
 import com.mio.util.AnimUtil
 import com.mio.util.AnimUtil.Companion.interpolator
@@ -39,6 +40,7 @@ import com.tungsten.fcl.util.AndroidUtils
 import com.tungsten.fcl.util.FXUtils
 import com.tungsten.fcl.util.RequestCodes
 import com.tungsten.fcl.util.WeakListenerHolder
+import com.tungsten.fclauncher.FCLConfig
 import com.tungsten.fclauncher.bridge.FCLBridge
 import com.tungsten.fclauncher.plugins.DriverPlugin
 import com.tungsten.fclauncher.plugins.RendererPlugin
@@ -49,7 +51,6 @@ import com.tungsten.fclcore.auth.authlibinjector.AuthlibInjectorServer
 import com.tungsten.fclcore.auth.yggdrasil.TextureModel
 import com.tungsten.fclcore.download.LibraryAnalyzer
 import com.tungsten.fclcore.download.LibraryAnalyzer.LibraryType
-import com.tungsten.fclcore.event.Event
 import com.tungsten.fclcore.fakefx.beans.binding.Bindings
 import com.tungsten.fclcore.fakefx.beans.property.IntegerProperty
 import com.tungsten.fclcore.fakefx.beans.property.IntegerPropertyBase
@@ -59,8 +60,6 @@ import com.tungsten.fclcore.fakefx.beans.value.ObservableValue
 import com.tungsten.fclcore.mod.RemoteMod
 import com.tungsten.fclcore.mod.RemoteMod.IMod
 import com.tungsten.fclcore.mod.RemoteModRepository
-import com.tungsten.fclcore.task.Schedulers
-import com.tungsten.fclcore.util.Logging
 import com.tungsten.fclcore.util.Logging.LOG
 import com.tungsten.fclcore.util.fakefx.BindingMapping
 import com.tungsten.fcllibrary.browser.FileBrowser
@@ -72,10 +71,12 @@ import com.tungsten.fcllibrary.component.theme.ThemeEngine
 import com.tungsten.fcllibrary.component.view.FCLMenuView
 import com.tungsten.fcllibrary.component.view.FCLMenuView.OnSelectListener
 import com.tungsten.fcllibrary.util.ConvertUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 import java.lang.ref.WeakReference
-import java.util.function.Consumer
 import java.util.logging.Level
 import java.util.stream.Stream
 
@@ -94,8 +95,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
     lateinit var uiManager: UIManager
     private lateinit var currentAccount: ObjectProperty<Account?>
     private val holder = WeakListenerHolder()
-    private var profile: Profile? = null
-    private var onVersionIconChangedListener: Consumer<Event>? = null
+    private lateinit var profile: Profile
 
     private lateinit var theme: IntegerProperty
 
@@ -141,7 +141,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
             try {
                 ConfigHolder.init()
             } catch (e: IOException) {
-                Logging.LOG.log(Level.WARNING, e.message)
+                LOG.log(Level.WARNING, e.message)
             }
         }
 
@@ -214,10 +214,9 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                         throw RuntimeException("DebugLauncherCrash")
                         true
                     }
-
-                    setupAccountDisplay()
-                    setupVersionDisplay()
-                    if (FCLApplication.Prop.getProperty("automatic-update-detection", "false") == "true") UpdateChecker.getInstance().checkAuto(this@MainActivity).start()
+                    if (FCLApplication.Prop.getProperty("automatic-update-detection", "false") == "true") {
+                        UpdateChecker.getInstance().checkAuto(this@MainActivity).start()
+                    }
                 }
                 getSharedPreferences("launcher", MODE_PRIVATE).apply {
                     backend.setPosition(if (getBoolean("backend", false)) 1 else 0, true)
@@ -228,6 +227,8 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                         }
                     }
                 }
+                setupAccountDisplay()
+                setupVersionDisplay()
                 playAnim()
                 uiLayout.postDelayed(1500) {
                     GuideUtil.show(
@@ -358,16 +359,16 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                 }
                 FCLBridge.BACKEND_IS_BOAT = binding.backend.position == 1
                 val selectedProfile = Profiles.getSelectedProfile()
-                RendererPlugin.rendererList.forEach {
-                    if (it.des == selectedProfile.getVersionSetting(selectedProfile.selectedVersion).customRenderer) {
-                        RendererPlugin.selected = it
-                    }
+                RendererPlugin.selected = RendererPlugin.rendererList.find {
+                    it.des == selectedProfile.getVersionSetting(selectedProfile.selectedVersion).customRenderer
                 }
-                DriverPlugin.driverList.forEach {
-                    if (it.driver == selectedProfile.getVersionSetting(selectedProfile.selectedVersion).driver) {
-                        DriverPlugin.selected = it
-                    }
+                if (selectedProfile.getVersionSetting(selectedProfile.selectedVersion).renderer == FCLConfig.Renderer.RENDERER_CUSTOM && RendererPlugin.selected == null) {
+                    selectedProfile.getVersionSetting(selectedProfile.selectedVersion).renderer =
+                        FCLConfig.Renderer.RENDERER_GL4ES
                 }
+                DriverPlugin.selected = DriverPlugin.driverList.find {
+                    it.driver == selectedProfile.getVersionSetting(selectedProfile.selectedVersion).driver
+                } ?: DriverPlugin.driverList[0]
                 Versions.launch(this@MainActivity, selectedProfile)
             }
         }
@@ -385,15 +386,12 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                         accountName.text = getString(R.string.account_state_no_account)
                         accountHint.text = getString(R.string.account_state_add)
                         avatar.setBackgroundDrawable(
-                            BitmapDrawable(
-                                resources,
-                                TexturesLoader.toAvatar(
-                                    TexturesLoader.getDefaultSkin(TextureModel.ALEX).image,
-                                    ConvertUtils.dip2px(
-                                        this@MainActivity, 30f
-                                    )
+                            TexturesLoader.toAvatar(
+                                TexturesLoader.getDefaultSkin(TextureModel.ALEX).image,
+                                ConvertUtils.dip2px(
+                                    this@MainActivity, 30f
                                 )
-                            )
+                            ).toDrawable(resources)
                         )
                     } else {
                         accountName.stringProperty()
@@ -416,7 +414,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
     }
 
     fun refreshAvatar(account: Account) {
-        Schedulers.androidUIThread().execute {
+        lifecycleScope.launch {
             if (currentAccount.get() === account) {
                 binding.avatar.imageProperty().unbind()
                 binding.avatar.imageProperty().bind(
@@ -433,42 +431,34 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
     private fun loadVersion(version: String?) {
         isVersionLoading = true
         binding.versionProgress.visibility = View.VISIBLE
-        if (Profiles.getSelectedProfile() != profile) {
-            profile = Profiles.getSelectedProfile()
-            if (profile != null) {
-                onVersionIconChangedListener =
-                    profile!!.repository.onVersionIconChanged.registerWeak {
-                        this.loadVersion(Profiles.getSelectedVersion())
-                    }
-            }
-        }
-        if (version != null && Profiles.getSelectedProfile().repository.hasVersion(version)) {
-            Schedulers.defaultScheduler().execute {
+        profile = Profiles.getSelectedProfile()
+        if (version != null && profile.repository.hasVersion(version)) {
+            lifecycleScope.launch(Dispatchers.IO) {
                 var game: String? = null
-                kotlin.runCatching {
-                    game = Profiles.getSelectedProfile().repository.getGameVersion(version)
+                runCatching {
+                    game = profile.repository.getGameVersion(version)
                         .orElse(getString(R.string.message_unknown))
                 }
-                if (game == null) return@execute
+                if (game == null) return@launch
                 val libraries = StringBuilder(game)
                 val analyzer = LibraryAnalyzer.analyze(
-                    Profiles.getSelectedProfile().repository.getResolvedPreservingPatchesVersion(
+                    profile.repository.getResolvedPreservingPatchesVersion(
                         version
                     ),
-                    Profiles.getSelectedProfile().repository.getGameVersion(version).orElse(null)
+                    profile.repository.getGameVersion(version).orElse(null)
                 )
                 for (mark in analyzer) {
                     val libraryId = mark.libraryId
                     val libraryVersion = mark.libraryVersion
                     if (libraryId == LibraryType.MINECRAFT.patchId) continue
                     if (AndroidUtils.hasStringId(
-                            this,
+                            this@MainActivity,
                             "install_installer_" + libraryId.replace("-", "_")
                         )
                     ) {
                         libraries.append(", ").append(
                             AndroidUtils.getLocalizedText(
-                                this,
+                                this@MainActivity,
                                 "install_installer_" + libraryId.replace("-", "_")
                             )
                         )
@@ -479,8 +469,8 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                         )
                     }
                 }
-                val drawable = Profiles.getSelectedProfile().repository.getVersionIconImage(version)
-                Schedulers.androidUIThread().execute {
+                val drawable = profile.repository.getVersionIconImage(version)
+                withContext(Dispatchers.Main) {
                     isVersionLoading = false
                     binding.versionProgress.visibility = View.GONE
                     binding.versionName.text = version
@@ -504,7 +494,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
 
     private fun setupVersionDisplay() {
         holder.add(FXUtils.onWeakChangeAndOperate(Profiles.selectedVersionProperty()) { s: String? ->
-            Schedulers.androidUIThread().execute { loadVersion(s) }
+            lifecycleScope.launch { loadVersion(s) }
         })
     }
 
@@ -635,6 +625,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
             val file = File(FCLPath.LOG_DIR).resolve("latest_game.log")
             if (!file.exists()) return
             val intent = Intent(Intent.ACTION_SEND)
+
             val uri = FileProvider.getUriForFile(
                 this,
                 getString(com.tungsten.fclauncher.R.string.file_browser_provider),

@@ -33,19 +33,13 @@ import com.tungsten.fclauncher.plugins.RendererPlugin
 import com.tungsten.fclauncher.utils.FCLPath
 import com.tungsten.fclcore.fakefx.beans.InvalidationListener
 import com.tungsten.fclcore.fakefx.beans.property.BooleanProperty
-import com.tungsten.fclcore.fakefx.beans.property.DoubleProperty
 import com.tungsten.fclcore.fakefx.beans.property.IntegerProperty
 import com.tungsten.fclcore.fakefx.beans.property.ObjectProperty
 import com.tungsten.fclcore.fakefx.beans.property.SimpleBooleanProperty
-import com.tungsten.fclcore.fakefx.beans.property.SimpleDoubleProperty
 import com.tungsten.fclcore.fakefx.beans.property.SimpleIntegerProperty
 import com.tungsten.fclcore.fakefx.beans.property.SimpleObjectProperty
 import com.tungsten.fclcore.fakefx.beans.property.SimpleStringProperty
 import com.tungsten.fclcore.fakefx.beans.property.StringProperty
-import com.tungsten.fclcore.game.JavaVersion
-import com.tungsten.fclcore.game.Version
-import com.tungsten.fclcore.task.Schedulers
-import com.tungsten.fclcore.task.Task
 import com.tungsten.fclcore.util.Lang
 import com.tungsten.fclcore.util.platform.MemoryUtils
 import java.lang.reflect.Type
@@ -374,14 +368,17 @@ class VersionSetting : Cloneable {
                 vs.isVKDriverSystem = json["vulkanDriverSystem"]?.asBoolean ?: VersionSettingDefault.getVulkanDriverSystem()
                 vs.controller = json["controller"]?.asString ?: (VersionSettingDefault.getController())
                 val renderers = FCLConfig.Renderer.entries.toTypedArray()
-                vs.renderer = renderers[json["renderer"]?.asInt?.coerceIn(0, renderers.size - 1) ?: VersionSettingDefault.getRenderer()]
+                vs.renderer =
+                    renderers[json["renderer"]?.asInt?.coerceIn(0, renderers.size - 1) ?: VersionSettingDefault.getRenderer()]
                 vs.driver = json["driver"]?.asString ?: VersionSettingDefault.getDriver()
                 vs.isIsolateGameDir = json["isolateGameDir"]?.asBoolean ?: VersionSettingDefault.getIsolateGameDir()
                 vs.customRenderer = json["customRenderer"]?.asString ?: VersionSettingDefault.getCustomRenderer()
                 vs.isPojavBigCore = json["pojavBigCore"]?.asBoolean ?: VersionSettingDefault.getPojavBigCore()
-                if (!RendererPlugin.isAvailable() && vs.customRenderer != "") {
-                    vs.renderer = FCLConfig.Renderer.entries.toTypedArray()[0]
-                    vs.customRenderer = ""
+                if (vs.renderer == FCLConfig.Renderer.RENDERER_CUSTOM) {
+                    if (!RendererPlugin.isAvailable() || RendererPlugin.rendererList.find { it.des == vs.customRenderer } == null) {
+                        vs.renderer = FCLConfig.Renderer.entries.toTypedArray()[0]
+                        vs.customRenderer = ""
+                    }
                 }
             }
         }

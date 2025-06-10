@@ -51,7 +51,7 @@ public final class ModrinthRemoteModRepository implements RemoteModRepository {
     public static final ModrinthRemoteModRepository RESOURCE_PACKS = new ModrinthRemoteModRepository("resourcepack");
     public static final ModrinthRemoteModRepository SHADER_PACKS = new ModrinthRemoteModRepository("shader");
 
-    private static final String PREFIX = FCLPath.Prop.getProperty("modrinth-api-url","https://api.modrinth.com");
+    private static final String PREFIX = FCLPath.Prop.getProperty("modrinth-api-url","null://");
 
     private final String projectType;
 
@@ -332,7 +332,7 @@ public final class ModrinthRemoteModRepository implements RemoteModRepository {
                     title,
                     description,
                     categories,
-                    String.format("https://modrinth.com/%s/%s", projectType, id),
+                    String.format(FCLPath.Prop.getProperty("modrinth-url","null://%s/%s"), projectType, id),
                     iconUrl,
                     this,
                     id
@@ -717,7 +717,7 @@ public final class ModrinthRemoteModRepository implements RemoteModRepository {
                     title,
                     description,
                     categories,
-                    String.format("https://modrinth.com/%s/%s", projectType, projectId),
+                    String.format(FCLPath.Prop.getProperty("modrinth-url","null://%s/%s"), projectType, projectId),
                     iconUrl,
                     this,
                     projectId

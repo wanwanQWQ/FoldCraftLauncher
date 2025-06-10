@@ -38,7 +38,7 @@ import java.util.logging.Level;
 
 public class AuthlibInjectorDownloader implements AuthlibInjectorArtifactProvider {
 
-    private static final String LATEST_BUILD_URL = FCLPath.Prop.getProperty("authlib-injector-url", "https://raw.githubusercontent.com/hyplant-team/FoldCraftLauncher/refs/heads/doc/authlibinjector/latest.json");
+    private static final String LATEST_BUILD_URL = FCLPath.Prop.getProperty("authlib-injector-url", "null://");
 
     private final Path artifactLocation;
     private final Supplier<DownloadProvider> downloadProvider;

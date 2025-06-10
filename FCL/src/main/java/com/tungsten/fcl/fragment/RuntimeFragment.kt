@@ -1,7 +1,6 @@
 package com.tungsten.fcl.fragment
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView;
 import androidx.appcompat.content.res.AppCompatResources
-import com.tungsten.fcl.FCLApplication
+import androidx.lifecycle.lifecycleScope
 import com.tungsten.fcl.R
 import com.tungsten.fcl.activity.SplashActivity
 import com.tungsten.fcl.databinding.FragmentRuntimeBinding
@@ -22,24 +21,26 @@ import com.tungsten.fclcore.util.Logging
 import com.tungsten.fcllibrary.component.FCLFragment
 import com.tungsten.fcllibrary.component.theme.Theme
 import com.tungsten.fcllibrary.component.theme.ThemeEngine
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.logging.Level
 
 class RuntimeFragment : FCLFragment(), View.OnClickListener {
     private lateinit var bind: FragmentRuntimeBinding
-    var lwjgl: Boolean = false
-    var cacio: Boolean = false
-    var cacio11: Boolean = false
-    var cacio17: Boolean = false
-    var java8: Boolean = false
-    var java11: Boolean = false
-    var java17: Boolean = false
-    var java21: Boolean = false
-    var jna: Boolean = false
-    var gameResource: Boolean = false
-    var others: Boolean = false
-    lateinit var sharedPreferences: SharedPreferences
-    lateinit var editor: SharedPreferences.Editor
+    var lwjgl = false
+    var cacio = false
+    var cacio11 = false
+    var cacio17 = false
+    var java8 = false
+    var java11 = false
+    var java17 = false
+    var java21 = false
+    var jna = false
+    var gameResource = false
+    var others = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,15 +51,11 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
         bind = FragmentRuntimeBinding.bind(view)
         var textColor: Int = ThemeEngine.getInstance().getTheme().getColor2()
         setColorByTag(view, "runtime_text", textColor)
-        sharedPreferences = requireActivity().getSharedPreferences("launcher", Context.MODE_PRIVATE)
-        editor = sharedPreferences.edit()
         bind.install.setOnClickListener(this)
-        Schedulers.defaultScheduler().execute {
-            initState()
-            Schedulers.androidUIThread().execute {
-                refreshDrawables()
-                check()
-            }
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) { initState() }
+            refreshDrawables()
+            check()
         }
         return view
     }
@@ -137,20 +134,20 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
         bind.apply {
             if (!others) {
                 othersProgress.visibility = View.VISIBLE
-                Thread {
-                    try {
-                        RuntimeUtils.reloadConfiguration(context)
-                        RuntimeUtils.copyAssetsDirToLocalDir(context, "modpackInternal", FCLPath.INTERNAL_DIR)
-                        others = true
-                    } catch (e: Exception) {
-                        Logging.LOG.log(Level.SEVERE, "Failed to install internal resource", e)
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            RuntimeUtils.reloadConfiguration(context)
+                            RuntimeUtils.copyAssetsDirToLocalDir(context, "modpackInternal", FCLPath.INTERNAL_DIR)
+                            others = true
+                        }.onFailure { e ->
+                            Logging.LOG.log(Level.SEVERE, "Failed to install internal resource", e)
+                        }
                     }
-                    activity?.runOnUiThread {
-                        othersState.visibility = View.VISIBLE
-                        othersProgress.visibility = View.GONE
-                        refreshDrawables()
-                        check()
-                    }
+                    othersState.visibility = View.VISIBLE
+                    othersProgress.visibility = View.GONE
+                    refreshDrawables()
+                    check()
                 }.start()
             }
         }
@@ -164,220 +161,184 @@ class RuntimeFragment : FCLFragment(), View.OnClickListener {
             if (!gameResource) {
                 gameResourceState.visibility = View.GONE
                 gameResourceProgress.visibility = View.VISIBLE
-                Thread {
-                    try {
-                        RuntimeUtils.deleteOldFiles(context)
-                        RuntimeUtils.copyAssetsDirToLocalDir(context, "modpackExternal", FCLPath.EXTERNAL_DIR)
-                        gameResource = true
-                    }catch (e: Exception) {
-                        Logging.LOG.log(Level.SEVERE, "Failed to install game resource", e)
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            RuntimeUtils.deleteOldFiles(context)
+                            RuntimeUtils.copyAssetsDirToLocalDir(context, "modpackExternal", FCLPath.EXTERNAL_DIR)
+                            gameResource = true
+                        }.onFailure { e ->
+                            Logging.LOG.log(Level.SEVERE, "Failed to install game resource", e)
+                        }
                     }
-                    activity?.runOnUiThread {
-                        gameResourceState.visibility = View.VISIBLE
-                        gameResourceProgress.visibility = View.GONE
-                        refreshDrawables()
-                        check()
-                    }
+                    gameResourceState.visibility = View.VISIBLE
+                    gameResourceProgress.visibility = View.GONE
+                    refreshDrawables()
+                    check()
                 }.start()
             }
             if (!lwjgl) {
                 lwjglState.visibility = View.GONE
                 lwjglProgress.visibility = View.VISIBLE
-                Thread {
-                    try {
-                        RuntimeUtils.install(context, FCLPath.LWJGL_DIR, "app_runtime/lwjgl")
-                        RuntimeUtils.install(
-                            context,
-                            FCLPath.LWJGL_DIR + "-boat",
-                            "app_runtime/lwjgl-boat"
-                        )
-                        lwjgl = true
-                    } catch (e: IOException) {
-                        Logging.LOG.log(Level.SEVERE, "Failed to install lwjgl", e)
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            RuntimeUtils.install(context, FCLPath.LWJGL_DIR, "app_runtime/lwjgl")
+                            RuntimeUtils.install(context, FCLPath.LWJGL_DIR + "-boat", "app_runtime/lwjgl-boat")
+                            lwjgl = true
+                        }.onFailure { e ->
+                            Logging.LOG.log(Level.SEVERE, "Failed to install lwjgl", e)
+                        }
                     }
-                    activity?.runOnUiThread {
-                        lwjglState.visibility = View.VISIBLE
-                        lwjglProgress.visibility = View.GONE
-                        refreshDrawables()
-                        check()
-                    }
-                }.start()
+                    lwjglState.visibility = View.VISIBLE
+                    lwjglProgress.visibility = View.GONE
+                    refreshDrawables()
+                    check()
+                }
             }
             if (!cacio) {
                 cacioState.visibility = View.GONE
                 cacioProgress.visibility = View.VISIBLE
-                Thread {
-                    try {
-                        RuntimeUtils.install(
-                            context,
-                            FCLPath.CACIOCAVALLO_8_DIR,
-                            "app_runtime/caciocavallo"
-                        )
-                        cacio = true
-                    } catch (e: IOException) {
-                        Logging.LOG.log(Level.SEVERE, "Failed to install caciocavallo", e)
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            RuntimeUtils.install(context, FCLPath.CACIOCAVALLO_8_DIR, "app_runtime/caciocavallo")
+                            cacio = true
+                        }.onFailure { e ->
+                            Logging.LOG.log(Level.SEVERE, "Failed to install caciocavallo", e)
+                        }
                     }
-                    activity?.runOnUiThread {
-                        cacioState.visibility = View.VISIBLE
-                        cacioProgress.visibility = View.GONE
-                        refreshDrawables()
-                        check()
-                    }
-                }.start()
+                    cacioState.visibility = View.VISIBLE
+                    cacioProgress.visibility = View.GONE
+                    refreshDrawables()
+                    check()
+                }
             }
             if (!cacio11) {
                 cacio11State.visibility = View.GONE
                 cacio11Progress.visibility = View.VISIBLE
-                Thread {
-                    try {
-                        RuntimeUtils.install(
-                            context,
-                            FCLPath.CACIOCAVALLO_11_DIR,
-                            "app_runtime/caciocavallo11"
-                        )
-                        cacio11 = true
-                    } catch (e: IOException) {
-                        Logging.LOG.log(Level.SEVERE, "Failed to install caciocavallo11", e)
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            RuntimeUtils.install(context, FCLPath.CACIOCAVALLO_11_DIR, "app_runtime/caciocavallo11")
+                            cacio11 = true
+                        }.onFailure { e ->
+                            Logging.LOG.log(Level.SEVERE, "Failed to install caciocavallo11", e)
+                        }
                     }
-                    activity?.runOnUiThread {
-                        cacio11State.visibility = View.VISIBLE
-                        cacio11Progress.visibility = View.GONE
-                        refreshDrawables()
-                        check()
-                    }
-                }.start()
+                    cacio11State.visibility = View.VISIBLE
+                    cacio11Progress.visibility = View.GONE
+                    refreshDrawables()
+                    check()
+                }
             }
             if (!cacio17) {
                 cacio17State.visibility = View.GONE
                 cacio17Progress.visibility = View.VISIBLE
-                Thread {
-                    try {
-                        RuntimeUtils.install(
-                            context,
-                            FCLPath.CACIOCAVALLO_17_DIR,
-                            "app_runtime/caciocavallo17"
-                        )
-                        cacio17 = true
-                    } catch (e: IOException) {
-                        Logging.LOG.log(Level.SEVERE, "Failed to install caciocavallo17", e)
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            RuntimeUtils.install(context, FCLPath.CACIOCAVALLO_17_DIR, "app_runtime/caciocavallo17")
+                            cacio17 = true
+                        }.onFailure { e ->
+                            Logging.LOG.log(Level.SEVERE, "Failed to install caciocavallo17", e)
+                        }
                     }
-                    activity?.runOnUiThread {
-                        cacio17State.visibility = View.VISIBLE
-                        cacio17Progress.visibility = View.GONE
-                        refreshDrawables()
-                        check()
-                    }
-                }.start()
+                    cacio17State.visibility = View.VISIBLE
+                    cacio17Progress.visibility = View.GONE
+                    refreshDrawables()
+                    check()
+                }
             }
             if (!java8) {
                 java8State.visibility = View.GONE
                 java8Progress.visibility = View.VISIBLE
-                Thread {
-                    try {
-                        RuntimeUtils.installJava(
-                            context,
-                            FCLPath.JAVA_8_PATH,
-                            "app_runtime/java/jre8"
-                        )
-                        java8 = true
-                    } catch (e: IOException) {
-                        Logging.LOG.log(Level.SEVERE, "Failed to install java8", e)
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            RuntimeUtils.installJava(context, FCLPath.JAVA_8_PATH, "app_runtime/java/jre8")
+                            java8 = true
+                        }.onFailure { e ->
+                            Logging.LOG.log(Level.SEVERE, "Failed to install java8", e)
+                        }
                     }
-                    activity?.runOnUiThread {
-                        java8State.visibility = View.VISIBLE
-                        java8Progress.visibility = View.GONE
-                        refreshDrawables()
-                        check()
-                    }
-                }.start()
+                    java8State.visibility = View.VISIBLE
+                    java8Progress.visibility = View.GONE
+                    refreshDrawables()
+                    check()
+                }
             }
             if (!java11) {
                 java11State.visibility = View.GONE
                 java11Progress.visibility = View.VISIBLE
-                Thread {
-                    try {
-                        RuntimeUtils.installJava(
-                            context,
-                            FCLPath.JAVA_11_PATH,
-                            "app_runtime/java/jre11"
-                        )
-                        java11 = true
-                    } catch (e: IOException) {
-                        Logging.LOG.log(Level.SEVERE, "Failed to install java11", e)
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            RuntimeUtils.installJava(context, FCLPath.JAVA_11_PATH, "app_runtime/java/jre11")
+                            java11 = true
+                        }.onFailure { e ->
+                            Logging.LOG.log(Level.SEVERE, "Failed to install java11", e)
+                        }
                     }
-                    activity?.runOnUiThread {
-                        java11State.visibility = View.VISIBLE
-                        java11Progress.visibility = View.GONE
-                        refreshDrawables()
-                        check()
-                    }
-                }.start()
+                    java11State.visibility = View.VISIBLE
+                    java11Progress.visibility = View.GONE
+                    refreshDrawables()
+                    check()
+                }
             }
             if (!java17) {
                 java17State.visibility = View.GONE
                 java17Progress.visibility = View.VISIBLE
-                Thread {
-                    try {
-                        RuntimeUtils.installJava(
-                            context,
-                            FCLPath.JAVA_17_PATH,
-                            "app_runtime/java/jre17"
-                        )
-                        java17 = true
-                    } catch (e: IOException) {
-                        Logging.LOG.log(Level.SEVERE, "Failed to install java17", e)
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            RuntimeUtils.installJava(context, FCLPath.JAVA_17_PATH, "app_runtime/java/jre17")
+                            java17 = true
+                        }.onFailure { e ->
+                            Logging.LOG.log(Level.SEVERE, "Failed to install java17", e)
+                        }
                     }
-                    activity?.runOnUiThread {
-                        java17State.visibility = View.VISIBLE
-                        java17Progress.visibility = View.GONE
-                        refreshDrawables()
-                        check()
-                    }
-                }.start()
+                    java17State.visibility = View.VISIBLE
+                    java17Progress.visibility = View.GONE
+                    refreshDrawables()
+                    check()
+                }
             }
             if (!java21) {
                 java21State.visibility = View.GONE
                 java21Progress.visibility = View.VISIBLE
-                Thread {
-                    try {
-                        RuntimeUtils.installJava(
-                            context,
-                            FCLPath.JAVA_21_PATH,
-                            "app_runtime/java/jre21"
-                        )
-                        java21 = true
-                    } catch (e: IOException) {
-                        Logging.LOG.log(Level.SEVERE, "Failed to install java21", e)
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            RuntimeUtils.installJava(context, FCLPath.JAVA_21_PATH, "app_runtime/java/jre21")
+                            java21 = true
+                        }.onFailure { e ->
+                            Logging.LOG.log(Level.SEVERE, "Failed to install java21", e)
+                        }
                     }
-                    activity?.runOnUiThread {
-                        java21State.visibility = View.VISIBLE
-                        java21Progress.visibility = View.GONE
-                        refreshDrawables()
-                        check()
-                    }
-                }.start()
+                    java21State.visibility = View.VISIBLE
+                    java21Progress.visibility = View.GONE
+                    refreshDrawables()
+                    check()
+                }
             }
             if (!jna) {
                 jnaState.visibility = View.GONE
                 jnaProgress.visibility = View.VISIBLE
-                Thread {
-                    try {
-                        RuntimeUtils.installJna(
-                            context,
-                            FCLPath.JNA_PATH,
-                            "app_runtime/jna"
-                        )
-                        jna = true
-                    } catch (e: IOException) {
-                        Logging.LOG.log(Level.SEVERE, "Failed to install jna", e)
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            RuntimeUtils.installJna(context, FCLPath.JNA_PATH, "app_runtime/jna")
+                            jna = true
+                        }.onFailure { e ->
+                            Logging.LOG.log(Level.SEVERE, "Failed to install jna", e)
+                        }
                     }
-                    activity?.runOnUiThread {
-                        jnaState.visibility = View.VISIBLE
-                        jnaProgress.visibility = View.GONE
-                        refreshDrawables()
-                        check()
-                    }
-                }.start()
+                    jnaState.visibility = View.VISIBLE
+                    jnaProgress.visibility = View.GONE
+                    refreshDrawables()
+                    check()
+                }
             }
             if (!others) {
                 othersState.visibility = View.GONE

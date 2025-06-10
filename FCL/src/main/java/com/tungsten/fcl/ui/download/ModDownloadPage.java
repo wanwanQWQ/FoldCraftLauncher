@@ -6,8 +6,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 
-import androidx.core.text.HtmlCompat;
-
 import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.game.LocalizedRemoteModRepository;
@@ -48,13 +46,7 @@ public class ModDownloadPage extends DownloadPage {
             try {
                 String url = FCLApplication.Prop.getProperty("mod-compatibility-url","null://");
                 FCLAlertDialog dialog = new FCLAlertDialog(context);
-                String local_incompatible_mods = FCLPath.FILES_DIR + "/debug/incompatible_mod_list.html";
-                String message;
-                if (new File(local_incompatible_mods).exists()) {
-                    message = ReadTools.readFileTxt(local_incompatible_mods);
-                } else {
-                    message = IOUtils.readFullyAsString(context.getAssets().open("incompatible_mod_list.html"));
-                }
+                String message = IOUtils.readFullyAsString(context.getAssets().open("incompatible_mod_list.html"));
                 dialog.setMessage(Html.fromHtml(message, 0));
                 dialog.setPositiveButton(context.getString(R.string.view_incompatible_online), () -> {
                     AndroidUtils.openLink(context, url);
