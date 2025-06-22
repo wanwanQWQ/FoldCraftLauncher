@@ -1,15 +1,31 @@
 {
   "author": "TimonDessojQwQ",
-  "description": "Fire潮汐首个完整版",
+  "description": "Darn! 1.6.0.101\u0027s 99% bugs is free!!!",
   "history": [
     {
       "versionCode": 10000,
       "versionName": "Preview_CN01"
+    },
+    {
+      "versionCode": 10001,
+      "versionName": "Preview_CB02"
+    },
+    {
+      "versionCode": 150600,
+      "versionName": "1.5.0.600"
+    },
+    {
+      "versionCode": 150800,
+      "versionName": "1.5.0.800"
+    },
+    {
+      "versionCode": 160101,
+      "versionName": "1.6.0.101"
     }
   ],
   "latest": {
-    "versionCode": 10001,
-    "versionName": "Preview_CB02"
+    "versionCode": 160200,
+    "versionName": "1.6.0.200"
   },
-  "screenshot": 14
+  "screenshot": 15
 }

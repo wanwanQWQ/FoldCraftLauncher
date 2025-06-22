@@ -1,10 +1,19 @@
 {
   "author": "TimonDessojQwQ",
-  "description": "It\u0027s an excellent layout！！！",
-  "history": [],
+  "description": "是CRGM对未来的想象（doge",
+  "history": [
+    {
+      "versionCode": 100,
+      "versionName": "1.0.0"
+    },
+    {
+      "versionCode": 200,
+      "versionName": "2.0.0"
+    }
+  ],
   "latest": {
-    "versionCode": 100,
-    "versionName": "1.0.0"
+    "versionCode": 210,
+    "versionName": "2.1.0"
   },
-  "screenshot": 13
+  "screenshot": 16
 }

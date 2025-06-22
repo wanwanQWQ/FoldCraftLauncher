@@ -1,0 +1,19 @@
+{
+  "author": "春絮衔风",
+  "description": "一个轻量而美观的键位，适用于大部分玩家",
+  "history": [
+    {
+      "versionCode": 1,
+      "versionName": "1.0"
+    },
+    {
+      "versionCode": 2,
+      "versionName": "1.1"
+    }
+  ],
+  "latest": {
+    "versionCode": 3,
+    "versionName": "1.2"
+  },
+  "screenshot": 2
+}
