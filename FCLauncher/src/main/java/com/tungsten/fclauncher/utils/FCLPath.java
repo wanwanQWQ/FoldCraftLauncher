@@ -78,6 +78,11 @@ public class FCLPath {
         }
         SHARED_COMMON_DIR = EXTERNAL_DIR + "/.minecraft";
         CONTROLLER_DIR = EXTERNAL_DIR + "/controllers";
+        if (Prop.getProperty("controller-dir","/").equals("/")) {
+            CONTROLLER_DIR = EXTERNAL_DIR + "/controllers";
+        } else {
+            CONTROLLER_DIR = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + Prop.getProperty("controller-dir","FCL/control");
+        }
         LOG_DIR = EXTERNAL_DIR + "/logs";
 
         init(INTERNAL_DIR);
@@ -109,17 +114,7 @@ public class FCLPath {
     }
 
     public static void loadProp(Context context) {
-        File local_prop = new File(context.getFilesDir().getAbsolutePath() + "/debug/local.properties");
-        try {
-            if (local_prop.exists()) {
-                Prop = new PropertiesFileParse(context.getFilesDir().getAbsolutePath() + "/debug/local.properties").get();
-                return;
-            }
-            Prop = new PropertiesFileParse("local.properties", context).get();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Prop = new Properties();
-        }
+        Prop = new PropertiesFileParse("local.properties", context).get();
     }
 
 }

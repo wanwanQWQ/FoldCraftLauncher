@@ -26,7 +26,7 @@
         "notCheckJVM": false,
         "beGesture": false,
         "vulkanDriverSystem": false,
-        "controller": "",
+        "controller": "f9b80a8f2",
         "renderer": 0,
         "driver": "Turnip",
         "isolateGameDir": false,

@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">Fold Craft Launcher modpack</string>
 
+    <string name="splash_agreement">FCL requires storage permission to manage and read game files. FCL is fully open-source on GitHub, so please rest assured about your data security. The permission is solely for the game to operate properly and poses no security risks.</string>
     <string name="splash_permission_msg">No storage permission, please grant Fold Craft Launcher the permission.</string>
     <string name="splash_permission_grant">Grant</string>
     <string name="splash_permission_title">Permission to store needed</string>
@@ -307,6 +308,9 @@
     <string name="curse_category_4550">Quests</string>
     <string name="curse_category_4555">World Gen</string>
     <string name="curse_category_4552">Scripts</string>
+    <string name="curse_category_6555">Vanilla</string>
+    <string name="curse_category_6554">Fantasy</string>
+    <string name="curse_category_6553">Realistic</string>
 
     <string name="curse_sort_author">Author</string>
     <string name="curse_sort_date_created">Date Created</string>
@@ -715,6 +719,48 @@
     <string name="modrinth_category_worldgen">Worldgen</string>
     <string name="modrinth_category_datapack">Datapack</string>
     <string name="modrinth_category_folia">Folia</string>
+    <!--  shader pack  -->
+    <string name="modrinth_category_atmosphere">Atmosphere</string>
+    <string name="modrinth_category_bloom">Bloom</string>
+    <string name="modrinth_category_cartoon">Cartoon</string>
+    <string name="modrinth_category_colored_lighting">Colored-Lighting</string>
+    <string name="modrinth_category_fantasy">Fantasy</string>
+    <string name="modrinth_category_foliage">Foliage</string>
+    <string name="modrinth_category_high">High</string>
+    <string name="modrinth_category_low">Low</string>
+    <string name="modrinth_category_medium">Medium</string>
+    <string name="modrinth_category_path_tracing">Path-Tracing</string>
+    <string name="modrinth_category_pbr" translatable="false">PBR</string>
+    <string name="modrinth_category_potato">Potato</string>
+    <string name="modrinth_category_realistic">Realistic</string>
+    <string name="modrinth_category_reflections">Reflections</string>
+    <string name="modrinth_category_screenshot">Screenshot</string>
+    <string name="modrinth_category_semi_realistic">Semi-Realistic</string>
+    <string name="modrinth_category_shadows">Shadows</string>
+    <string name="modrinth_category_vanilla_like">Vanilla-Like</string>
+    <!--  resource pack  -->
+    <string name="modrinth_category_128x" translatable="false">128x</string>
+    <string name="modrinth_category_16x" translatable="false">16x</string>
+    <string name="modrinth_category_256x" translatable="false">256x</string>
+    <string name="modrinth_category_32x" translatable="false">32x</string>
+    <string name="modrinth_category_48x" translatable="false">48x</string>
+    <string name="modrinth_category_512x" translatable="false">512x+</string>
+    <string name="modrinth_category_64x" translatable="false">64x</string>
+    <string name="modrinth_category_8x_" translatable="false">8x</string>
+    <string name="modrinth_category_gui" translatable="false">GUI</string>
+    <string name="modrinth_category_audio">Audio</string>
+    <string name="modrinth_category_blocks">Blocks</string>
+    <string name="modrinth_category_core_shaders">Core-shaders</string>
+    <string name="modrinth_category_entities">Entities</string>
+    <string name="modrinth_category_environment">Environment</string>
+    <string name="modrinth_category_fonts">Fonts</string>
+    <string name="modrinth_category_items">Items</string>
+    <string name="modrinth_category_locale">Locale</string>
+    <string name="modrinth_category_modded">Modded</string>
+    <string name="modrinth_category_models">Models</string>
+    <string name="modrinth_category_simplistic">Simplistic</string>
+    <string name="modrinth_category_themed">Themed</string>
+    <string name="modrinth_category_tweaks">Tweaks</string>
 
     <string name="mods">Mods</string>
     <string name="mods_add">Add Mods</string>

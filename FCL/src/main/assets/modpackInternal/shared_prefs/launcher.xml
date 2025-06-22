@@ -5,4 +5,5 @@
     <int name="lang" value="0" />
     <boolean name="backend" value="false" />
     <boolean name="is_first_launch" value="true" />
+    <boolean name="is_agree" value="false" />
 </map>

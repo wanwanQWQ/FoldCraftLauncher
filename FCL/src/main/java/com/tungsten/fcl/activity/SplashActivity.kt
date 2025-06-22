@@ -3,6 +3,7 @@ package com.tungsten.fcl.activity
 import android.Manifest.permission
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -44,6 +45,7 @@ import java.io.IOException
 import java.nio.file.Paths
 import java.util.Locale
 import java.util.logging.Level
+import androidx.core.content.edit
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : FCLActivity() {
@@ -60,12 +62,13 @@ class SplashActivity : FCLActivity() {
     var jna: Boolean = false
     var gameResource: Boolean = false
     var others: Boolean = false
+    private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
         setContentView(R.layout.activity_splash)
-
+        sharedPreferences = getSharedPreferences("launcher", MODE_PRIVATE)
         val background = findViewById<ConstraintLayout>(R.id.background)
         ImageUtil.loadInto(
             background,
@@ -80,7 +83,21 @@ class SplashActivity : FCLActivity() {
             registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
                 checkPermission()
             }
-        checkPermission()
+        if (sharedPreferences.getBoolean("is_agree", false)) {
+            checkPermission()
+        } else {
+            FCLAlertDialog.Builder(this).apply {
+                setCancelable(false)
+                setAlertLevel(FCLAlertDialog.AlertLevel.ALERT)
+                setMessage(getString(R.string.splash_agreement))
+                setPositiveButton {
+                    sharedPreferences.edit { putBoolean("is_agree", true) }
+                    checkPermission()
+                }
+                setNegativeButton(getString(com.tungsten.fcllibrary.R.string.crash_reporter_close)) { finish() }
+                create().show()
+            }
+        }
     }
 
     private fun checkPermission() {
@@ -92,8 +109,8 @@ class SplashActivity : FCLActivity() {
             setCancelable(false)
             setAlertLevel(FCLAlertDialog.AlertLevel.ALERT)
             setMessage(getString(R.string.splash_permission_msg))
-            setPositiveButton(ButtonListener { requestPermission() })
-            setNegativeButton(ButtonListener { finish() })
+            setPositiveButton { requestPermission() }
+            setNegativeButton { finish() }
             create().show()
         }
     }
@@ -110,7 +127,6 @@ class SplashActivity : FCLActivity() {
     }
 
     fun start() {
-        val sharedPreferences = getSharedPreferences("launcher", MODE_PRIVATE)
         if (sharedPreferences.getBoolean("is_first_launch", true)) {
             supportFragmentManager.beginTransaction()
                 .setCustomAnimations(R.anim.frag_start_anim, R.anim.frag_stop_anim)
