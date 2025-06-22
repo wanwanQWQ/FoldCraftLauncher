@@ -22,8 +22,6 @@
     <string name="setting">Einstellungen</string>
 
     <string name="about">Über den Launcher</string>
-    <string name="about_sponsor">Sponsoren</string>
-    <string name="about_source">Quellcode</string>
     <string name="about_desc">Fold Craft Launcher ist ein Launcher, um Minecraft: Java Edition auf Android-Geräten zu starten.\n\nFold Craft Launcher wurde vom FCL-Team entwickelt.\n\nDie meisten Funktionen von Fold Craft Launcher basieren auf HMCLCore. Der Launcher verwendet und zitiert Teile des Codes von PojavLauncher und Boat. Wenn Sie diesen Launcher verbreiten möchten, halten Sie sich bitte an die GPL-v3-Lizenz.</string>
 
     <string name="account_add_server">Authentifizierungsserver</string>
@@ -124,7 +122,6 @@
 
     <string name="community">Community</string>
     <string name="community_hint">Treten Sie unserer Community bei, um die neuesten Versionen zu erhalten, Fehler zu melden und mehr. Wenn Sie beitreten, halten Sie sich bitte an die Community-Regeln.</string>
-    <string name="community_qq">QQ-Gruppe</string>
 
     <string name="control_create">Controller erstellen</string>
     <string name="control_delete">Sind Sie sicher, dass Sie diesen Controller löschen möchten?</string>
@@ -311,7 +308,6 @@
     <string name="folder_config">Konfigurationen</string>
     <string name="folder_game">Spielordner</string>
     <string name="folder_log">Logs</string>
-    <string name="folder_fcl_log">Launcher-Logs</string>
     <string name="folder_mod">Mods</string>
     <string name="folder_resourcepacks">Ressourcenpakete</string>
     <string name="folder_saves">Welten</string>
@@ -375,7 +371,6 @@
     <string name="game_crash_reason_unknown">Die genaue Absturzursache konnte nicht ermittelt werden. Überprüfen Sie das Spiel-Log für detaillierte Informationen.\n\nGeben Sie bei der Suche nach Hilfe immer das vollständige Spiel-Log und die entsprechende Absturzbericht-Datei an!</string>
     <string name="game_crash_reason_unsatisfied_link_error">Minecraft konnte aufgrund fehlender Systembibliotheken nicht gestartet werden: %1$s.</string>
     <string name="game_crash_title">Spielabsturz</string>
-    <string name="game_crash_title_add">Senden Sie anstelle eines Screenshots die vollständige Absturz-Log-Datei</string>
 
     <string name="help">Hilfe</string>
     <string name="help_category">Kategorien</string>
@@ -640,7 +635,6 @@
     <string name="mods_screenshot_no_result">Keine Screenshots verfügbar</string>
 
     <string name="profile_shared">"Mit Ordner teilen \n(Gerätespeicher)"</string>
-    <string name="profile_private">"Privater Ordner \n(Spielspeicher)"</string>
     <string name="profile_name">Name</string>
     <string name="profile_path">Pfad</string>
     <string name="profile_select">Ordner auswählen</string>
@@ -890,16 +884,6 @@
 
     <string name="shaderpack">Shader</string>
     <string name="recommend_version">Empfohlene Version</string>
-
-    <string name="mod_check_continue">Fortfahren</string>
-    <string name="mod_check_physics">Die aktuelle Physics-Mod (%s) ist nicht gepatcht (libPhysXJniBindings_64.so von Linux x86_64 muss durch die Android arm64/x86_64-Version ersetzt werden). Dies führt zu einem Spielabsturz.</string>
-    <string name="mod_check_mcef">Die MCEF-Mod (%s) funktioniert nicht auf Android. Sie wird normalerweise für WebDisplays oder In-Game-Browser benötigt.</string>
-    <string name="mod_check_valkyrienskies">Die Valkyrien Skies/Valkyrien Warfare-Mod (%s) funktioniert nicht direkt im Einzelspieler. Ein Server ist erforderlich, andernfalls führt dies zu einem Spielabsturz.</string>
-    <string name="mod_check_yes_steve_model">Die Yes Steve Model-Mod (%s) Version 2.2.2 und höher funktioniert nicht auf Android.</string>
-    <string name="mod_check_imblocker">IMBlocker/In-GameIME (%s) ist nicht für Android vorgesehen. Dies führt zu einem Spielabsturz.</string>
-    <string name="mod_check_replay">Replay (%s) benötigt das FFmpeg-Plugin. Es ist nicht installiert. Installieren Sie es aus dem Google Play Store oder hier (%s oder %s) (lange drücken zum Kopieren).</string>
-    <string name="mod_check_borderlesswindow">BorderlessWindow (%s) ist nicht für Android vorgesehen. Dies führt zu einem Spielabsturz.</string>
-    <string name="mod_check_axiom">Die aktuelle Axiom-Mod (%s) ist nicht gepatcht, dies führt zu einem Spielabsturz.</string>
 
     <string name="internal">Eingebaut</string>
     <string name="import_java">Java importieren</string>

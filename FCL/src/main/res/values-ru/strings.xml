@@ -371,7 +371,6 @@
     <string name="game_crash_reason_unknown">Не удалось точно определить причину сбоя игры. Пожалуйста, изучите лог игры для получения подробной информации.\n\nОбращаясь за помощью, всегда предоставляйте полный лог игры и соответствующий файл отчета о сбое!</string>
     <string name="game_crash_reason_unsatisfied_link_error">Не удалось запустить Minecraft из-за отсутствующих системных библиотек: %1$s.</string>
     <string name="game_crash_title">Сбой игры</string>
-    <string name="game_crash_title_add">Вместо скриншота отправляйте полный файл лога сбоя</string>
 
     <string name="help">Помощь</string>
     <string name="help_category">Категории</string>

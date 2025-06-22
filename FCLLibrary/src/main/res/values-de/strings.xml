@@ -7,7 +7,7 @@
     <string name="file_browser_private">Privates Verzeichnis</string>
     <string name="file_browser_open_external">In externer App öffnen</string>
     <string name="file_browser_select_external">Mit externer App auswählen</string>
-    <string name="file_browser_private_alert">Kein Zugriff auf privates Verzeichnis. Bitte überprüfen Sie die Berechtigungen.</string>
+    <string name="file_browser_permission_alert">Kein Zugriff auf privates Verzeichnis. Bitte überprüfen Sie die Berechtigungen.</string>
     <string name="file_browser_mode">Modus:</string>
     <string name="file_browser_mode_browse">Dateien durchsuchen</string>
     <string name="file_browser_mode_file">Datei auswählen</string>

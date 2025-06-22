@@ -23,6 +23,7 @@ import com.mio.util.AnimUtil.Companion.interpolator
 import com.tungsten.fcl.FCLApplication
 import com.mio.util.AnimUtil.Companion.startAfter
 import com.mio.util.GuideUtil
+import com.mio.util.GuideUtil.Companion.guideTarget
 import com.mio.util.ImageUtil
 import com.tungsten.fcl.R
 import com.tungsten.fcl.databinding.ActivityMainBinding
@@ -232,16 +233,9 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                 playAnim()
                 uiLayout.postDelayed(1500) {
                     GuideUtil.show(
-                        this@MainActivity,
-                        setting,
-                        getString(R.string.guide_theme2),
-                        GuideUtil.TAG_GUIDE_THEME_2
-                    )
-                    GuideUtil.show(
-                        this@MainActivity,
-                        viewLogs,
-                        getString(R.string.guide_share_log),
-                        GuideUtil.TAG_GUIDE_SHARE_LOG
+                        activity = this@MainActivity,
+                        GuideUtil.TAG_GUIDE_THEME_2 to setting.guideTarget(title = getString(R.string.guide_theme2)),
+                        GuideUtil.TAG_GUIDE_SHARE_LOG to viewLogs.guideTarget(title = getString(R.string.guide_share_log))
                     )
                 }
             }
@@ -359,18 +353,26 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                 }
                 FCLBridge.BACKEND_IS_BOAT = binding.backend.position == 1
                 val selectedProfile = Profiles.getSelectedProfile()
-                RendererPlugin.selected = RendererPlugin.rendererList.find {
-                    it.des == selectedProfile.getVersionSetting(selectedProfile.selectedVersion).customRenderer
-                }
-                if (selectedProfile.getVersionSetting(selectedProfile.selectedVersion).renderer == FCLConfig.Renderer.RENDERER_CUSTOM && RendererPlugin.selected == null) {
-                    selectedProfile.getVersionSetting(selectedProfile.selectedVersion).renderer =
-                        FCLConfig.Renderer.RENDERER_GL4ES
+                checkRenderer(selectedProfile)
+                if (RendererPlugin.selected != null && !File(RendererPlugin.selected!!.path).exists()) {
+                    RendererPlugin.refresh()
+                    checkRenderer(selectedProfile)
                 }
                 DriverPlugin.selected = DriverPlugin.driverList.find {
                     it.driver == selectedProfile.getVersionSetting(selectedProfile.selectedVersion).driver
                 } ?: DriverPlugin.driverList[0]
                 Versions.launch(this@MainActivity, selectedProfile)
             }
+        }
+    }
+
+    private fun checkRenderer(selectedProfile: Profile) {
+        RendererPlugin.selected = RendererPlugin.rendererList.find {
+            it.des == selectedProfile.getVersionSetting(selectedProfile.selectedVersion).customRenderer
+        }
+        if (selectedProfile.getVersionSetting(selectedProfile.selectedVersion).renderer == FCLConfig.Renderer.RENDERER_CUSTOM && RendererPlugin.selected == null) {
+            selectedProfile.getVersionSetting(selectedProfile.selectedVersion).renderer =
+                FCLConfig.Renderer.RENDERER_GL4ES
         }
     }
 
@@ -641,7 +643,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                 )
             )
         } catch (e: Exception) {
-            LOG.log(Level.INFO, "Share error: $e");
+            LOG.log(Level.INFO, "Share error: $e")
         }
     }
 }

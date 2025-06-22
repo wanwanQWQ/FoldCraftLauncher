@@ -7,7 +7,7 @@
     <string name="file_browser_private">Приватна папка</string>
     <string name="file_browser_open_external">Відкрити у зовнішньому додатку</string>
     <string name="file_browser_select_external">Вибрати за допомогою зовнішнього додатку</string>
-    <string name="file_browser_private_alert">Немає доступу до приватної папки. Перевірте дозволи.</string>
+    <string name="file_browser_permission_alert">Немає доступу до приватної папки. Перевірте дозволи.</string>
     <string name="file_browser_mode">Режим:</string>
     <string name="file_browser_mode_browse">Перегляд файлів</string>
     <string name="file_browser_mode_file">Вибір файлу</string>

@@ -22,8 +22,6 @@
     <string name="setting">Налаштування</string>
     
     <string name="about">Про лаунчер</string>
-    <string name="about_sponsor">Спонсори</string>
-    <string name="about_source">Вихідний код</string>
     <string name="about_desc">Fold Craft Launcher — це лаунчер для запуску Minecraft: Java Edition на пристроях Android.\n\nFold Craft Launcher розроблений командою FCL-Team.\n\nБільшість функцій Fold Craft Launcher модифіковані на основі HMCLCore. Лаунчер використовує та цитує деякі коди PojavLauncher і Boat, тому, якщо ви плануєте поширювати цей лаунчер, будь ласка, дотримуйтесь ліцензії GPL-v3.</string>
 
     <string name="account_add_server">Сервер автентифікації</string>
@@ -124,7 +122,6 @@
 
     <string name="community">Спільнота</string>
     <string name="community_hint">Приєднуйтесь до нашої спільноти, щоб отримувати останні версії, повідомляти про помилки тощо. Якщо ви приєднаєтеся, дотримуйтесь правил спільноти.</string>
-    <string name="community_qq">Група QQ</string>
 
     <string name="control_create">Створити контролер</string>
     <string name="control_delete">Ви впевнені, що хочете видалити цей контролер?</string>
@@ -311,7 +308,6 @@
     <string name="folder_config">Конфігурації</string>
     <string name="folder_game">Папка гри</string>
     <string name="folder_log">Логи</string>
-    <string name="folder_fcl_log">Логи лаунчера</string>
     <string name="folder_mod">Моди</string>
     <string name="folder_resourcepacks">Ресурспаки</string>
     <string name="folder_saves">Світи</string>
@@ -375,7 +371,6 @@
     <string name="game_crash_reason_unknown">Не вдалося точно визначити причину збою гри. Перегляньте лог гри для отримання детальної інформації.\n\nЗвертаючись за допомогою, завжди надавайте повний лог гри та відповідний файл звіту про збій!</string>
     <string name="game_crash_reason_unsatisfied_link_error">Не вдалося запустити Minecraft через відсутність системних бібліотек: %1$s.</string>
     <string name="game_crash_title">Збій гри</string>
-    <string name="game_crash_title_add">Замість скріншота надсилайте повний файл логу збою</string>
 
     <string name="help">Допомога</string>
     <string name="help_category">Категорії</string>
@@ -657,7 +652,6 @@
     <string name="mods_screenshot_no_result">Немає доступних скріншотів</string>
 
     <string name="profile_shared">"Поділитися з папкою \n(сховище пристрою)"</string>
-    <string name="profile_private">"Приватна папка \n(сховище гри)"</string>
     <string name="profile_name">Назва</string>
     <string name="profile_path">Шлях</string>
     <string name="profile_select">Вибрати папку</string>
@@ -907,16 +901,6 @@
 
     <string name="shaderpack">Шейдери</string>
     <string name="recommend_version">Рекомендована версія</string>
-
-    <string name="mod_check_continue">Продовжити</string>
-    <string name="mod_check_physics">Поточний мод Physics (%s) не пропатчений (потрібно замінити libPhysXJniBindings_64.so від Linux x86_64 на версію для Android arm64/x86_64). Це призведе до збою гри.</string>
-    <string name="mod_check_mcef">Мод MCEF (%s) не працює на Android. Зазвичай він потрібен для роботи WebDisplays або внутрішньоігрового браузера.</string>
-    <string name="mod_check_valkyrienskies">Мод Valkyrien Skies/Valkyrien Warfare (%s) не працює в одиночній грі напряму. Необхідний сервер, інакше це призведе до збою гри.</string>
-    <string name="mod_check_yes_steve_model">Мод Yes Steve Model (%s) версії 2.2.2 і вище не працює на Android.</string>
-    <string name="mod_check_imblocker">IMBlocker/In-GameIME (%s) не призначений для Android. Це призведе до збою гри.</string>
-    <string name="mod_check_replay">Replay (%s) потребує плагін FFmpeg. Він не встановлений. Встановіть з Google Play Store або тут (%s або %s) (затисніть для копіювання).</string>
-    <string name="mod_check_borderlesswindow">BorderlessWindow (%s) не призначений для Android. Це призведе до збою гри.</string>
-    <string name="mod_check_axiom">Поточний Axiom (%s) не пропатчений, це призведе до збою гри.</string>
 
     <string name="internal">Вбудована</string>
     <string name="import_java">Імпорт Java</string>
