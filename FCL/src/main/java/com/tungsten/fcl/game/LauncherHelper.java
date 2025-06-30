@@ -282,7 +282,7 @@ public final class LauncherHelper {
                 bridge.setHasTouchController(true);
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "CheckMod() failed", e);
+            LOG.log(Level.WARNING, "CheckTouchMod() failed", e);
         }
     }
 

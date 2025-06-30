@@ -25,3 +25,6 @@ google-services.json
 
 # controllerRepo Git Index Backup
 controllerRepo/
+
+# Unknown
+FCL/src/main/java/com/mio/Main.kt

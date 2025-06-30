@@ -1,4 +1,5 @@
 <resources>
+    <string name="splash_agreement">FCL требуется разрешение на доступ к хранилищу для управления игровыми файлами и их чтения. FCL имеет полностью открытый исходный код на GitHub, поэтому вы можете быть уверены в безопасности ваших данных. Это разрешение необходимо исключительно для корректной работы игры и не представляет никаких угроз безопасности.</string>
     <string name="splash_permission_msg">Нет доступа к хранилищу. Предоствьте разрешение Fold Craft Launcher в настройках.</string>
     <string name="splash_permission_grant">Разрешить</string>
     <string name="splash_permission_title">Необходимо разрешение на доступ к хранилищу</string>
@@ -630,6 +631,20 @@
     <string name="modrinth_category_screenshot">Для скриншотов</string>
     <string name="modrinth_category_semi_realistic">Полуреалистичный</string>
     <string name="modrinth_category_shadows">Тени</string>
+    <!--  ресурспаки  -->
+    <string name="modrinth_category_audio">Аудио</string>
+    <string name="modrinth_category_blocks">Блоки</string>
+    <string name="modrinth_category_core_shaders">Основные шейдеры</string>
+    <string name="modrinth_category_entities">Сущности</string>
+    <string name="modrinth_category_environment">Окружение</string>
+    <string name="modrinth_category_fonts">Шрифты</string>
+    <string name="modrinth_category_items">Предметы</string>
+    <string name="modrinth_category_locale">Локализация</string>
+    <string name="modrinth_category_modded">Для модов</string>
+    <string name="modrinth_category_models">Модели</string>
+    <string name="modrinth_category_simplistic">Упрощенные</string>
+    <string name="modrinth_category_themed">Тематические</string>
+    <string name="modrinth_category_tweaks">Твики</string>
 
     <string name="mods">Моды</string>
     <string name="mods_add">Добавить моды</string>
@@ -678,6 +693,7 @@
     <string name="quick_input_title">Быстрый ввод</string>
     <string name="quick_input_add">Добавить текст</string>
     <string name="quick_input_text">Текст для быстрого ввода</string>
+    <string name="quick_input_remarks">Примечания (необязательно)</string>
     <string name="quick_input_exist">Такой текст уже есть!</string>
     <string name="quick_input_empty">Введите текст!</string>
 
