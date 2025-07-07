@@ -1,5 +1,6 @@
 package com.tungsten.fcl.ui.setting;
 
+import static android.content.Context.MODE_PRIVATE;
 import static com.tungsten.fcl.setting.ConfigHolder.config;
 import static com.tungsten.fclcore.util.Lang.thread;
 import static com.tungsten.fclcore.util.Logging.LOG;
@@ -46,6 +47,7 @@ import com.tungsten.fcllibrary.component.theme.ThemeEngine;
 import com.tungsten.fcllibrary.component.ui.FCLCommonPage;
 import com.tungsten.fcllibrary.component.view.FCLButton;
 import com.tungsten.fcllibrary.component.view.FCLCheckBox;
+import com.tungsten.fcllibrary.component.view.FCLNumberSeekBar;
 import com.tungsten.fcllibrary.component.view.FCLSeekBar;
 import com.tungsten.fcllibrary.component.view.FCLSpinner;
 import com.tungsten.fcllibrary.component.view.FCLSwitch;
@@ -86,14 +88,13 @@ public class LauncherSettingPage extends FCLCommonPage implements View.OnClickLi
     private FCLButton resetMenuIcon;
     private FCLSwitch ignoreNotch;
     private FCLSwitch closeSkinModel;
-    private FCLSeekBar animationSpeed;
-    private FCLTextView animationSpeedText;
+    private FCLNumberSeekBar animationSpeed;
+    private FCLNumberSeekBar vibrationDuration;
     private FCLCheckBox autoSource;
     private FCLSpinner<String> versionList;
     private FCLSpinner<String> downloadType;
     private FCLCheckBox autoThreads;
-    private FCLSeekBar threads;
-    private FCLTextView threadsText;
+    private FCLNumberSeekBar threads;
 
     public LauncherSettingPage(Context context, int id, FCLUILayout parent, int resId) {
         super(context, id, parent, resId);
@@ -130,13 +131,12 @@ public class LauncherSettingPage extends FCLCommonPage implements View.OnClickLi
         ignoreNotch = findViewById(R.id.ignore_notch);
         closeSkinModel = findViewById(R.id.close_skin_model);
         animationSpeed = findViewById(R.id.animation_speed);
-        animationSpeedText = findViewById(R.id.animation_speed_text);
+        vibrationDuration = findViewById(R.id.vibration_duration);
         autoSource = findViewById(R.id.check_auto_source);
         versionList = findViewById(R.id.source_auto);
         downloadType = findViewById(R.id.source);
         autoThreads = findViewById(R.id.check_auto_threads);
         threads = findViewById(R.id.threads);
-        threadsText = findViewById(R.id.threads_text);
 
         checkUpdate.setOnClickListener(this);
         clearCache.setOnClickListener(this);
@@ -187,8 +187,14 @@ public class LauncherSettingPage extends FCLCommonPage implements View.OnClickLi
         animationSpeed.setProgress(ThemeEngine.getInstance().getTheme().getAnimationSpeed());
         animationSpeed.addProgressListener();
         animationSpeed.progressProperty().bindBidirectional(ThemeEngine.getInstance().getTheme().animationSpeedProperty());
-        animationSpeedText.stringProperty().bind(Bindings.createStringBinding(() -> animationSpeed.getProgress() * 100 + " MS", animationSpeed.progressProperty()));
         ThemeEngine.getInstance().getTheme().animationSpeedProperty().addListener(observable -> Theme.saveTheme(getContext(), ThemeEngine.getInstance().getTheme()));
+
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("launcher", MODE_PRIVATE);
+        vibrationDuration.setProgress(sharedPreferences.getInt("vibrationDuration", 100));
+        vibrationDuration.addProgressListener();
+        vibrationDuration.progressProperty().addListener(observable -> {
+            sharedPreferences.edit().putInt("vibrationDuration", vibrationDuration.getProgress()).apply();
+        });
 
         autoSource.setChecked(config().autoChooseDownloadTypeProperty().get());
         autoSource.addCheckedChangeListener();
@@ -226,8 +232,24 @@ public class LauncherSettingPage extends FCLCommonPage implements View.OnClickLi
         threads.setProgress(config().getDownloadThreads());
         threads.addProgressListener();
         threads.progressProperty().bindBidirectional(config().downloadThreadsProperty());
-        threadsText.stringProperty().bind(Bindings.createStringBinding(() -> threads.getProgress() + "", threads.progressProperty()));
+
+        // if (System.currentTimeMillis() - getLastClearCacheTime() >= 3 * ONE_DAY) {
+            // FileUtils.cleanDirectoryQuietly(new File(FCLPath.CACHE_DIR).getParentFile());
+            // setLastClearCacheTime(System.currentTimeMillis());
+        // }
     }
+
+    // public long getLastClearCacheTime() {
+        // SharedPreferences sharedPreferences = getContext().getSharedPreferences("launcher", MODE_PRIVATE);
+        // return sharedPreferences.getLong("clear_cache", 0L);
+    // }
+
+    // public void setLastClearCacheTime(long time) {
+        // SharedPreferences sharedPreferences = getContext().getSharedPreferences("launcher", MODE_PRIVATE);
+        // @SuppressLint("CommitPrefEdits") SharedPreferences.Editor editor = sharedPreferences.edit();
+        // editor.putLong("clear_cache", time);
+        // editor.apply();
+    // }
 
     private int getSourcePosition(String source) {
         switch (source) {
