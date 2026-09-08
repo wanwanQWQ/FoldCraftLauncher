@@ -9,11 +9,12 @@ import java.util.Properties;
 
 public class FCLPath {
 
-    public static String NATIVE_LIB_DIR;
+    public static final String LATEST_GAME_LOG = "latest_game.log";
 
     public static String INTERNAL_DIR;
     public static String FILES_DIR;
     public static String CACHE_DIR;
+    public static String NATIVE_LIB_DIR;
 
     public static String PLUGIN_DIR;
     public static String AUTHLIB_INJECTOR_PATH;
@@ -23,36 +24,34 @@ public class FCLPath {
     public static String LT_BACKGROUND_PATH;
     public static String DK_BACKGROUND_PATH;
     public static String LIVE_BACKGROUND_PATH;
+    public static String SKIN_DIR;
 
     public static String RUNTIME_DIR;
-    public static String MOD_RUNTIME_DIR;
+    public static String JAVA_PATH;
     public static String JAVA_8_PATH;
     public static String JAVA_17_PATH;
     public static String JAVA_21_PATH;
     public static String JAVA_25_PATH;
-    public static String JAVA_PATH;
     public static String JNA_PATH;
     public static String LWJGL_DIR;
     public static String CACIOCAVALLO_8_DIR;
     public static String CACIOCAVALLO_17_DIR;
+    public static String MOD_RUNTIME_DIR;
 
     public static String EXTERNAL_DIR;
     public static String SHARED_COMMON_DIR;
     public static String CONTROLLER_DIR;
     public static String ACCOUNTS_DIR;
-    public static String SKIN_DIR;
     public static String LOG_DIR;
     public static String SHARE_DIR;
 
     public static Properties Prop;
 
     public static void loadPaths(Context context) {
-        NATIVE_LIB_DIR = context.getApplicationInfo().nativeLibraryDir;
-
         FILES_DIR = context.getFilesDir().getAbsolutePath();
-        SKIN_DIR = FILES_DIR + "/skin";
         INTERNAL_DIR = new File(FILES_DIR).getParentFile().getAbsolutePath();
-        CACHE_DIR = INTERNAL_DIR + "/cache";
+        CACHE_DIR = context.getCacheDir().getAbsolutePath();
+        NATIVE_LIB_DIR = context.getApplicationInfo().nativeLibraryDir;
 
         PLUGIN_DIR = FILES_DIR + "/plugins";
         AUTHLIB_INJECTOR_PATH = PLUGIN_DIR + "/authlib-injector.jar";
@@ -62,6 +61,7 @@ public class FCLPath {
         LT_BACKGROUND_PATH = BACKGROUND_DIR + "/lt.png";
         DK_BACKGROUND_PATH = BACKGROUND_DIR + "/dk.png";
         LIVE_BACKGROUND_PATH = BACKGROUND_DIR + "/live.mp4";
+        SKIN_DIR = FILES_DIR + "/skin";
 
         RUNTIME_DIR = context.getDir("runtime", 0).getAbsolutePath();
         JAVA_PATH = RUNTIME_DIR + "/java";
@@ -97,7 +97,9 @@ public class FCLPath {
         init(CACHE_DIR);
         init(PLUGIN_DIR);
         init(BACKGROUND_DIR);
+        init(SKIN_DIR);
         init(RUNTIME_DIR);
+        init(JAVA_PATH);
         init(JAVA_8_PATH);
         init(JAVA_25_PATH);
         init(JAVA_17_PATH);
@@ -111,16 +113,19 @@ public class FCLPath {
         init(SHARED_COMMON_DIR);
         init(CONTROLLER_DIR);
         init(ACCOUNTS_DIR);
-        init(SKIN_DIR);
         init(LOG_DIR);
         init(SHARE_DIR);
     }
 
-    private static boolean init(String path) {
-        if (!new File(path).exists()) {
-            return new File(path).mkdirs();
+    private static void init(String path) {
+        File dir = new File(path);
+        if (!dir.exists()) {
+            dir.mkdirs();
         }
-        return true;
+    }
+
+    public static File getLatestGameLog() {
+        return new File(LOG_DIR, LATEST_GAME_LOG);
     }
 
     public static void loadProp(Context context) {

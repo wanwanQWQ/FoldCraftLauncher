@@ -577,7 +577,6 @@
     <string name="menu_settings_mouse_offset_y">Độ lệch Chuột Y</string>
     <string name="menu_settings_physical_mouse_mode">Chuột Vật lý</string>
     <string name="menu_settings_gamepad">GamePad</string>
-    <string name="menu_settings_gamepad_disable_mapping">Tắt Ánh xạ Gamepad</string>
     <string name="menu_settings_gamepad_reset_mapper">Đặt lại Mapper</string>
     <string name="menu_settings_gamepad_button_binding">Ràng buộc nút</string>
     <string name="menu_settings_gamepad_open_button">Mở</string>
@@ -1195,4 +1194,9 @@
     <string name="jar_executor_warn">Lưu ý! Tính năng này không dành cho việc cài đặt mods. Nếu bạn đang cài đặt mods, vui lòng sử dụng chức năng tải xuống của trình khởi chạy hoặc thêm chúng trong Quản lý Mods.</string>
     <string name="create_account_first">Vui lòng tạo tài khoản trò chơi trước khi khởi động</string>
     <string name="version_list_refreshing">Đang lấy danh sách phiên bản từ xa…</string>
+    <string name="animation_select">Chọn hoạt ảnh</string>
+    <string name="animation_idle">Đứng yên</string>
+    <string name="animation_idle_variant_1">Đứng yên 1</string>
+    <string name="animation_idle_variant_2">Đứng yên 2</string>
+    <string name="animation_idle_variant_3">Đứng yên 3</string>
 </resources>

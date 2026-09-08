@@ -28,7 +28,6 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.core.content.edit
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.forEach
@@ -93,6 +92,7 @@ import com.tungsten.fcllibrary.component.ui.FCLPage
 import com.tungsten.fcllibrary.component.view.FCLMenuView
 import com.tungsten.fcllibrary.component.view.FCLMenuView.OnSelectListener
 import com.tungsten.fcllibrary.util.ConvertUtils
+import com.tungsten.fcllibrary.util.shareLogFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -235,7 +235,7 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                 }
                 viewLogs.setOnClickListener(this@MainActivity)
                 viewLogs.setOnLongClickListener {
-                    shareLog()
+                    shareLogFile(this@MainActivity, FCLPath.getLatestGameLog())
                     true
                 }
                 fclShell.setOnClickListener(this@MainActivity)
@@ -258,8 +258,10 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                         0 -> {
                             refreshMenuView(home)
                             home.setSelected(true)
-                            // 主页重建/重新进入时应用皮肤位置状态（right_menu 隐藏则固定）
-                            fixSkinViewerPosition(binding.rightMenu.visibility != View.VISIBLE)
+                            // 主页重建/重新进入时应用皮肤位置状态（right_menu 隐藏则固定；
+                            // skinViewerWidth 仅在隐藏右菜单时捕获，未捕获过（为 0）时保持默认百分比布局，
+                            // 否则会把皮肤宽度设为 0 导致模型消失
+                            fixSkinViewerPosition(binding.rightMenu.visibility != View.VISIBLE && skinViewerWidth > 0)
                         }
 
                         1 -> {
@@ -312,6 +314,10 @@ class MainActivity : FCLActivity(), OnSelectListener, View.OnClickListener {
                 multiplayer.setOnSelectListener(this@MainActivity)
                 setting.setOnSelectListener(this@MainActivity)
                 home.setSelected(true)
+                home.setOnLongClickListener {
+                    shareLog()
+                    true
+                }
                 back.setOnClickListener(this@MainActivity)
                 back.setOnLongClickListener {
                     throw RuntimeException("DebugLauncherCrash")

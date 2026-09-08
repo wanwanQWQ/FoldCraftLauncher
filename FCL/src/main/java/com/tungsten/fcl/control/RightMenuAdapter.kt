@@ -15,6 +15,7 @@ import com.tungsten.fcl.databinding.ItemMenuCategoryBinding
 import com.tungsten.fcl.databinding.ItemMenuSeekbarBinding
 import com.tungsten.fcl.databinding.ItemMenuSpinnerBinding
 import com.tungsten.fcl.databinding.ItemMenuSwitchBinding
+import com.tungsten.fcl.game.sdl.SdlSettings
 import com.tungsten.fcl.setting.MenuSetting
 import com.tungsten.fclcore.fakefx.beans.InvalidationListener
 import com.tungsten.fcllibrary.component.view.FCLSpinner
@@ -44,14 +45,17 @@ enum class RightMenuTag {
     MOUSE_OFFSET_X, MOUSE_OFFSET_Y, PHYSICAL_MOUSE,
 
     // 手柄
-    DISABLE_GAMEPAD_MAPPING, GAMEPAD_RESET_MAPPER, GAMEPAD_BUTTON_BINDING, GAMEPAD_DEADZONE,
+    GAMEPAD_CONTROL, GAMEPAD_RESET_MAPPER, GAMEPAD_BUTTON_BINDING, GAMEPAD_DEADZONE,
+    GAMEPAD_INPUT_MODE,
 
     // 陀螺仪
     GYRO, GYRO_INVERT, GYRO_SENSITIVITY,
 
     // 调试
-    SHOW_MEMORY, PERFORMANCE_MODE, SHOW_LOG, AUTO_SHOW_LOG,
-    FORCE_EXIT
+    SHOW_MEMORY, PERFORMANCE_MODE, SHOW_LOG, AUTO_SHOW_LOG, FORCE_EXIT,
+
+    // SDL
+    SDL_AUTO_SHOW_IME
 }
 
 /**
@@ -77,6 +81,7 @@ class RightMenuAdapter(
     private val menuSetting: MenuSetting get() = gameMenu.menuSetting
     private val screenWidth = getScreenWidth()
     private val screenHeight = getScreenHeight()
+    private val density = context.resources.displayMetrics.density
     private val multiplayerEnabled =
         context.getSharedPreferences("third_party", Context.MODE_PRIVATE)
             .getBoolean("terracotta", false)
@@ -146,6 +151,11 @@ class RightMenuAdapter(
                 R.string.menu_settings_soft_keyboard_adjust,
                 { menuSetting.isDisableSoftKeyAdjust },
                 RightMenuTag.SOFT_KEYBOARD_ADJUST
+            ),
+            Row.SwitchRow(
+                R.string.menu_settings_sdl_auto_show_ime,
+                { SdlSettings.sdlAutoShowIme.value },
+                RightMenuTag.SDL_AUTO_SHOW_IME
             ),
             Row.SeekBarRow(
                 R.string.menu_settings_item_bar_scale_width, 100, 0,
@@ -236,9 +246,19 @@ class RightMenuAdapter(
 
         RightMenuCategory.GAMEPAD -> listOf(
             Row.SwitchRow(
-                R.string.menu_settings_gamepad_disable_mapping,
-                { gameMenu.isGamepadDisabled },
-                RightMenuTag.DISABLE_GAMEPAD_MAPPING
+                R.string.menu_settings_gamepad_control,
+                { gameMenu.isGamepadControl },
+                RightMenuTag.GAMEPAD_CONTROL
+            ),
+            Row.SpinnerRow(
+                R.string.menu_settings_gamepad_input_mode,
+                listOf(
+                    context.getString(R.string.menu_settings_gamepad_input_mode_mapped),
+                    context.getString(R.string.menu_settings_gamepad_input_mode_sdl_direct)
+                ),
+                SdlSettings.gamepadInputMode.value.ordinal,
+                RightMenuTag.GAMEPAD_INPUT_MODE,
+                enabled = gameMenu.isGamepadControl
             ),
             Row.ButtonRow(
                 R.string.menu_settings_gamepad_reset_mapper,
@@ -322,7 +342,8 @@ class RightMenuAdapter(
             val labelRes: Int,
             val data: List<String>,
             val selection: Int,
-            val tag: RightMenuTag
+            val tag: RightMenuTag,
+            val enabled: Boolean = true
         ) : Row()
 
         data class SeekBarRow(
@@ -364,8 +385,8 @@ class RightMenuAdapter(
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val row = rows[position]
-        // 菜单条目背景透明，露出抽屉背景
-        holder.itemView.background = null
+        // 条目卡片背景：以对话框背景为基准微亮，暗色下仅微亮避免刺眼（与 AnimationDialog 行样式一致）
+        holder.itemView.background = menuCardBackground(density)
         holder.itemView.findViewById<FCLTextView>(R.id.description)?.visibility = View.GONE
         when (row) {
             is Row.CategoryRow -> bindCategory(holder, row)
@@ -430,6 +451,7 @@ class RightMenuAdapter(
         val spinner = binding.spinner as FCLSpinner<String>
         spinner.setItems(row.data)
         spinner.setSelection(row.selection)
+        spinner.isEnabled = row.enabled
         spinner.setOnItemSelectedListener { position, _ ->
             listener.onSpinnerSelect(row.tag, position)
         }

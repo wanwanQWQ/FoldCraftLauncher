@@ -13,6 +13,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.tungsten.fcl.control.GameMenu;
+import com.tungsten.fcl.game.sdl.SdlBridge;
+
+import org.libsdl.app.SDLActivity;
 
 /**
  * From PojavLauncher
@@ -91,6 +94,15 @@ public class TouchCharInput extends androidx.appcompat.widget.AppCompatEditText 
      * Toggle on and off the soft keyboard, depending of the state
      */
     public void switchKeyboardState() {
+        // SDL 集成启用时由 SDL 输入框接管（字符经 SDLInputConnection 直达 SDL 原生文本事件）
+        if (SdlBridge.getSdlEnabled()) {
+            if (SDLActivity.isSDLEditKeyboardShown()) {
+                SDLActivity.disableSDLEditKeyboard();
+            } else {
+                SDLActivity.enableSDLEditKeyboard();
+            }
+            return;
+        }
         InputMethodManager inputMethodManager = (InputMethodManager) getContext().getSystemService(INPUT_METHOD_SERVICE);
         if (menu != null && menu.getInput().getFocusableView() != null) {
             if (!menu.getMenuSetting().isPhysicalMouseMode()) {
@@ -123,6 +135,7 @@ public class TouchCharInput extends androidx.appcompat.widget.AppCompatEditText 
         setFocusable(true);
         setVisibility(VISIBLE);
         requestFocus();
+        sActiveInput = this;
     }
 
     /**
@@ -133,6 +146,18 @@ public class TouchCharInput extends androidx.appcompat.widget.AppCompatEditText 
         setVisibility(GONE);
         clearFocus();
         setEnabled(false);
+        if (sActiveInput == this) {
+            sActiveInput = null;
+        }
+    }
+
+    // 当前激活的字符输入控件，供 SDL 输入法接管时统一关闭（见 SDLActivity）
+    private static TouchCharInput sActiveInput;
+
+    public static void disableActiveInput() {
+        if (sActiveInput != null) {
+            sActiveInput.disable();
+        }
     }
 
     /**

@@ -46,6 +46,8 @@ class LeftMenuAdapter(
     private val typeSpinner = 2
     private val typeSeekBar = 3
 
+    private val density = context.resources.displayMetrics.density
+
     private var rows: List<Row> = emptyList()
 
     @SuppressLint("NotifyDataSetChanged")
@@ -147,8 +149,8 @@ class LeftMenuAdapter(
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val row = rows[position]
-        // 菜单条目背景透明，露出抽屉背景
-        holder.itemView.setBackground(null)
+        // 条目卡片背景与右菜单一致：半透明深色，暗色下仅微亮避免刺眼
+        holder.itemView.setBackground(menuCardBackground(density))
         holder.itemView.findViewById<FCLTextView>(R.id.description)?.visibility = View.GONE
         when (row) {
             is Row.SwitchRow -> bindSwitch(holder, row)

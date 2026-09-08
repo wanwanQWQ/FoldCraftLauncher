@@ -61,6 +61,8 @@ import com.tungsten.fcl.control.view.LogWindow;
 import com.tungsten.fcl.control.view.MenuView;
 import com.tungsten.fcl.control.view.TouchPad;
 import com.tungsten.fcl.control.view.ViewManager;
+import com.tungsten.fcl.game.sdl.GamepadInputMode;
+import com.tungsten.fcl.game.sdl.SdlSettings;
 import com.tungsten.fcl.setting.Controller;
 import com.tungsten.fcl.setting.Controllers;
 import com.tungsten.fcl.setting.GameOption;
@@ -141,7 +143,7 @@ public class GameMenu implements MenuCallback, FCLBridgeCallback {
 
     private TouchController touchController;
 
-    private boolean gamepadDisabled = false;
+    private boolean gamepadControl = true;
     private Thread fpsThread;
     private Thread memoryThread;
     private int lastCursorMode = FCLBridge.CursorEnabled;
@@ -303,12 +305,14 @@ public class GameMenu implements MenuCallback, FCLBridgeCallback {
         return viewGroupProperty.get();
     }
 
-    public boolean isGamepadDisabled() {
-        return gamepadDisabled;
+    public boolean isGamepadControl() {
+        return gamepadControl;
     }
 
-    public void setGamepadDisabled(boolean gamepadDisabled) {
-        this.gamepadDisabled = gamepadDisabled;
+    public void setGamepadControl(boolean gamepadControl) {
+        this.gamepadControl = gamepadControl;
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("launcher", MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean("gamepad_control", gamepadControl).apply();
     }
 
     private void initLeftMenu() {
@@ -337,6 +341,8 @@ public class GameMenu implements MenuCallback, FCLBridgeCallback {
         });
         leftMenuList.setAdapter(leftMenuAdapter);
         leftMenuAdapter.rebuild();
+        leftMenuList.addItemDecoration(new SpacingDecoration(
+                Math.round(6 * activity.getResources().getDisplayMetrics().density)));
 
         getController().addListener(i -> leftMenuAdapter.rebuild());
         controllerProperty.addListener(invalidate -> {
@@ -390,6 +396,8 @@ public class GameMenu implements MenuCallback, FCLBridgeCallback {
         });
         rightMenuList.setAdapter(rightMenuAdapter);
         rightMenuAdapter.rebuild();
+        rightMenuList.addItemDecoration(new SpacingDecoration(
+                Math.round(6 * activity.getResources().getDisplayMetrics().density)));
 
         rightMenuTitle = findViewById(R.id.menu_title);
         rightMenuBack = findViewById(R.id.menu_back);
@@ -472,6 +480,7 @@ public class GameMenu implements MenuCallback, FCLBridgeCallback {
         this.activity = activity;
         this.fclBridge = fclBridge;
         this.simulated = fclBridge == null;
+        this.gamepadControl = activity.getSharedPreferences("launcher", MODE_PRIVATE).getBoolean("gamepad_control", true);
         this.fclInput = new FCLInput(this);
         if (!Controllers.isInitialized()) {
             Controllers.init();
@@ -953,8 +962,10 @@ public class GameMenu implements MenuCallback, FCLBridgeCallback {
             case PHYSICAL_MOUSE:
                 menuSetting.setPhysicalMouseMode(checked);
                 break;
-            case DISABLE_GAMEPAD_MAPPING:
-                gamepadDisabled = checked;
+            case GAMEPAD_CONTROL:
+                setGamepadControl(checked);
+                // 联动刷新：手柄关闭时输入模式选择器禁用
+                rightMenuAdapter.rebuild();
                 break;
             case PERFORMANCE_MODE:
                 menuSetting.setPerformanceMode(checked);
@@ -969,6 +980,9 @@ public class GameMenu implements MenuCallback, FCLBridgeCallback {
                 if (baseLayout.getBackground() != null) {
                     logWindow.setVisibility(menuSetting.isAutoShowLog());
                 }
+                break;
+            case SDL_AUTO_SHOW_IME:
+                SdlSettings.setSdlAutoShowIme(checked);
                 break;
         }
     }
@@ -986,6 +1000,8 @@ public class GameMenu implements MenuCallback, FCLBridgeCallback {
             menuSetting.setGestureMode(GestureMode.getById(position));
         } else if (tag == RightMenuTag.MOUSE_MODE) {
             menuSetting.setMouseMoveMode(MouseMoveMode.getById(position));
+        } else if (tag == RightMenuTag.GAMEPAD_INPUT_MODE) {
+            SdlSettings.setGamepadInputMode(GamepadInputMode.values()[position]);
         }
     }
 

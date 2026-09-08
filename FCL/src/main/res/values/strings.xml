@@ -659,12 +659,21 @@
     <string name="menu_settings_mouse_offset_y">Mouse Offset Y</string>
     <string name="menu_settings_physical_mouse_mode">Physical Mouse</string>
     <string name="menu_settings_gamepad">GamePad</string>
-    <string name="menu_settings_gamepad_disable_mapping">Disable Gamepad Mapping</string>
+    <string name="menu_settings_gamepad_control">Gamepad Control</string>
     <string name="menu_settings_gamepad_reset_mapper">ResetMapper</string>
     <string name="menu_settings_gamepad_button_binding">Button binding</string>
     <string name="menu_settings_gamepad_open_button">Open</string>
     <string name="menu_settings_gamepad_reset">Reset</string>
     <string name="menu_settings_gamepad_deadzone">DeadZone</string>
+    <string name="menu_settings_gamepad_input_mode">Gamepad Input Mode</string>
+    <string name="menu_settings_gamepad_input_mode_mapped">Mapped</string>
+    <string name="menu_settings_gamepad_input_mode_sdl_direct">SDL Direct</string>
+    <string name="menu_settings_sdl_auto_show_ime">Auto Show IME (SDL)</string>
+    <string name="gamepad_mode_prompt_title">Gamepad Input Mode</string>
+    <string name="gamepad_mode_prompt_description">A gamepad input was detected. Choose how gamepad input should be handled:</string>
+    <string name="gamepad_mode_prompt_mapped_summary">Map gamepad buttons and sticks to virtual keyboard and mouse. Suitable for older versions or games without native gamepad support.</string>
+    <string name="gamepad_mode_prompt_sdl_direct_summary">Pass gamepad input directly to SDL/GLFW. Enables native gamepad support of Minecraft 26.3+.</string>
+    <string name="gamepad_mode_prompt_hint">You can change the mode anytime from the in-game menu.</string>
     <string name="menu_settings_multiplayer">Multiplayer Menu</string>
     <string name="menu_settings_multiplayer_button">Open</string>
     <string name="menu_settings_quick_input">Quick Input</string>
@@ -1404,4 +1413,9 @@
     <string name="close">Close</string>
     <string name="create_account_first">Please create a game account before launching</string>
     <string name="version_list_refreshing">Fetching remote version list…</string>
+    <string name="animation_select">Select Animation</string>
+    <string name="animation_idle">Idle</string>
+    <string name="animation_idle_variant_1">Idle variant 1</string>
+    <string name="animation_idle_variant_2">Idle variant 2</string>
+    <string name="animation_idle_variant_3">Idle variant 3</string>
 </resources>

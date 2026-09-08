@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.mio.plugin.DriverPlugin.driverList
 import com.mio.plugin.DriverPlugin.selected
 import com.mio.ui.adapter.SpacingItemDecoration
-import com.mio.ui.dialog.DriverSelectDialog
 import com.mio.ui.dialog.JavaManageDialog
 import com.mio.ui.dialog.RendererSelectDialog
 import com.mio.util.isAdrenoGPU
@@ -309,7 +308,7 @@ class VersionSettingPage(
             VersionSettingTag.EDIT_ICON -> onExploreIcon()
             VersionSettingTag.DELETE_ICON -> onDeleteIcon()
             VersionSettingTag.EDIT_JAVA -> {
-                JavaManageDialog(context) {
+                JavaManageDialog(context, lastVersionSetting.java) {
                     lastVersionSetting.java = it
                     adapter.refreshRow(VersionSettingTag.EDIT_JAVA)
                 }.show()
@@ -344,11 +343,13 @@ class VersionSettingPage(
             }
 
             VersionSettingTag.EDIT_BACKEND -> {
+                val backends = listOf("default", "opengl", "vulkan")
                 showItemSelectionDialog(
                     context,
                     context.getString(R.string.settings_fcl_graphics_backend),
-                    listOf("default", "opengl", "vulkan"),
-                    false
+                    backends,
+                    false,
+                    selectedIndex = backends.indexOf(lastVersionSetting.graphicsBackend)
                 ) { _, backendName: String ->
                     lastVersionSetting.graphicsBackend = backendName
                     adapter.refreshRow(VersionSettingTag.EDIT_BACKEND)
@@ -376,10 +377,20 @@ class VersionSettingPage(
             )
 
             VersionSettingTag.EDIT_DRIVER -> {
-                DriverSelectDialog(
+                val versionSetting =
+                    if (globalSetting) Profiles.getSelectedProfile().globalVersionSetting
+                    else Profiles.getSelectedProfile().versionSetting
+                showItemSelectionDialog(
                     context,
-                    globalSetting
-                ) { adapter.refreshRow(VersionSettingTag.EDIT_DRIVER) }.show()
+                    context.getString(R.string.settings_fcl_driver),
+                    driverList.map { it.driver },
+                    false,
+                    selectedIndex = driverList.indexOfFirst { it.driver == versionSetting.driver }
+                ) { position, driver ->
+                    versionSetting.driver = driver
+                    selected = driverList[position]
+                    adapter.refreshRow(VersionSettingTag.EDIT_DRIVER)
+                }
             }
 
             VersionSettingTag.INSTALL_DRIVER -> installDialog(

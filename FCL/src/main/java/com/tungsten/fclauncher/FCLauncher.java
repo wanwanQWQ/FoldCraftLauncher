@@ -21,6 +21,7 @@ import com.oracle.dalvik.VMLauncher;
 import com.tungsten.fclauncher.bridge.FCLBridge;
 import com.tungsten.fclauncher.utils.Architecture;
 import com.tungsten.fclauncher.utils.FCLPath;
+import com.tungsten.fclcore.util.Logging;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class FCLauncher {
 
@@ -178,7 +180,8 @@ public class FCLauncher {
                 a = "-Djava.library.path=${natives_directory}";
             }
             a = a.replace("${natives_directory}", libraryPath);
-            args[i] = config.getRenderer() == null ? a : a.replace("${gl_lib_name}", config.getRenderer().getGLPath());
+            config.getRenderer();
+            args[i] = a.replace("${gl_lib_name}", config.getRenderer().getGLPath());
         }
         return args;
     }
@@ -239,6 +242,42 @@ public class FCLauncher {
     }
 
     private static void addRendererEnv(FCLConfig config, HashMap<String, String> envMap) {
+        addRendererEnvInner(config, envMap);
+        // SDL 需要独立的 GL/EGL 库绝对路径（GL 用渲染器 GL 库、EGL 用渲染器 EGL 库）。
+        // 必须对所有渲染器路径生效（插件渲染器在 inner 中途 return）
+        Renderer renderer = config.getRenderer();
+        String egl = envMap.get("POJAVEXEC_EGL");
+        if (egl != null && !egl.startsWith("/")) {
+            File candidate = new File(rendererLibPath(renderer), egl);
+            // 仅当库真实打包在渲染器目录内才给 SDL 绝对路径；
+            // 不在目录内（如系统 EGL libEGL.so）交给 SDL 按自身默认解析
+            if (candidate.isFile()) {
+                egl = candidate.getAbsolutePath();
+            } else {
+                egl = null;
+            }
+        }
+        if (egl != null) {
+            envMap.put("SDL_EGL_LIBRARY", egl);
+        }
+        String gl = renderer.getGlName();
+        if (!gl.isEmpty()) {
+            if (!gl.startsWith("/")) {
+                gl = rendererLibPath(renderer) + "/" + gl;
+            }
+            envMap.put("SDL_OPENGL_LIBRARY", gl);
+        }
+    }
+
+    /**
+     * 渲染器库所在目录：插件渲染器用其自身 lib 目录（主 APK 目录下没有该库），内置渲染器用主 APK native 目录
+     */
+    private static String rendererLibPath(Renderer renderer) {
+        String pluginPath = renderer.getPath();
+        return pluginPath.isEmpty() ? FCLPath.NATIVE_LIB_DIR : pluginPath;
+    }
+
+    private static void addRendererEnvInner(FCLConfig config, HashMap<String, String> envMap) {
         Renderer renderer = config.getRenderer();
         if (!renderer.getPath().isEmpty()) {
             if (!renderer.getPojavRendererId().isEmpty()) {
@@ -297,7 +336,6 @@ public class FCLauncher {
             envMap.put("force_glsl_extensions_warn", "true");
             envMap.put("allow_higher_compat_version", "true");
             envMap.put("allow_glsl_extension_directive_midshader", "true");
-            envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
             envMap.put("VTEST_SOCKET_NAME", new File(config.getContext().getCacheDir().getAbsolutePath(), ".virgl_test").getAbsolutePath());
             if (renderer.isEqual(Renderer.ID_VIRGL)) {
                 envMap.put("POJAV_RENDERER", "gallium_virgl");
@@ -430,13 +468,14 @@ public class FCLauncher {
         }
         bridge.setLdLibraryPath(libraryPath);
         bridge.setupExitTrap(bridge);
+        FCLBridge.initializeHooks();
         log(bridge, "Hook success");
         int exitCode = VMLauncher.launchJVM(args);
         bridge.onExit(exitCode);
     }
 
     public static FCLBridge launchMinecraft(FCLConfig config) {
-        return launchProcess(config, "latest_game.log", "Minecraft", true, true, true);
+        return launchProcess(config, FCLPath.LATEST_GAME_LOG, "Minecraft", true, true, true);
     }
 
     public static FCLBridge launchJarExecutor(FCLConfig config) {
@@ -480,7 +519,7 @@ public class FCLauncher {
                 // launch
                 launch(config, bridge, task);
             } catch (IOException e) {
-                e.printStackTrace();
+                Logging.LOG.log(Level.SEVERE, e.toString());
             }
         });
 
