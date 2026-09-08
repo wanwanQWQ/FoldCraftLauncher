@@ -1,5 +1,6 @@
 package com.tungsten.fcl.activity;
 
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.GravityCompat;
@@ -23,14 +25,17 @@ import com.tungsten.fcl.control.JarExecutorMenu;
 import com.tungsten.fcl.control.MenuCallback;
 import com.tungsten.fcl.control.MenuType;
 import com.tungsten.fcl.control.view.MenuView;
-import com.tungsten.fcl.setting.GameOption;
+import com.tungsten.fcl.game.sdl.SdlBridge;
 import com.tungsten.fcl.terracotta.Terracotta;
+import com.mio.util.AndroidUtilKt;
 import com.tungsten.fclauncher.bridge.FCLBridge;
 import com.tungsten.fclauncher.keycodes.FCLKeycodes;
 import com.tungsten.fclauncher.keycodes.LwjglGlfwKeycode;
 import com.tungsten.fclcore.util.Logging;
 import com.tungsten.fcllibrary.component.FCLActivity;
 
+import org.libsdl.app.SDLActivity;
+import org.libsdl.app.SDLSurface;
 import org.lwjgl.glfw.CallbackBridge;
 
 import java.util.Objects;
@@ -55,8 +60,8 @@ public class JVMActivity extends FCLActivity implements TextureView.SurfaceTextu
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_jvm);
 
+        setContentView(R.layout.activity_jvm);
         if (menuType == null || fclBridge == null) {
             Logging.LOG.log(Level.WARNING, "Failed to get ControllerType or FCLBridge, task canceled.");
             return;
@@ -66,6 +71,15 @@ public class JVMActivity extends FCLActivity implements TextureView.SurfaceTextu
         menu.setup(this, fclBridge);
         textureView = findViewById(R.id.texture_view);
         textureView.setSurfaceTextureListener(this);
+        if (FCLBridge.FORCE_RESOLUTION) {
+            ViewGroup.LayoutParams params = textureView.getLayoutParams();
+            FCLBridge.FORCE_RESOLUTION_SCALE = (float) AndroidUtilKt.getScreenHeight() / FCLBridge.FORCE_RESOLUTION_HEIGHT;
+            params.width = (int) (FCLBridge.FORCE_RESOLUTION_WIDTH * FCLBridge.FORCE_RESOLUTION_SCALE);
+            params.height = (int) (FCLBridge.FORCE_RESOLUTION_HEIGHT * FCLBridge.FORCE_RESOLUTION_SCALE);
+            FCLBridge.FORCE_RESOLUTION_START_SIZE = (AndroidUtilKt.getScreenWidth() - params.width) / 2;
+            textureView.setLayoutParams(params);
+            textureView.setX(FCLBridge.FORCE_RESOLUTION_START_SIZE);
+        }
 
         addContentView(menu.getLayout(), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
@@ -91,11 +105,8 @@ public class JVMActivity extends FCLActivity implements TextureView.SurfaceTextu
     public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surfaceTexture, int i, int i1) {
         if (isRunning) {
             fclBridge.setSurfaceTexture(surfaceTexture);
-            if (FCLBridge.BACKEND_IS_BOAT) {
-                fclBridge.setFCLNativeWindow(new Surface(surfaceTexture));
-            } else {
-                CallbackBridge.setupBridgeWindow(new Surface(surfaceTexture));
-            }
+            CallbackBridge.setupBridgeWindow(new Surface(surfaceTexture));
+            SdlBridge.prepareSurface(this, new Surface(surfaceTexture), (ViewGroup) textureView.getParent(), this);
             menu.onGraphicOutput();
             return;
         }
@@ -104,15 +115,18 @@ public class JVMActivity extends FCLActivity implements TextureView.SurfaceTextu
         fclBridge.setSurfaceDestroyed(false);
         int width = menuType == MenuType.GAME ? (int) ((i + ((GameMenu) menu).getMenuSetting().getCursorOffset()) * fclBridge.getScaleFactor()) : FCLBridge.DEFAULT_WIDTH;
         int height = menuType == MenuType.GAME ? (int) (i1 * fclBridge.getScaleFactor()) : FCLBridge.DEFAULT_HEIGHT;
+        if (FCLBridge.FORCE_RESOLUTION) {
+            width = FCLBridge.FORCE_RESOLUTION_WIDTH;
+            height = FCLBridge.FORCE_RESOLUTION_HEIGHT;
+        }
         if (menuType == MenuType.GAME) {
             menu.getInput().initExternalController(textureView);
-            GameOption gameOption = new GameOption(Objects.requireNonNull(menu.getBridge()).getGameDir());
-            // gameOption.set("fullscreen", "false");
-            // gameOption.set("overrideWidth", String.valueOf(width));
-            // gameOption.set("overrideHeight", String.valueOf(height));
-            // gameOption.save();
         }
         surfaceTexture.setDefaultBufferSize(width, height);
+        // SDL 集成：初始化 SDL 运行时并绑定 Surface（游戏 JVM 侧 SDL_Init 时再完成加载）
+        CallbackBridge.windowWidth = width;
+        CallbackBridge.windowHeight = height;
+        SdlBridge.prepareSurface(this, new Surface(surfaceTexture), (ViewGroup) textureView.getParent(), this);
         fclBridge.execute(new Surface(surfaceTexture), menu.getCallbackBridge());
         fclBridge.setSurfaceTexture(surfaceTexture);
         fclBridge.pushEventWindow(width, height);
@@ -122,13 +136,30 @@ public class JVMActivity extends FCLActivity implements TextureView.SurfaceTextu
     public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surfaceTexture, int i, int i1) {
         int width = menuType == MenuType.GAME ? (int) ((i + ((GameMenu) menu).getMenuSetting().getCursorOffset()) * fclBridge.getScaleFactor()) : FCLBridge.DEFAULT_WIDTH;
         int height = menuType == MenuType.GAME ? (int) (i1 * fclBridge.getScaleFactor()) : FCLBridge.DEFAULT_HEIGHT;
+        if (FCLBridge.FORCE_RESOLUTION) {
+            width = FCLBridge.FORCE_RESOLUTION_WIDTH;
+            height = FCLBridge.FORCE_RESOLUTION_HEIGHT;
+        }
         surfaceTexture.setDefaultBufferSize(width, height);
+        CallbackBridge.windowWidth = width;
+        CallbackBridge.windowHeight = height;
+        // SDL 侧同步分辨率
+        if (SdlBridge.getSdlEnabled()) {
+            SDLSurface sdlSurface = SDLActivity.getSDLSurface();
+            if (sdlSurface != null) {
+                sdlSurface.surfaceChanged();
+                sdlSurface.nativeResize(width, height);
+            }
+        }
         fclBridge.pushEventWindow(width, height);
     }
 
     @Override
     public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surfaceTexture) {
         fclBridge.setSurfaceDestroyed(true);
+        if (SdlBridge.getSdlEnabled() && SDLActivity.getSDLSurface() != null) {
+            SDLActivity.getSDLSurface().surfaceDestroyed();
+        }
         return true;
     }
 
@@ -150,6 +181,7 @@ public class JVMActivity extends FCLActivity implements TextureView.SurfaceTextu
         if (menu != null) {
             menu.onPause();
         }
+        CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_FOCUSED, 0);
         CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_HOVERED, 0);
         super.onPause();
     }
@@ -159,6 +191,7 @@ public class JVMActivity extends FCLActivity implements TextureView.SurfaceTextu
         if (menu != null) {
             menu.onResume();
         }
+        CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_FOCUSED, 1);
         CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_HOVERED, 1);
         super.onResume();
     }
@@ -243,6 +276,39 @@ public class JVMActivity extends FCLActivity implements TextureView.SurfaceTextu
     @Override
     protected void onDestroy() {
         Terracotta.setWaiting(this, true);
+        CallbackBridge.resetInputState();
+        SdlBridge.reset();
         super.onDestroy();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_FOCUSED, hasFocus ? 1 : 0);
+        if (!hasFocus) {
+            CallbackBridge.resetInputState();
+        }
+    }
+
+    /**
+     * SDL 会在窗口创建时按窗口宽高动态请求方向，可能切到 sensorPortrait，
+     * 此处强制锁定横向（跟随传感器），保证游戏画面方向一致
+     */
+    @Override
+    public void setRequestedOrientation(int requestedOrientation) {
+        super.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+    }
+
+    /**
+     * SDL 原生层（Android_JNI_ShowMessageBox）会在宿主对象的运行时类上按名
+     * 查找 messageboxShowMessageBox；本宿主非 SDLActivity 子类，必须桥接到
+     * SDLActivity 的静态实现，否则查找失败会带着 pending 异常触发 JniAbort
+     */
+    @Keep
+    public int messageboxShowMessageBox(int flags, String title, String message,
+                                        int[] buttonFlags, int[] buttonIds,
+                                        String[] buttonTexts, int[] colors) {
+        return SDLActivity.messageboxShowMessageBox(this, flags, title, message,
+                buttonFlags, buttonIds, buttonTexts, colors);
     }
 }

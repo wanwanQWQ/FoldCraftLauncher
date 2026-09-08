@@ -2,6 +2,7 @@ package com.tungsten.fcl.control.data;
 
 import static com.tungsten.fcl.util.FXUtils.onInvalidating;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -20,14 +21,18 @@ import com.tungsten.fclcore.fakefx.beans.property.ObjectProperty;
 import com.tungsten.fclcore.fakefx.beans.property.SimpleBooleanProperty;
 import com.tungsten.fclcore.fakefx.beans.property.SimpleIntegerProperty;
 import com.tungsten.fclcore.fakefx.beans.property.SimpleObjectProperty;
+import com.tungsten.fclcore.fakefx.collections.FXCollections;
+import com.tungsten.fclcore.fakefx.collections.ObservableList;
 import com.tungsten.fclcore.util.fakefx.ObservableHelper;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @JsonAdapter(DirectionEventData.Serializer.class)
 public class DirectionEventData implements Cloneable, Observable {
-    
+
     public enum FollowOption {
         FIXED,
         CENTER_FOLLOW,
@@ -38,72 +43,56 @@ public class DirectionEventData implements Cloneable, Observable {
      * Up keycode
      * Default is W
      */
-    private final IntegerProperty upKeycodeProperty = new SimpleIntegerProperty(this, "upKeycode", FCLKeycodes.KEY_W);
-    
-    public IntegerProperty upKeycodeProperty() {
-        return upKeycodeProperty;
+    private final ObservableList<Integer> upKeycodeList = FXCollections.observableArrayList(FCLKeycodes.KEY_W);
+
+    public ObservableList<Integer> upKeycodeList() {
+        return upKeycodeList;
     }
-    
-    public void setUpKeycode(int keycode) {
-        upKeycodeProperty.set(keycode);
-    }
-    
-    public int getUpKeycode() {
-        return upKeycodeProperty.get();
+
+    public void setUpKeycode(ObservableList<Integer> keycode) {
+        upKeycodeList.setAll(keycode);
     }
 
     /**
      * Down keycode
      * Default is S
      */
-    private final IntegerProperty downKeycodeProperty = new SimpleIntegerProperty(this, "downKeycode", FCLKeycodes.KEY_S);
+    private final ObservableList<Integer> downKeycodeList = FXCollections.observableArrayList(FCLKeycodes.KEY_S);
 
-    public IntegerProperty downKeycodeProperty() {
-        return downKeycodeProperty;
+    public ObservableList<Integer> downKeycodeList() {
+        return downKeycodeList;
     }
 
-    public void setDownKeycode(int keycode) {
-        downKeycodeProperty.set(keycode);
-    }
-
-    public int getDownKeycode() {
-        return downKeycodeProperty.get();
+    public void setDownKeycode(ObservableList<Integer> keycode) {
+        downKeycodeList.setAll(keycode);
     }
 
     /**
      * Left keycode
      * Default is A
      */
-    private final IntegerProperty leftKeycodeProperty = new SimpleIntegerProperty(this, "leftKeycode", FCLKeycodes.KEY_A);
+    private final ObservableList<Integer> leftKeycodeList = FXCollections.observableArrayList(FCLKeycodes.KEY_A);
 
-    public IntegerProperty leftKeycodeProperty() {
-        return leftKeycodeProperty;
+    public ObservableList<Integer> leftKeycodeList() {
+        return leftKeycodeList;
     }
 
-    public void setLeftKeycode(int keycode) {
-        leftKeycodeProperty.set(keycode);
-    }
-
-    public int getLeftKeycode() {
-        return leftKeycodeProperty.get();
+    public void setLeftKeycode(ObservableList<Integer> keycode) {
+        leftKeycodeList.setAll(keycode);
     }
 
     /**
      * Right keycode
      * Default is D
      */
-    private final IntegerProperty rightKeycodeProperty = new SimpleIntegerProperty(this, "rightKeycode", FCLKeycodes.KEY_D);
+    private final ObservableList<Integer> rightKeycodeList = FXCollections.observableArrayList(FCLKeycodes.KEY_D);
 
-    public IntegerProperty rightKeycodeProperty() {
-        return rightKeycodeProperty;
+    public ObservableList<Integer> rightKeycodeList() {
+        return rightKeycodeList;
     }
 
-    public void setRightKeycode(int keycode) {
-        rightKeycodeProperty.set(keycode);
-    }
-
-    public int getRightKeycode() {
-        return rightKeycodeProperty.get();
+    public void setRightKeycode(ObservableList<Integer> keycode) {
+        rightKeycodeList.setAll(keycode);
     }
 
     /**
@@ -162,10 +151,10 @@ public class DirectionEventData implements Cloneable, Observable {
     }
 
     public void addPropertyChangedListener(InvalidationListener listener) {
-        upKeycodeProperty.addListener(listener);
-        downKeycodeProperty.addListener(listener);
-        leftKeycodeProperty.addListener(listener);
-        rightKeycodeProperty.addListener(listener);
+        upKeycodeList.addListener(listener);
+        downKeycodeList.addListener(listener);
+        leftKeycodeList.addListener(listener);
+        rightKeycodeList.addListener(listener);
         followOptionProperty.addListener(listener);
         sneakProperty.addListener(listener);
         sneakKeycodeProperty.addListener(listener);
@@ -190,10 +179,10 @@ public class DirectionEventData implements Cloneable, Observable {
     @Override
     public DirectionEventData clone() {
         DirectionEventData data = new DirectionEventData();
-        data.setUpKeycode(getUpKeycode());
-        data.setDownKeycode(getDownKeycode());
-        data.setLeftKeycode(getLeftKeycode());
-        data.setRightKeycode(getRightKeycode());
+        data.setUpKeycode(upKeycodeList());
+        data.setDownKeycode(downKeycodeList());
+        data.setLeftKeycode(leftKeycodeList());
+        data.setRightKeycode(rightKeycodeList());
         data.setFollowOption(getFollowOption());
         data.setSneak(isSneak());
         data.setSneakKeycode(getSneakKeycode());
@@ -206,10 +195,10 @@ public class DirectionEventData implements Cloneable, Observable {
             if (src == null) return JsonNull.INSTANCE;
             JsonObject obj = new JsonObject();
 
-            obj.addProperty("upKeycode", src.getUpKeycode());
-            obj.addProperty("downKeycode", src.getDownKeycode());
-            obj.addProperty("leftKeycode", src.getLeftKeycode());
-            obj.addProperty("rightKeycode", src.getRightKeycode());
+            obj.add("upKeycode", toJsonKeycodeList(src.upKeycodeList()));
+            obj.add("downKeycode", toJsonKeycodeList(src.downKeycodeList()));
+            obj.add("leftKeycode", toJsonKeycodeList(src.leftKeycodeList()));
+            obj.add("rightKeycode", toJsonKeycodeList(src.rightKeycodeList()));
             obj.addProperty("followOption", src.getFollowOption().toString());
             obj.addProperty("sneak", src.isSneak());
             obj.addProperty("sneakKeycode", src.getSneakKeycode());
@@ -222,18 +211,44 @@ public class DirectionEventData implements Cloneable, Observable {
             if (json == JsonNull.INSTANCE || !(json instanceof JsonObject))
                 return null;
             JsonObject obj = (JsonObject) json;
-
             DirectionEventData data = new DirectionEventData();
 
-            data.setUpKeycode(Optional.ofNullable(obj.get("upKeycode")).map(JsonElement::getAsInt).orElse(FCLKeycodes.KEY_W));
-            data.setDownKeycode(Optional.ofNullable(obj.get("downKeycode")).map(JsonElement::getAsInt).orElse(FCLKeycodes.KEY_S));
-            data.setLeftKeycode(Optional.ofNullable(obj.get("leftKeycode")).map(JsonElement::getAsInt).orElse(FCLKeycodes.KEY_A));
-            data.setRightKeycode(Optional.ofNullable(obj.get("rightKeycode")).map(JsonElement::getAsInt).orElse(FCLKeycodes.KEY_D));
+            deserializeKeycodeList(obj, "upKeycode", data::setUpKeycode, FCLKeycodes.KEY_W);
+            deserializeKeycodeList(obj, "downKeycode", data::setDownKeycode, FCLKeycodes.KEY_S);
+            deserializeKeycodeList(obj, "leftKeycode", data::setLeftKeycode, FCLKeycodes.KEY_A);
+            deserializeKeycodeList(obj, "rightKeycode", data::setRightKeycode, FCLKeycodes.KEY_D);
+
             data.setFollowOption(getFollowOption(Optional.ofNullable(obj.get("followOption")).map(JsonElement::getAsString).orElse(FollowOption.CENTER_FOLLOW.toString())));
             data.setSneak(Optional.ofNullable(obj.get("sneak")).map(JsonElement::getAsBoolean).orElse(true));
             data.setSneakKeycode(Optional.ofNullable(obj.get("sneakKeycode")).map(JsonElement::getAsInt).orElse(FCLKeycodes.KEY_LEFTSHIFT));
 
             return data;
+        }
+
+        /**
+         * 通用的方向键反序列化方法
+         */
+        private void deserializeKeycodeList(JsonObject obj, String keyName, java.util.function.Consumer<ObservableList<Integer>> setter, int defaultKeycode) {
+            JsonElement element = obj.get(keyName);
+            if (element != null && element.isJsonArray()) {
+                ArrayList<Integer> keycodes = new ArrayList<>();
+                for (JsonElement item : element.getAsJsonArray()) {
+                    keycodes.add(item.getAsInt());
+                }
+                setter.accept(FXCollections.observableList(keycodes));
+            } else {
+                setter.accept(FXCollections.observableArrayList(
+                        element != null && element.isJsonPrimitive() ? element.getAsInt() : defaultKeycode
+                ));
+            }
+        }
+
+        private static JsonArray toJsonKeycodeList(List<Integer> keycodes) {
+            JsonArray array = new JsonArray();
+            for (Integer keycode : keycodes) {
+                array.add(keycode);
+            }
+            return array;
         }
 
         public FollowOption getFollowOption(String option) {

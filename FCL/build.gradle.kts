@@ -4,6 +4,7 @@ import com.android.build.gradle.tasks.MergeSourceSetFolders
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 fun copyAssetsFile(source: File, target: File) {
     if (source.isDirectory) {
@@ -22,6 +23,26 @@ fun copyAssetsFile(source: File, target: File) {
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.kotlin.serialization)
+    id("checkstyle")
+}
+
+checkstyle {
+    // 规则集 config/checkstyle/checkstyle.xml 与 Android Studio 默认格式对齐，仅检查 Java 代码
+    toolVersion = "10.12.5"
+    configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+}
+
+// AGP 不提供 Java 插件的 SourceSetContainer，checkstyle 插件不会自动创建任务，
+// 因此手动注册 checkstyle 任务，检查范围为主源码目录的 Java 文件
+tasks.register<Checkstyle>("checkstyle") {
+    description = "Run checkstyle on the FCL Java sources."
+    group = "verification"
+    source(layout.projectDirectory.dir("src/main/java"))
+    include("**/*.java")
+    classpath = files()
+    maxErrors = 0
+    maxWarnings = 0
 }
 
 android {
@@ -56,9 +77,17 @@ android {
         applicationId = pkgName
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 1270
-        versionName = "1.2.7.0"
+        versionCode = 1330
+        versionName = "1.3.3.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                arguments("-DANDROID_STL=c++_shared")
+            }
+        }
     }
+
+    testBuildType = "debug"
 
     buildTypes {
         getByName("release") {
@@ -75,44 +104,11 @@ android {
         }
     }
 
-    androidComponents {
-        onVariants { variant ->
-            variant.outputs.forEach { output ->
-                if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
-                    (output.getFilter(ABI)?.identifier ?: "all").let { abi ->
-                        output.outputFileName =
-                            "FCL-${variant.buildType}-${defaultConfig.versionName}-${abi}.apk"
-                    }
-
-                    val variantName = variant.name.replaceFirstChar { it.uppercaseChar() }
-                    afterEvaluate {
-                        val task =
-                            tasks.named("merge${variantName}Assets").get() as MergeSourceSetFolders
-                        task.doLast {
-                            val arch = System.getProperty("arch", "all")
-                            val assetsDir = task.outputDir.get().asFile
-                            copyAssetsFile(File("${project.projectDir}/src/main/assets"), assetsDir)
-                            val jreList = listOf("jre8", "jre11", "jre17", "jre21")
-                            println("arch:$arch")
-                            jreList.forEach { jre ->
-                                val runtimeDir = "$assetsDir/app_runtime/java/$jre"
-                                println("runtimeDir:$runtimeDir")
-                                File(runtimeDir).listFiles().forEach {
-                                    if (arch != "all" && it.name != "version" && !it.name.contains("universal") && it.name != "bin-${arch}.tar.xz") {
-                                        println("delete:${it} : ${it.delete()}")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        // core library desugaring：java.time / java.util.stream / Optional 等脱糖到 minSdk 26 可用
+        isCoreLibraryDesugaringEnabled = true
     }
 
     packaging {
@@ -122,18 +118,29 @@ android {
         }
     }
 
-    androidResources{
-        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:!.*:!CVS:!thumbs.db:!picasa.ini:!*~"
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
     }
 
-    kotlinOptions {
-        jvmTarget = "11"
+    androidResources{
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:!.*:!CVS:!thumbs.db:!picasa.ini:!*~"
     }
 
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        resValues = true
+        prefab = true
     }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/jni/CMakeLists.txt")
+        }
+    }
+
+    ndkVersion = "27.0.12077973"
 
     splits {
         val arch = System.getProperty("arch", "all")
@@ -150,28 +157,136 @@ android {
             }
         }
     }
+}
 
+/**
+ * 按 -Darch 过滤 JRE 压缩包，生成当前架构需要的资产目录。
+ * 非 all 构建只保留 version、universal 和 bin-<arch>.tar.xz（运行时两者都需要，见 RuntimeUtils#installJava）。
+ */
+abstract class FilterJreAssets : Sync() {
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+}
+
+val filterJreAssets = tasks.register<FilterJreAssets>("filterJreAssets") {
+    val arch = System.getProperty("arch", "all")
+    // Copy/Sync 的 up-to-date 检查不包含 copy spec 的过滤规则，必须显式声明 arch 输入，
+    // 否则切换架构时任务不会重跑，产物会残留上一架构的 JRE 包
+    inputs.property("arch", arch)
+    from(layout.projectDirectory.dir("src/main/jreAssets"))
+    into(outputDir)
+    if (arch != "all") {
+        exclude { it.name.startsWith("bin-") && it.name != "bin-$arch.tar.xz" }
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
+                (output.getFilter(ABI)?.identifier ?: "all").let { abi ->
+                    output.outputFileName =
+                        "FCL-${variant.buildType}-${project.android.defaultConfig.versionName}-${abi}.apk"
+                }
+            }
+        }
+
+        // JRE 资产不放在 src/main/assets 里（AGP 的 mergeAssets 不应用 source set 的 exclude 过滤），
+        // 而是按架构注册为生成源；arch 变化会让 Sync 任务重新执行，mergeAssets 随之重跑，避免产物残留旧架构文件。
+        if (System.getProperty("arch", "all") != "all") {
+            variant.sources.assets?.addGeneratedSourceDirectory(filterJreAssets) { it.outputDir }
+        } else {
+            variant.sources.assets?.addStaticSourceDirectory("src/main/jreAssets")
+        }
+
+        // LWJGL natives 打包在 lwjgl-*-natives aar 的 assets/app_runtime/lwjgl/<版本>/natives/<abi> 下，
+        // 不走 AGP 的 abiFilters，需在 mergeAssets 后手动按架构删除其他 ABI 的 natives 目录。
+        val variantName = variant.name.replaceFirstChar { it.uppercaseChar() }
+        afterEvaluate {
+            val mergeAssets =
+                tasks.named("merge${variantName}Assets", MergeSourceSetFolders::class.java)
+            val arch = System.getProperty("arch", "all")
+            // 显式声明 arch 输入，arch 变化时任务重跑，避免产物残留上一架构的 natives
+            mergeAssets.configure { inputs.property("lwjglArch", arch) }
+            mergeAssets.configure {
+                doLast {
+                    if (arch == "all") return@doLast
+                    val abi = when (arch) {
+                        "arm" -> "armeabi-v7a"
+                        "arm64" -> "arm64-v8a"
+                        "x86" -> "x86"
+                        "x86_64" -> "x86_64"
+                        else -> return@doLast
+                    }
+                    val assetsDir = outputDir.get().asFile
+                    copyAssetsFile(File("${project.projectDir}/src/main/assets"), assetsDir)
+                    // 版本列表从 libs 下的 lwjgl-*-natives-release.aar 文件名推导，避免新增版本时忘记同步
+                    val lwjglVersions = project.file("libs").listFiles { f ->
+                        f.name.matches(Regex("lwjgl-\\d+\\.\\d+\\.\\d+-natives-release\\.aar"))
+                    }
+                        ?.map { Regex("lwjgl-(\\d+\\.\\d+\\.\\d+)-natives-release\\.aar").find(it.name)!!.groupValues[1] }
+                        ?: emptyList()
+                    lwjglVersions.forEach { version ->
+                        val nativesDir = File(assetsDir, "app_runtime/lwjgl/$version/natives")
+                        if (nativesDir.isDirectory) {
+                            nativesDir.listFiles()?.forEach { dir ->
+                                if (dir.isDirectory && dir.name != abi) {
+                                    logger.lifecycle("删除非目标架构 natives: $dir")
+                                    dir.deleteRecursively()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
 }
 
 dependencies {
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    implementation(project(":FCLCore"))
-    implementation(project(":FCLLibrary"))
-    implementation(project(":FCLauncher"))
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
+    implementation(project(":ZipFileSystem"))
     implementation(project(":Terracotta"))
-    implementation("com.getkeepsafe.taptargetview:taptargetview:1.14.0")
-    implementation("org.nanohttpd:nanohttpd:2.3.1")
-    implementation("org.apache.commons:commons-compress:1.26.0")
-    implementation("org.tukaani:xz:1.9")
-    implementation("com.github.steveice10:opennbt:1.5")
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.2.0")
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-    implementation("top.fifthlight.touchcontroller:proxy-client-android:0.0.5")
-    implementation("androidx.palette:palette-ktx:1.0.0")
-    implementation("com.github.Mathias-Boulay:android_gamepad_remapper:2.0.3")
-    implementation("com.github.addisonElliott:SegmentedButton:3.1.9")
+    implementation(libs.commons.io)
+    implementation(libs.jelf)
+    implementation(libs.taptargetview)
+    implementation(libs.nanohttpd)
+    implementation(libs.commons.compress)
+    implementation(libs.xz)
+    implementation(libs.opennbt)
+    implementation(libs.gson)
+    implementation(libs.tomlj)
+    implementation(libs.constant.pool.scanner)
+    implementation(libs.jsoup)
+    implementation(libs.chardet)
+    implementation(libs.junrar)
+    implementation(libs.bytehook)
+    implementation(libs.appcompat)
+    implementation(libs.androidx.viewpager2)
+    implementation(libs.core.splashscreen)
+    implementation(libs.material)
+    implementation(libs.constraintlayout)
+    implementation(libs.core.ktx)
+    implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.recyclerview)
+    implementation(libs.coroutines.android)
+    implementation(libs.glide)
+    implementation(libs.touchcontroller)
+    implementation(libs.palette.ktx)
+    implementation(libs.gamepad.remapper)
+    implementation(libs.segmented.button)
+    implementation(libs.datastore)
+    implementation(libs.kotlinx.serialization.json)
+
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
 }

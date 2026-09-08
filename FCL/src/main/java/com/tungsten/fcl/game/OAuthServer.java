@@ -20,9 +20,8 @@ package com.tungsten.fcl.game;
 import static com.tungsten.fclcore.util.Lang.mapOf;
 import static com.tungsten.fclcore.util.Lang.thread;
 
-import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
-import com.tungsten.fcl.util.AndroidUtils;
+import com.tungsten.fcl.FCLApp;
 import com.tungsten.fclauncher.utils.FCLPath;
 import com.tungsten.fclcore.auth.AuthenticationException;
 import com.tungsten.fclcore.auth.OAuth;
@@ -33,8 +32,6 @@ import com.tungsten.fclcore.util.StringUtils;
 import com.tungsten.fclcore.util.io.IOUtils;
 import com.tungsten.fclcore.util.io.NetworkUtils;
 
-import fi.iki.elonen.NanoHTTPD;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
@@ -42,6 +39,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
+
+import fi.iki.elonen.NanoHTTPD;
 
 public final class OAuthServer extends NanoHTTPD implements OAuth.Session {
     private final int port;
@@ -108,7 +107,7 @@ public final class OAuthServer extends NanoHTTPD implements OAuth.Session {
         try {
             html = IOUtils.readFullyAsString(OAuthServer.class.getResourceAsStream("/assets/microsoft_auth.html"))
                     .replace("%lang%", Locale.getDefault().toLanguageTag())
-                    .replace("%close-page%", FCLPath.CONTEXT.getString(R.string.account_methods_microsoft_close_page));
+                    .replace("%close-page%", FCLApp.getAppContext().getString(R.string.account_methods_microsoft_close_page));
         } catch (IOException e) {
             Logging.LOG.log(Level.SEVERE, "Failed to load html");
             return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_HTML, "");
@@ -155,14 +154,12 @@ public final class OAuthServer extends NanoHTTPD implements OAuth.Session {
         @Override
         public void openBrowser(String url) {
             lastlyOpenedURL = url;
-            AndroidUtils.openLinkWithPopWebView(FCLPath.CONTEXT, url);
-
             onOpenBrowser.fireEvent(new OpenBrowserEvent(this, url));
         }
 
         @Override
         public String getClientId() {
-            return FCLApplication.Prop.getProperty("oauth-api-key","null");
+            return FCLPath.Prop.getProperty("oauth-api-key","null");
         }
 
         @Override

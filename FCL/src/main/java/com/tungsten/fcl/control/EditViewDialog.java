@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
 
@@ -14,19 +13,23 @@ import com.google.android.material.tabs.TabLayout;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.control.data.BaseInfoData;
 import com.tungsten.fcl.control.data.ButtonEventData;
+import com.tungsten.fcl.control.data.ButtonStyles;
 import com.tungsten.fcl.control.data.ControlButtonData;
+import com.tungsten.fcl.control.data.ControlButtonStyle;
 import com.tungsten.fcl.control.data.ControlDirectionData;
+import com.tungsten.fcl.control.data.ControlDirectionStyle;
 import com.tungsten.fcl.control.data.ControlViewGroup;
 import com.tungsten.fcl.control.data.CustomControl;
 import com.tungsten.fcl.control.data.DirectionEventData;
-import com.tungsten.fcllibrary.component.dialog.EditDialog;
-import com.tungsten.fcl.util.AndroidUtils;
+import com.tungsten.fcl.control.data.DirectionStyles;
+import com.mio.util.AndroidUtilKt;
 import com.tungsten.fcl.util.FXUtils;
 import com.tungsten.fclcore.fakefx.beans.InvalidationListener;
 import com.tungsten.fclcore.fakefx.beans.binding.Bindings;
 import com.tungsten.fclcore.fakefx.beans.property.IntegerProperty;
 import com.tungsten.fclcore.fakefx.collections.FXCollections;
 import com.tungsten.fclcore.fakefx.collections.ObservableList;
+import com.tungsten.fcllibrary.component.dialog.EditDialog;
 import com.tungsten.fcllibrary.component.dialog.FCLDialog;
 import com.tungsten.fcllibrary.component.view.FCLButton;
 import com.tungsten.fcllibrary.component.view.FCLEditText;
@@ -41,6 +44,8 @@ import com.tungsten.fcllibrary.util.ConvertUtils;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+
+import kotlin.Unit;
 
 public class EditViewDialog extends FCLDialog implements View.OnClickListener {
 
@@ -60,8 +65,11 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
 
     public interface Callback {
         void onPositive(CustomControl view);
+
         void onClone(CustomControl view);
-        default void onDelete(){}
+
+        default void onDelete() {
+        }
     }
 
     public EditViewDialog(@NonNull Context context, CustomControl cloneView, GameMenu menu, Callback callback, boolean cloneable) {
@@ -71,7 +79,7 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
         setCancelable(false);
         Window dialogWindow = getWindow();
         if (dialogWindow != null) {
-            dialogWindow.setLayout(ConvertUtils.dip2px(context,500), ViewGroup.LayoutParams.MATCH_PARENT);
+            dialogWindow.setLayout(ConvertUtils.dip2px(context, 500), ViewGroup.LayoutParams.MATCH_PARENT);
         }
         setContentView(R.layout.dialog_edit_view);
 
@@ -129,6 +137,7 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
 
     private interface Details {
         CustomControl getView();
+
         void onLayoutChange(int position);
     }
 
@@ -152,23 +161,20 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
                 editText.setText(data.getText());
                 data.textProperty().bind(editText.stringProperty());
 
-                FCLSpinner<BaseInfoData.VisibilityType> visibilityTypeSpinner = findInfoView(R.id.visibility);
+                FCLSpinner<String> visibilityTypeSpinner = findInfoView(R.id.visibility);
                 ArrayList<BaseInfoData.VisibilityType> visibilityTypes = new ArrayList<>();
                 visibilityTypes.add(BaseInfoData.VisibilityType.ALWAYS);
                 visibilityTypes.add(BaseInfoData.VisibilityType.IN_GAME);
                 visibilityTypes.add(BaseInfoData.VisibilityType.MENU);
-                visibilityTypeSpinner.setDataList(visibilityTypes);
                 ArrayList<String> visibilityTypeString = new ArrayList<>();
                 visibilityTypeString.add(context.getString(R.string.view_info_visibility_always));
                 visibilityTypeString.add(context.getString(R.string.view_info_visibility_game));
                 visibilityTypeString.add(context.getString(R.string.view_info_visibility_menu));
-                ArrayAdapter<String> visibilityTypeAdapter = new ArrayAdapter<>(context, R.layout.item_spinner, visibilityTypeString);
-                visibilityTypeAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
-                visibilityTypeSpinner.setAdapter(visibilityTypeAdapter);
-                visibilityTypeSpinner.setSelection(data.getBaseInfo().getVisibilityType() == BaseInfoData.VisibilityType.ALWAYS ? 
-                        0 : (data.getBaseInfo().getVisibilityType() == BaseInfoData.VisibilityType.IN_GAME ? 
-                        1 : 2));
-                FXUtils.bindSelection(visibilityTypeSpinner, data.getBaseInfo().visibilityTypeProperty());
+                visibilityTypeSpinner.setItems(visibilityTypeString);
+                visibilityTypeSpinner.setSelection(data.getBaseInfo().getVisibilityType() == BaseInfoData.VisibilityType.ALWAYS ?
+                        0 : (data.getBaseInfo().getVisibilityType() == BaseInfoData.VisibilityType.IN_GAME ?
+                             1 : 2));
+                visibilityTypeSpinner.setOnItemSelectedListener((index, item) -> data.getBaseInfo().visibilityTypeProperty().set(visibilityTypes.get(index)));
 
                 FCLPreciseSeekBar xPosition = findInfoView(R.id.x_position);
                 FCLPreciseSeekBar yPosition = findInfoView(R.id.y_position);
@@ -187,20 +193,17 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
                 xPositionText.stringProperty().bind(Bindings.createStringBinding(() -> xPosition.getProgress() / 10f + " %", xPosition.progressProperty()));
                 yPositionText.stringProperty().bind(Bindings.createStringBinding(() -> yPosition.getProgress() / 10f + " %", yPosition.progressProperty()));
 
-                FCLSpinner<BaseInfoData.SizeType> sizeTypeSpinner = findInfoView(R.id.size_type);
+                FCLSpinner<String> sizeTypeSpinner = findInfoView(R.id.size_type);
                 ArrayList<BaseInfoData.SizeType> sizeTypes = new ArrayList<>();
                 sizeTypes.add(BaseInfoData.SizeType.PERCENTAGE);
                 sizeTypes.add(BaseInfoData.SizeType.ABSOLUTE);
-                sizeTypeSpinner.setDataList(sizeTypes);
                 ArrayList<String> sizeTypeString = new ArrayList<>();
                 sizeTypeString.add(context.getString(R.string.view_info_size_type_percentage));
                 sizeTypeString.add(context.getString(R.string.view_info_size_type_absolute));
-                ArrayAdapter<String> sizeTypeAdapter = new ArrayAdapter<>(context, R.layout.item_spinner, sizeTypeString);
-                sizeTypeAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
-                sizeTypeSpinner.setAdapter(sizeTypeAdapter);
+                sizeTypeSpinner.setItems(sizeTypeString);
                 sizeTypeSpinner.setSelection(data.getBaseInfo().getSizeType() == BaseInfoData.SizeType.PERCENTAGE ? 0 : 1);
-                FXUtils.bindSelection(sizeTypeSpinner, data.getBaseInfo().sizeTypeProperty());
-                
+                sizeTypeSpinner.setOnItemSelectedListener((index, item) -> data.getBaseInfo().sizeTypeProperty().set(sizeTypes.get(index)));
+
                 FCLLinearLayout widthReferenceLayout = findInfoView(R.id.width_reference_layout);
                 FCLLinearLayout heightReferenceLayout = findInfoView(R.id.height_reference_layout);
                 widthReferenceLayout.visibilityProperty().bind(Bindings.createBooleanBinding(() -> data.getBaseInfo().getSizeType() == BaseInfoData.SizeType.PERCENTAGE, data.getBaseInfo().sizeTypeProperty()));
@@ -212,22 +215,16 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
                 ArrayList<String> referenceString = new ArrayList<>();
                 referenceString.add(context.getString(R.string.view_info_reference_width));
                 referenceString.add(context.getString(R.string.view_info_reference_height));
-                
-                FCLSpinner<BaseInfoData.PercentageSize.Reference> widthReferenceSpinner = findInfoView(R.id.width_reference);
-                widthReferenceSpinner.setDataList(references);
-                ArrayAdapter<String> widthReferenceAdapter = new ArrayAdapter<>(context, R.layout.item_spinner, referenceString);
-                widthReferenceAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
-                widthReferenceSpinner.setAdapter(widthReferenceAdapter);
-                widthReferenceSpinner.setSelection(data.getBaseInfo().getPercentageWidth().getReference() == BaseInfoData.PercentageSize.Reference.SCREEN_WIDTH ? 0 : 1);
-                FXUtils.bindSelection(widthReferenceSpinner, data.getBaseInfo().getPercentageWidth().referenceProperty());
 
-                FCLSpinner<BaseInfoData.PercentageSize.Reference> heightReferenceSpinner = findInfoView(R.id.height_reference);
-                heightReferenceSpinner.setDataList(references);
-                ArrayAdapter<String> heightReferenceAdapter = new ArrayAdapter<>(context, R.layout.item_spinner, referenceString);
-                heightReferenceAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
-                heightReferenceSpinner.setAdapter(heightReferenceAdapter);
+                FCLSpinner<String> widthReferenceSpinner = findInfoView(R.id.width_reference);
+                widthReferenceSpinner.setItems(referenceString);
+                widthReferenceSpinner.setSelection(data.getBaseInfo().getPercentageWidth().getReference() == BaseInfoData.PercentageSize.Reference.SCREEN_WIDTH ? 0 : 1);
+                widthReferenceSpinner.setOnItemSelectedListener((index, item) -> data.getBaseInfo().getPercentageWidth().referenceProperty().set(references.get(index)));
+
+                FCLSpinner<String> heightReferenceSpinner = findInfoView(R.id.height_reference);
+                heightReferenceSpinner.setItems(referenceString);
                 heightReferenceSpinner.setSelection(data.getBaseInfo().getPercentageHeight().getReference() == BaseInfoData.PercentageSize.Reference.SCREEN_WIDTH ? 0 : 1);
-                FXUtils.bindSelection(heightReferenceSpinner, data.getBaseInfo().getPercentageHeight().referenceProperty());
+                heightReferenceSpinner.setOnItemSelectedListener((index, item) -> data.getBaseInfo().getPercentageHeight().referenceProperty().set(references.get(index)));
 
                 FCLPreciseSeekBar width = findInfoView(R.id.width);
                 FCLPreciseSeekBar height = findInfoView(R.id.height);
@@ -248,8 +245,8 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
                     data.getBaseInfo().getPercentageWidth().sizeProperty().bindBidirectional(width.progressProperty());
                     data.getBaseInfo().getPercentageHeight().sizeProperty().bindBidirectional(height.progressProperty());
                 } else {
-                    width.setMax(ConvertUtils.px2dip(context, AndroidUtils.getScreenWidth(menu.getActivity())));
-                    height.setMax(ConvertUtils.px2dip(context, AndroidUtils.getScreenHeight(menu.getActivity())));
+                    width.setMax(ConvertUtils.px2dip(context, AndroidUtilKt.getScreenWidth()));
+                    height.setMax(ConvertUtils.px2dip(context, AndroidUtilKt.getScreenHeight()));
                     data.getBaseInfo().getPercentageWidth().sizeProperty().unbindBidirectional(width.progressProperty());
                     data.getBaseInfo().getPercentageHeight().sizeProperty().unbindBidirectional(height.progressProperty());
                     width.setProgress(data.getBaseInfo().getAbsoluteWidth());
@@ -269,8 +266,8 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
                         data.getBaseInfo().getPercentageWidth().sizeProperty().bindBidirectional(width.progressProperty());
                         data.getBaseInfo().getPercentageHeight().sizeProperty().bindBidirectional(height.progressProperty());
                     } else {
-                        width.setMax(ConvertUtils.px2dip(context, AndroidUtils.getScreenWidth(menu.getActivity())));
-                        height.setMax(ConvertUtils.px2dip(context, AndroidUtils.getScreenHeight(menu.getActivity())));
+                        width.setMax(ConvertUtils.px2dip(context, AndroidUtilKt.getScreenWidth()));
+                        height.setMax(ConvertUtils.px2dip(context, AndroidUtilKt.getScreenHeight()));
                         data.getBaseInfo().getPercentageWidth().sizeProperty().unbindBidirectional(width.progressProperty());
                         data.getBaseInfo().getPercentageHeight().sizeProperty().unbindBidirectional(height.progressProperty());
                         width.setProgress(data.getBaseInfo().getAbsoluteWidth());
@@ -285,7 +282,9 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
 
                 FCLButton style = findInfoView(R.id.style);
                 style.setOnClickListener(v -> {
-                    ButtonStyleDialog dialog = new ButtonStyleDialog(context, true, data.getStyle(), data::setStyle);
+                    ControlButtonStyle targetStyle = ButtonStyles.findStyleByName(data.getStyle().getName());
+                    ButtonStyleDialog dialog = new ButtonStyleDialog(context, true, targetStyle, data::setStyle);
+                    dialog.setGameMenu(menu);
                     dialog.show();
                 });
 
@@ -308,7 +307,7 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
                 FCLLinearLayout clickLayout = (FCLLinearLayout) LayoutInflater.from(context).inflate(R.layout.view_edit_button_event_child, null);
                 FCLLinearLayout doubleClickLayout = (FCLLinearLayout) LayoutInflater.from(context).inflate(R.layout.view_edit_button_event_child, null);
 
-                FCLLinearLayout[] eventLayouts = new FCLLinearLayout[] {
+                FCLLinearLayout[] eventLayouts = new FCLLinearLayout[]{
                         pressLayout,
                         longPressLayout,
                         clickLayout,
@@ -456,23 +455,20 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
             eventLayout = (FCLLinearLayout) LayoutInflater.from(context).inflate(R.layout.view_edit_direction_event, null);
 
             {
-                FCLSpinner<BaseInfoData.VisibilityType> visibilityTypeSpinner = findInfoView(R.id.visibility);
+                FCLSpinner<String> visibilityTypeSpinner = findInfoView(R.id.visibility);
                 ArrayList<BaseInfoData.VisibilityType> visibilityTypes = new ArrayList<>();
                 visibilityTypes.add(BaseInfoData.VisibilityType.ALWAYS);
                 visibilityTypes.add(BaseInfoData.VisibilityType.IN_GAME);
                 visibilityTypes.add(BaseInfoData.VisibilityType.MENU);
-                visibilityTypeSpinner.setDataList(visibilityTypes);
                 ArrayList<String> visibilityTypeString = new ArrayList<>();
                 visibilityTypeString.add(context.getString(R.string.view_info_visibility_always));
                 visibilityTypeString.add(context.getString(R.string.view_info_visibility_game));
                 visibilityTypeString.add(context.getString(R.string.view_info_visibility_menu));
-                ArrayAdapter<String> visibilityTypeAdapter = new ArrayAdapter<>(context, R.layout.item_spinner, visibilityTypeString);
-                visibilityTypeAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
-                visibilityTypeSpinner.setAdapter(visibilityTypeAdapter);
+                visibilityTypeSpinner.setItems(visibilityTypeString);
                 visibilityTypeSpinner.setSelection(data.getBaseInfo().getVisibilityType() == BaseInfoData.VisibilityType.ALWAYS ?
                         0 : (data.getBaseInfo().getVisibilityType() == BaseInfoData.VisibilityType.IN_GAME ?
-                        1 : 2));
-                FXUtils.bindSelection(visibilityTypeSpinner, data.getBaseInfo().visibilityTypeProperty());
+                             1 : 2));
+                visibilityTypeSpinner.setOnItemSelectedListener((index, item) -> data.getBaseInfo().visibilityTypeProperty().set(visibilityTypes.get(index)));
 
                 FCLPreciseSeekBar xPosition = findInfoView(R.id.x_position);
                 FCLPreciseSeekBar yPosition = findInfoView(R.id.y_position);
@@ -488,19 +484,16 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
                 xPositionText.stringProperty().bind(Bindings.createStringBinding(() -> xPosition.getProgress() / 10f + " %", xPosition.progressProperty()));
                 yPositionText.stringProperty().bind(Bindings.createStringBinding(() -> yPosition.getProgress() / 10f + " %", yPosition.progressProperty()));
 
-                FCLSpinner<BaseInfoData.SizeType> sizeTypeSpinner = findInfoView(R.id.size_type);
+                FCLSpinner<String> sizeTypeSpinner = findInfoView(R.id.size_type);
                 ArrayList<BaseInfoData.SizeType> sizeTypes = new ArrayList<>();
                 sizeTypes.add(BaseInfoData.SizeType.PERCENTAGE);
                 sizeTypes.add(BaseInfoData.SizeType.ABSOLUTE);
-                sizeTypeSpinner.setDataList(sizeTypes);
                 ArrayList<String> sizeTypeString = new ArrayList<>();
                 sizeTypeString.add(context.getString(R.string.view_info_size_type_percentage));
                 sizeTypeString.add(context.getString(R.string.view_info_size_type_absolute));
-                ArrayAdapter<String> sizeTypeAdapter = new ArrayAdapter<>(context, R.layout.item_spinner, sizeTypeString);
-                sizeTypeAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
-                sizeTypeSpinner.setAdapter(sizeTypeAdapter);
+                sizeTypeSpinner.setItems(sizeTypeString);
                 sizeTypeSpinner.setSelection(data.getBaseInfo().getSizeType() == BaseInfoData.SizeType.PERCENTAGE ? 0 : 1);
-                FXUtils.bindSelection(sizeTypeSpinner, data.getBaseInfo().sizeTypeProperty());
+                sizeTypeSpinner.setOnItemSelectedListener((index, item) -> data.getBaseInfo().sizeTypeProperty().set(sizeTypes.get(index)));
 
                 FCLLinearLayout sizeReferenceLayout = findInfoView(R.id.size_reference_layout);
                 sizeReferenceLayout.visibilityProperty().bind(Bindings.createBooleanBinding(() -> data.getBaseInfo().getSizeType() == BaseInfoData.SizeType.PERCENTAGE, data.getBaseInfo().sizeTypeProperty()));
@@ -512,13 +505,10 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
                 referenceString.add(context.getString(R.string.view_info_reference_width));
                 referenceString.add(context.getString(R.string.view_info_reference_height));
 
-                FCLSpinner<BaseInfoData.PercentageSize.Reference> sizeReferenceSpinner = findInfoView(R.id.size_reference);
-                sizeReferenceSpinner.setDataList(references);
-                ArrayAdapter<String> sizeReferenceAdapter = new ArrayAdapter<>(context, R.layout.item_spinner, referenceString);
-                sizeReferenceAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
-                sizeReferenceSpinner.setAdapter(sizeReferenceAdapter);
+                FCLSpinner<String> sizeReferenceSpinner = findInfoView(R.id.size_reference);
+                sizeReferenceSpinner.setItems(referenceString);
                 sizeReferenceSpinner.setSelection(data.getBaseInfo().getPercentageWidth().getReference() == BaseInfoData.PercentageSize.Reference.SCREEN_WIDTH ? 0 : 1);
-                FXUtils.bindSelection(sizeReferenceSpinner, data.getBaseInfo().getPercentageWidth().referenceProperty());
+                sizeReferenceSpinner.setOnItemSelectedListener((index, item) -> data.getBaseInfo().getPercentageWidth().referenceProperty().set(references.get(index)));
 
                 FCLPreciseSeekBar size = findInfoView(R.id.size);
 
@@ -530,7 +520,7 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
                     size.setProgress(data.getBaseInfo().getPercentageWidth().getSize());
                     data.getBaseInfo().getPercentageWidth().sizeProperty().bindBidirectional(size.progressProperty());
                 } else {
-                    size.setMax(ConvertUtils.px2dip(context, AndroidUtils.getScreenHeight(menu.getActivity())));
+                    size.setMax(ConvertUtils.px2dip(context, AndroidUtilKt.getScreenHeight()));
                     data.getBaseInfo().getPercentageWidth().sizeProperty().unbindBidirectional(size.progressProperty());
                     size.setProgress(data.getBaseInfo().getAbsoluteWidth());
                     data.getBaseInfo().absoluteWidthProperty().bindBidirectional(size.progressProperty());
@@ -543,7 +533,7 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
                         size.setProgress(data.getBaseInfo().getPercentageWidth().getSize());
                         data.getBaseInfo().getPercentageWidth().sizeProperty().bindBidirectional(size.progressProperty());
                     } else {
-                        size.setMax(ConvertUtils.px2dip(context, AndroidUtils.getScreenHeight(menu.getActivity())));
+                        size.setMax(ConvertUtils.px2dip(context, AndroidUtilKt.getScreenHeight()));
                         data.getBaseInfo().getPercentageWidth().sizeProperty().unbindBidirectional(size.progressProperty());
                         size.setProgress(data.getBaseInfo().getAbsoluteWidth());
                         data.getBaseInfo().absoluteWidthProperty().bindBidirectional(size.progressProperty());
@@ -563,7 +553,9 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
 
                 FCLButton style = findInfoView(R.id.style);
                 style.setOnClickListener(v -> {
-                    DirectionStyleDialog dialog = new DirectionStyleDialog(context, true, data.getStyle(), data::setStyle);
+                    ControlDirectionStyle target = DirectionStyles.findStyleByName(data.getStyle().getName());
+                    DirectionStyleDialog dialog = new DirectionStyleDialog(context, true, target, data::setStyle);
+                    dialog.setGameMenu(menu);
                     dialog.show();
                 });
 
@@ -578,31 +570,39 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
                 FCLButton right = findEventView(R.id.right);
                 FCLButton sneak = findEventView(R.id.sneak_keycode);
                 up.setOnClickListener(v -> {
-                    ObservableList<Integer> list = FXCollections.observableList(new ArrayList<>());
-                    list.add(data.getEvent().getUpKeycode());
-                    SelectKeycodeDialog dialog = new SelectKeycodeDialog(context, list, true, false);
-                    data.getEvent().upKeycodeProperty().bind(dialog.selectionProperty());
+                    ObservableList<Integer> list = FXCollections.observableArrayList();
+                    list.addAll(data.getEvent().upKeycodeList());
+                    SelectKeycodeDialog dialog = new SelectKeycodeDialog(context, list, false, false, d -> {
+                        data.getEvent().upKeycodeList().setAll(list);
+                        return Unit.INSTANCE;
+                    });
                     dialog.show();
                 });
                 down.setOnClickListener(v -> {
-                    ObservableList<Integer> list = FXCollections.observableList(new ArrayList<>());
-                    list.add(data.getEvent().getDownKeycode());
-                    SelectKeycodeDialog dialog = new SelectKeycodeDialog(context, list, true, false);
-                    data.getEvent().downKeycodeProperty().bind(dialog.selectionProperty());
+                    ObservableList<Integer> list = FXCollections.observableArrayList();
+                    list.addAll(data.getEvent().downKeycodeList());
+                    SelectKeycodeDialog dialog = new SelectKeycodeDialog(context, list, false, false, d -> {
+                        data.getEvent().downKeycodeList().setAll(list);
+                        return Unit.INSTANCE;
+                    });
                     dialog.show();
                 });
                 left.setOnClickListener(v -> {
-                    ObservableList<Integer> list = FXCollections.observableList(new ArrayList<>());
-                    list.add(data.getEvent().getLeftKeycode());
-                    SelectKeycodeDialog dialog = new SelectKeycodeDialog(context, list, true, false);
-                    data.getEvent().leftKeycodeProperty().bind(dialog.selectionProperty());
+                    ObservableList<Integer> list = FXCollections.observableArrayList();
+                    list.addAll(data.getEvent().leftKeycodeList());
+                    SelectKeycodeDialog dialog = new SelectKeycodeDialog(context, list, false, false, d -> {
+                        data.getEvent().leftKeycodeList().setAll(list);
+                        return Unit.INSTANCE;
+                    });
                     dialog.show();
                 });
                 right.setOnClickListener(v -> {
-                    ObservableList<Integer> list = FXCollections.observableList(new ArrayList<>());
-                    list.add(data.getEvent().getRightKeycode());
-                    SelectKeycodeDialog dialog = new SelectKeycodeDialog(context, list, true, false);
-                    data.getEvent().rightKeycodeProperty().bind(dialog.selectionProperty());
+                    ObservableList<Integer> list = FXCollections.observableArrayList();
+                    list.addAll(data.getEvent().rightKeycodeList());
+                    SelectKeycodeDialog dialog = new SelectKeycodeDialog(context, list, false, false, d -> {
+                        data.getEvent().rightKeycodeList().setAll(list);
+                        return Unit.INSTANCE;
+                    });
                     dialog.show();
                 });
                 sneak.setOnClickListener(v -> {
@@ -617,23 +617,20 @@ public class EditViewDialog extends FCLDialog implements View.OnClickListener {
                 sneakSwitch.setChecked(data.getEvent().isSneak());
                 FXUtils.bindBoolean(sneakSwitch, data.getEvent().sneakProperty());
 
-                FCLSpinner<DirectionEventData.FollowOption> followOptionSpinner = findEventView(R.id.follow);
+                FCLSpinner<String> followOptionSpinner = findEventView(R.id.follow);
                 ArrayList<DirectionEventData.FollowOption> followOptions = new ArrayList<>();
                 followOptions.add(DirectionEventData.FollowOption.FIXED);
                 followOptions.add(DirectionEventData.FollowOption.CENTER_FOLLOW);
                 followOptions.add(DirectionEventData.FollowOption.FOLLOW);
-                followOptionSpinner.setDataList(followOptions);
                 ArrayList<String> followOptionString = new ArrayList<>();
                 followOptionString.add(context.getString(R.string.edit_direction_event_follow_fix));
                 followOptionString.add(context.getString(R.string.edit_direction_event_follow_center));
                 followOptionString.add(context.getString(R.string.edit_direction_event_follow_always));
-                ArrayAdapter<String> followOptionAdapter = new ArrayAdapter<>(context, R.layout.item_spinner, followOptionString);
-                followOptionAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
-                followOptionSpinner.setAdapter(followOptionAdapter);
+                followOptionSpinner.setItems(followOptionString);
                 followOptionSpinner.setSelection(data.getEvent().getFollowOption() == DirectionEventData.FollowOption.FIXED ?
                         0 : (data.getEvent().getFollowOption() == DirectionEventData.FollowOption.CENTER_FOLLOW ?
-                        1 : 2));
-                FXUtils.bindSelection(followOptionSpinner, data.getEvent().followOptionProperty());
+                             1 : 2));
+                followOptionSpinner.setOnItemSelectedListener((index, item) -> data.getEvent().followOptionProperty().set(followOptions.get(index)));
             }
 
             container.addView(infoLayout, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));

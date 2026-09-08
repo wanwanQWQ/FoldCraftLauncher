@@ -2,16 +2,18 @@ package com.tungsten.fcl.control;
 
 import android.content.Context;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.control.data.ControlDirectionStyle;
+import com.tungsten.fcl.control.data.ControlViewGroup;
 import com.tungsten.fcl.control.data.DirectionStyles;
 import com.tungsten.fcllibrary.component.dialog.FCLDialog;
 import com.tungsten.fcllibrary.component.view.FCLButton;
-import com.tungsten.fcllibrary.component.view.HorizontalListView;
 
 public class DirectionStyleDialog extends FCLDialog implements View.OnClickListener {
 
@@ -23,7 +25,9 @@ public class DirectionStyleDialog extends FCLDialog implements View.OnClickListe
     private FCLButton editStyle;
     private FCLButton positive;
 
-    private HorizontalListView listView;
+    private ListView listView;
+
+    private GameMenu menu;
 
     public interface Callback {
         void onStyleSelect(ControlDirectionStyle style);
@@ -34,6 +38,9 @@ public class DirectionStyleDialog extends FCLDialog implements View.OnClickListe
         this.select = select;
         this.initStyle = initStyle;
         this.callback = callback;
+        if (getWindow() != null) {
+            getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        }
         setContentView(R.layout.dialog_manage_direction_style);
         setCancelable(false);
 
@@ -57,6 +64,8 @@ public class DirectionStyleDialog extends FCLDialog implements View.OnClickListe
     public void refreshList() {
         adapter = new DirectionStyleAdapter(getContext(), DirectionStyles.getStyles(), select, initStyle);
         listView.setAdapter(adapter);
+        if (initStyle != null)
+            listView.setSelection(DirectionStyles.findStyleIndexByName(initStyle.getName()));
     }
 
     @Override
@@ -70,10 +79,26 @@ public class DirectionStyleDialog extends FCLDialog implements View.OnClickListe
         }
         if (v == editStyle) {
             AddDirectionStyleDialog dialog = new AddDirectionStyleDialog(getContext(), adapter.getSelectedStyle(), true, style -> {
-                DirectionStyles.removeStyles(adapter.getSelectedStyle());
-                DirectionStyles.addStyle(style);
+                ControlDirectionStyle before = adapter.getSelectedStyle();
+                int i = DirectionStyles.getStyles().indexOf(before);
+                String beforeName = before.getName();
+                DirectionStyles.removeStyles(before);
+                DirectionStyles.addStyle(style, i);
                 refreshList();
+                adapter.setSelectedStyle(style);
+                if (menu != null) {
+                    ControlViewGroup viewGroup = menu.getViewGroup();
+                    if (viewGroup != null) {
+                        viewGroup.getViewData().directionList().forEach(it -> {
+                            String name = it.getStyle().getName();
+                            if (name.equals(style.getName()) || name.equals(beforeName)) {
+                                it.setStyle(style);
+                            }
+                        });
+                    }
+                }
             });
+            dialog.setGameMenu(menu);
             dialog.show();
         }
         if (v == positive) {
@@ -82,5 +107,9 @@ public class DirectionStyleDialog extends FCLDialog implements View.OnClickListe
                 callback.onStyleSelect(adapter.getSelectedStyle());
             }
         }
+    }
+
+    public void setGameMenu(GameMenu menu) {
+        this.menu = menu;
     }
 }

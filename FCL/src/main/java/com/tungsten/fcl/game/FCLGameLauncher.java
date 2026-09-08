@@ -22,11 +22,11 @@ import android.util.Log;
 
 import com.mio.data.Renderer;
 import com.mio.manager.RendererManager;
+import com.mio.util.LauncherUtilKt;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.util.RuntimeUtils;
-import com.tungsten.fclauncher.FCLConfig;
-import com.tungsten.fclauncher.utils.FCLPath;
 import com.tungsten.fclauncher.bridge.FCLBridge;
+import com.tungsten.fcl.FCLApp;
 import com.tungsten.fclcore.auth.AuthInfo;
 import com.tungsten.fclcore.game.GameRepository;
 import com.tungsten.fclcore.game.LaunchOptions;
@@ -34,7 +34,7 @@ import com.tungsten.fclcore.game.Version;
 import com.tungsten.fclcore.launch.DefaultLauncher;
 import com.tungsten.fclcore.util.Logging;
 import com.tungsten.fclcore.util.io.FileUtils;
-import com.tungsten.fclcore.util.versioning.VersionNumber;
+import com.tungsten.fclcore.util.versioning.GameVersionNumber;
 import com.tungsten.fcllibrary.util.LocaleUtils;
 
 import java.io.BufferedReader;
@@ -54,6 +54,8 @@ public final class FCLGameLauncher extends DefaultLauncher {
     @Override
     protected Map<String, String> getConfigurations() {
         Map<String, String> res = super.getConfigurations();
+        res.put("${launcher_name}", "");
+        res.put("${launcher_version}", "");
         return res;
     }
 

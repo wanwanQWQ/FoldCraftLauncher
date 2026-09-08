@@ -4,38 +4,52 @@ import static android.content.Context.MODE_PRIVATE;
 
 import android.annotation.SuppressLint;
 import android.content.res.AssetManager;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.InputDevice;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.TranslateAnimation;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.gif.GifDrawable;
+import com.bumptech.glide.request.target.CustomViewTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.gson.GsonBuilder;
 import com.mio.touchcontroller.TouchController;
 import com.mio.touchcontroller.TouchControllerInputView;
 import com.mio.ui.dialog.GamepadMapDialog;
+import com.mio.ui.view.CursorView;
 import com.mio.ui.view.DraggableTextView;
+import com.mio.util.AndroidUtilKt;
 import com.mio.util.ImageUtil;
 import com.tungsten.fcl.BuildConfig;
-import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.activity.JVMCrashActivity;
 import com.tungsten.fcl.control.data.ButtonStyles;
 import com.tungsten.fcl.control.data.ControlButtonData;
+import com.tungsten.fcl.control.data.ControlButtonStyle;
 import com.tungsten.fcl.control.data.ControlDirectionData;
+import com.tungsten.fcl.control.data.ControlDirectionStyle;
 import com.tungsten.fcl.control.data.ControlViewGroup;
 import com.tungsten.fcl.control.data.CustomControl;
 import com.tungsten.fcl.control.data.DirectionStyles;
@@ -47,17 +61,16 @@ import com.tungsten.fcl.control.view.LogWindow;
 import com.tungsten.fcl.control.view.MenuView;
 import com.tungsten.fcl.control.view.TouchPad;
 import com.tungsten.fcl.control.view.ViewManager;
+import com.tungsten.fcl.game.sdl.GamepadInputMode;
+import com.tungsten.fcl.game.sdl.SdlSettings;
 import com.tungsten.fcl.setting.Controller;
 import com.tungsten.fcl.setting.Controllers;
 import com.tungsten.fcl.setting.GameOption;
 import com.tungsten.fcl.setting.MenuSetting;
-import com.tungsten.fcl.util.AndroidUtils;
-import com.tungsten.fcl.util.FXUtils;
 import com.tungsten.fclauncher.bridge.FCLBridge;
 import com.tungsten.fclauncher.bridge.FCLBridgeCallback;
 import com.tungsten.fclauncher.keycodes.FCLKeycodes;
 import com.tungsten.fclauncher.utils.FCLPath;
-import com.tungsten.fclcore.fakefx.beans.InvalidationListener;
 import com.tungsten.fclcore.fakefx.beans.property.BooleanProperty;
 import com.tungsten.fclcore.fakefx.beans.property.IntegerProperty;
 import com.tungsten.fclcore.fakefx.beans.property.ObjectProperty;
@@ -72,13 +85,7 @@ import com.tungsten.fclcore.util.io.FileUtils;
 import com.tungsten.fcllibrary.component.FCLActivity;
 import com.tungsten.fcllibrary.component.dialog.FCLAlertDialog;
 import com.tungsten.fcllibrary.component.theme.ThemeEngine;
-import com.tungsten.fcllibrary.component.view.FCLButton;
-import com.tungsten.fcllibrary.component.view.FCLImageView;
-import com.tungsten.fcllibrary.component.view.FCLLinearLayout;
-import com.tungsten.fcllibrary.component.view.FCLNumberSeekBar;
 import com.tungsten.fcllibrary.component.view.FCLProgressBar;
-import com.tungsten.fcllibrary.component.view.FCLSpinner;
-import com.tungsten.fcllibrary.component.view.FCLSwitch;
 import com.tungsten.fcllibrary.component.view.FCLTextView;
 import com.tungsten.fcllibrary.util.ConvertUtils;
 
@@ -89,12 +96,11 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 import fr.spse.gamepad_remapper.Remapper;
 import kotlin.Unit;
 
-public class GameMenu implements MenuCallback, View.OnClickListener {
+public class GameMenu implements MenuCallback, FCLBridgeCallback {
 
     private boolean simulated;
     private FCLActivity activity;
@@ -102,7 +108,6 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
     private FCLBridge fclBridge;
     private FCLInput fclInput;
     private MenuSetting menuSetting;
-    private int hitResultType = FCLBridge.HIT_RESULT_TYPE_UNKNOWN;
     private int cursorX;
     private int cursorY;
     private int pointerX;
@@ -114,36 +119,34 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
     private GameItemBar gameItemBar;
     private LogWindow logWindow;
     public DraggableTextView fpsText;
+    public DraggableTextView memoryText;
     private TouchCharInput touchCharInput;
     private TouchControllerInputView touchControllerInputView;
     private FCLProgressBar launchProgress;
-    private FCLImageView cursorView;
+    private CursorView cursorView;
     private ViewManager viewManager;
     private Gyroscope gyroscope;
     private GameOption gameOption;
 
-    private FCLButton manageViewGroups;
-    private FCLButton addButton;
-    private FCLButton addDirection;
-    private FCLButton manageButtonStyle;
-    private FCLButton manageDirectionStyle;
-
-    private FCLButton openMultiplayerButton;
-    private FCLButton manageQuickInput;
-    private FCLButton sendKeycode;
-    private FCLButton gamepadResetMapper;
-    private FCLButton gamepadButtonBinding;
-    private FCLButton forceExit;
+    private LeftMenuAdapter leftMenuAdapter;
+    private RightMenuAdapter rightMenuAdapter;
+    private FCLTextView rightMenuTitle;
+    private FCLTextView rightMenuBack;
+    private RecyclerView rightMenuList;
 
     private MultiplayerDialog multiplayerDialog;
 
-    private long time = 0;
+    /** 右菜单切换动画进行中标记，避免动画叠加 */
+    private boolean rightMenuAnimating;
 
     private MenuView menuView;
 
     private TouchController touchController;
 
-    private boolean gamepadDisabled = false;
+    private boolean gamepadControl = true;
+    private Thread fpsThread;
+    private Thread memoryThread;
+    private int lastCursorMode = FCLBridge.CursorEnabled;
 
     public void setMenuView(MenuView menuView) {
         this.menuView = menuView;
@@ -168,10 +171,6 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
     @Override
     public int getCursorMode() {
         return cursorModeProperty.get();
-    }
-
-    public int getHitResultType() {
-        return hitResultType;
     }
 
     public int getCursorX() {
@@ -294,255 +293,186 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
         viewGroupProperty.set(viewGroup);
     }
 
+    /** 编辑模式下未选中视图组时选中第一个，保证编辑视图立即可加载，不依赖菜单列表绑定时的兜底回调 */
+    private void selectDefaultViewGroup() {
+        if (editModeProperty.get() && getViewGroup() == null && !getController().viewGroups().isEmpty()) {
+            setViewGroup(getController().viewGroups().get(0));
+        }
+    }
+
     @Nullable
     public ControlViewGroup getViewGroup() {
         return viewGroupProperty.get();
     }
 
-    public boolean isGamepadDisabled(){
-        return gamepadDisabled;
+    public boolean isGamepadControl() {
+        return gamepadControl;
+    }
+
+    public void setGamepadControl(boolean gamepadControl) {
+        this.gamepadControl = gamepadControl;
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("launcher", MODE_PRIVATE);
+        sharedPreferences.edit().putBoolean("gamepad_control", gamepadControl).apply();
     }
 
     private void initLeftMenu() {
-        FCLSwitch editMode = findViewById(R.id.edit_mode);
-        FCLSwitch showViewBoundaries = findViewById(R.id.show_boundary);
-        FCLSwitch hideAllViews = findViewById(R.id.hide_all);
-        FCLSwitch autoFit = findViewById(R.id.auto_fit);
+        RecyclerView leftMenuList = findViewById(R.id.left_menu_list);
+        leftMenuList.setLayoutManager(new LinearLayoutManager(activity));
+        leftMenuAdapter = new LeftMenuAdapter(activity, this, new LeftMenuAdapter.Listener() {
+            @Override
+            public void onButtonClick(@NonNull LeftMenuTag tag) {
+                handleLeftButtonClick(tag);
+            }
 
-        FCLNumberSeekBar autoFitDist = findViewById(R.id.auto_fit_dist);
+            @Override
+            public void onSwitchToggle(@NonNull LeftMenuTag tag, boolean checked) {
+                handleLeftSwitchToggle(tag, checked);
+            }
 
-        FCLSpinner<Controller> currentControllerSpinner = findViewById(R.id.current_controller);
-        FCLSpinner<ControlViewGroup> currentViewGroupSpinner = findViewById(R.id.current_view_group);
+            @Override
+            public void onSpinnerSelect(@NonNull LeftMenuTag tag, int position) {
+                handleLeftSpinnerSelect(tag, position);
+            }
 
-        FCLLinearLayout editLayout = findViewById(R.id.edit_layout);
-
-        manageViewGroups = findViewById(R.id.manage_view_groups);
-        addButton = findViewById(R.id.add_button);
-        addDirection = findViewById(R.id.add_direction);
-        manageButtonStyle = findViewById(R.id.manage_button_style);
-        manageDirectionStyle = findViewById(R.id.manage_direction_style);
-
-        FXUtils.bindBoolean(editMode, editModeProperty);
-        FXUtils.bindBoolean(showViewBoundaries, showViewBoundariesProperty);
-        FXUtils.bindBoolean(hideAllViews, hideAllViewsProperty);
-        FXUtils.bindBoolean(autoFit, menuSetting.getAutoFitProperty());
-
-        autoFitDist.addProgressListener();
-        autoFitDist.progressProperty().bindBidirectional(menuSetting.getAutoFitDistProperty());
-
-        ArrayList<String> controllerNameList = Controllers.getControllers().stream().map(Controller::getName).collect(Collectors.toCollection(ArrayList::new));
-        currentControllerSpinner.setDataList(new ArrayList<>(Controllers.getControllers()));
-        ArrayAdapter<String> controllerNameAdapter = new ArrayAdapter<>(activity, R.layout.item_spinner_small, controllerNameList);
-        controllerNameAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown_small);
-        currentControllerSpinner.setAdapter(controllerNameAdapter);
-        FXUtils.bindSelection(currentControllerSpinner, controllerProperty);
-
-        refreshViewGroupList(currentViewGroupSpinner);
-        getController().addListener(i -> refreshViewGroupList(currentViewGroupSpinner));
-        controllerProperty.addListener(invalidate -> {
-            refreshViewGroupList(currentViewGroupSpinner);
-            getController().addListener(i -> refreshViewGroupList(currentViewGroupSpinner));
+            @Override
+            public void onSeekBarChange(@NonNull LeftMenuTag tag, int progress) {
+                handleLeftSeekBarChange(tag, progress);
+            }
         });
+        leftMenuList.setAdapter(leftMenuAdapter);
+        leftMenuAdapter.rebuild();
+        leftMenuList.addItemDecoration(new SpacingDecoration(
+                Math.round(6 * activity.getResources().getDisplayMetrics().density)));
+
+        getController().addListener(i -> leftMenuAdapter.rebuild());
+        controllerProperty.addListener(invalidate -> {
+            setViewGroup(null);
+            leftMenuAdapter.rebuild();
+            getController().addListener(i -> leftMenuAdapter.rebuild());
+        });
+        editModeProperty.addListener(i -> leftMenuAdapter.rebuild());
 
         hideAllViewsProperty.addListener(i -> {
             if (isHideAllViews()) {
-                Toast.makeText(activity, R.string.tip_hide_menu_view, Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, R.string.tip_hide_menu_view, Toast.LENGTH_LONG).show();
             }
         });
-
-        editLayout.visibilityProperty().bind(editModeProperty);
-
-        manageViewGroups.setOnClickListener(this);
-        addButton.setOnClickListener(this);
-        addDirection.setOnClickListener(this);
-        manageButtonStyle.setOnClickListener(this);
-        manageDirectionStyle.setOnClickListener(this);
-    }
-
-    private void refreshViewGroupList(FCLSpinner<ControlViewGroup> spinner) {
-        if (getViewGroup() != null) {
-            setViewGroup(null);
-        }
-        ArrayList<String> viewGroupNameList = controllerProperty.get().viewGroups().stream().map(ControlViewGroup::getName).collect(Collectors.toCollection(ArrayList::new));
-        spinner.setDataList(new ArrayList<>(controllerProperty.get().viewGroups()));
-        ArrayAdapter<String> viewGroupNameAdapter = new ArrayAdapter<>(activity, R.layout.item_spinner_small, viewGroupNameList);
-        viewGroupNameAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown_small);
-        spinner.setAdapter(viewGroupNameAdapter);
-        FXUtils.bindSelection(spinner, viewGroupProperty);
     }
 
     @SuppressLint("SetTextI18n")
     private void initRightMenu() {
-        FCLSwitch lockMenuSwitch = findViewById(R.id.switch_lock_view);
-        FCLSwitch hideMenuSwitch = findViewById(R.id.switch_hide_view);
-        FCLSwitch showFps = findViewById(R.id.switch_show_fps);
-        FCLSwitch disableSoftKeyAdjustSwitch = findViewById(R.id.switch_soft_keyboard_adjust);
-        FCLSwitch disableGestureSwitch = findViewById(R.id.switch_gesture);
-        FCLSwitch disableBEGestureSwitch = findViewById(R.id.switch_be_gesture);
-        FCLSwitch disableLeftTouchSwitch = findViewById(R.id.switch_left_touch);
-        FCLSwitch gyroSwitch = findViewById(R.id.switch_gyro);
-        FCLSwitch physicalMouseSwitch = findViewById(R.id.switch_physical_mouse_mode);
-        FCLSwitch showLogSwitch = findViewById(R.id.switch_show_log);
-        FCLSwitch performanceModeSwitch = findViewById(R.id.switch_performance);
-        FCLSwitch autoShowLogSwitch = findViewById(R.id.switch_auto_show_log);
-        FCLSwitch disableGamepadMapping = findViewById(R.id.switch_disable_gamepad_mapping);
+        rightMenuList = findViewById(R.id.right_menu_list);
+        rightMenuList.setLayoutManager(new LinearLayoutManager(activity));
+        rightMenuAdapter = new RightMenuAdapter(activity, this, new RightMenuAdapter.Listener() {
+            @Override
+            public void onCategoryClick(@NonNull RightMenuCategory category) {
+                showCategory(category);
+            }
 
-        FCLSpinner<GestureMode> gestureModeSpinner = findViewById(R.id.gesture_mode_spinner);
-        FCLSpinner<MouseMoveMode> mouseMoveModeSpinner = findViewById(R.id.mouse_mode_spinner);
+            @Override
+            public void onButtonClick(@NonNull RightMenuTag tag) {
+                handleRightButtonClick(tag);
+            }
 
-        FCLNumberSeekBar itemBarScaleSeekbar = findViewById(R.id.item_bar_scale);
-        FCLNumberSeekBar windowScaleSeekbar = findViewById(R.id.window_scale);
-        FCLNumberSeekBar cursorOffsetSeekbar = findViewById(R.id.cursor_offset);
-        FCLNumberSeekBar mouseSensitivitySeekbar = findViewById(R.id.mouse_sensitivity);
-        FCLNumberSeekBar mouseSensitivityCursorSeekbar = findViewById(R.id.mouse_sensitivity_cursor);
-        FCLNumberSeekBar mouseSizeSeekbar = findViewById(R.id.mouse_size);
-        FCLNumberSeekBar gamepadDeadzoneSeekbar = findViewById(R.id.gamepad_deadzone_size);
-        FCLNumberSeekBar gyroSensitivitySeekbar = findViewById(R.id.gyro_sensitivity);
+            @Override
+            public void onSwitchToggle(@NonNull RightMenuTag tag, boolean checked) {
+                handleRightSwitchToggle(tag, checked);
+            }
 
-        FCLTextView openMultiplayer = findViewById(R.id.open_multiplayer_menu_text);
-        openMultiplayerButton = findViewById(R.id.open_multiplayer_menu);
-        manageQuickInput = findViewById(R.id.open_quick_input);
-        sendKeycode = findViewById(R.id.open_send_key);
-        gamepadResetMapper = findViewById(R.id.gamepad_reset_mapper);
-        gamepadButtonBinding = findViewById(R.id.gamepad_reset_button_binding);
-        forceExit = findViewById(R.id.force_exit);
+            @Override
+            public void onSwitchLongClick(@NonNull RightMenuTag tag) {
+                handleRightSwitchLongClick(tag);
+            }
 
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("third_party", Context.MODE_PRIVATE);
-        boolean multiplayerEnabled = sharedPreferences.getBoolean("terracotta", false);
-        openMultiplayer.setVisibility((isSimulated() || !multiplayerEnabled) ? View.GONE : View.VISIBLE);
-        openMultiplayerButton.setVisibility((isSimulated() || !multiplayerEnabled) ? View.GONE : View.VISIBLE);
+            @Override
+            public void onSpinnerSelect(@NonNull RightMenuTag tag, int position) {
+                handleRightSpinnerSelect(tag, position);
+            }
 
-        disableGamepadMapping.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            gamepadDisabled = isChecked;
-        });
-
-        FXUtils.bindBoolean(lockMenuSwitch, menuSetting.getLockMenuViewProperty());
-        FXUtils.bindBoolean(hideMenuSwitch, menuSetting.getHideMenuViewViewProperty());
-        FXUtils.bindBoolean(disableSoftKeyAdjustSwitch, menuSetting.getDisableSoftKeyAdjustProperty());
-        FXUtils.bindBoolean(disableGestureSwitch, menuSetting.getDisableGestureProperty());
-        FXUtils.bindBoolean(disableBEGestureSwitch, menuSetting.getDisableBEGestureProperty());
-        FXUtils.bindBoolean(disableLeftTouchSwitch, menuSetting.getDisableLeftTouchProperty());
-        FXUtils.bindBoolean(gyroSwitch, menuSetting.getEnableGyroscopeProperty());
-        FXUtils.bindBoolean(physicalMouseSwitch, menuSetting.getPhysicalMouseMode());
-        FXUtils.bindBoolean(showLogSwitch, menuSetting.getShowLogProperty());
-        FXUtils.bindBoolean(autoShowLogSwitch, menuSetting.getAutoShowLogProperty());
-
-        performanceModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            menuSetting.getPerformanceModeProperty().setValue(isChecked);
-            activity.getWindow().setSustainedPerformanceMode(isChecked);
-        });
-        performanceModeSwitch.setChecked(menuSetting.isPerformanceMode());
-
-        menuSetting.getHideMenuViewViewProperty().addListener(i -> {
-            menuView.setVisibility(menuSetting.isHideMenuView() ? View.INVISIBLE : View.VISIBLE);
-            if (menuSetting.isHideMenuView()) {
-                Toast.makeText(activity, R.string.tip_hide_menu_view, Toast.LENGTH_SHORT).show();
+            @Override
+            public void onSeekBarChange(@NonNull RightMenuTag tag, int progress) {
+                handleRightSeekBarChange(tag, progress);
             }
         });
+        rightMenuList.setAdapter(rightMenuAdapter);
+        rightMenuAdapter.rebuild();
+        rightMenuList.addItemDecoration(new SpacingDecoration(
+                Math.round(6 * activity.getResources().getDisplayMetrics().density)));
 
-        showFps.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            menuSetting.getShowFpsProperty().setValue(isChecked);
-            if (isSimulated()) {
-                return;
-            }
-            if (isChecked) {
-                Schedulers.io().execute(() -> {
-                    FCLBridge.getFps();
-                    while (showFps.isChecked()) {
-                        if (System.currentTimeMillis() - time >= 1000) {
-                            Schedulers.androidUIThread().execute(() -> fpsText.setText("FPS:" + FCLBridge.getFps()));
-                            time = System.currentTimeMillis();
-                        }
-                    }
-                });
-            } else {
-                fpsText.setText("");
-            }
-        });
-        showFps.setChecked(menuSetting.isShowFps());
-        showFps.setOnLongClickListener((view -> {
-            fpsText.resetPosition();
-            return true;
-        }));
+        rightMenuTitle = findViewById(R.id.menu_title);
+        rightMenuBack = findViewById(R.id.menu_back);
+        rightMenuBack.setOnClickListener(v -> showCategories());
 
-        logWindow.visibilityProperty().setValue(menuSetting.isShowLog() || (!isSimulated() && menuSetting.isAutoShowLog()));
-        menuSetting.getShowLogProperty().addListener(observable -> {
-            logWindow.visibilityProperty().setValue(menuSetting.isShowLog());
-        });
-        menuSetting.getAutoShowLogProperty().addListener(observable -> {
-            if (baseLayout.getBackground() != null) {
-                logWindow.visibilityProperty().setValue(menuSetting.isAutoShowLog());
-            }
-        });
-
-        ArrayList<GestureMode> gestureModeDataList = new ArrayList<>();
-        gestureModeDataList.add(GestureMode.BUILD);
-        gestureModeDataList.add(GestureMode.FIGHT);
-        gestureModeSpinner.setDataList(gestureModeDataList);
-        ArrayList<MouseMoveMode> mouseMoveModeDataList = new ArrayList<>();
-        mouseMoveModeDataList.add(MouseMoveMode.CLICK);
-        mouseMoveModeDataList.add(MouseMoveMode.SLIDE);
-        mouseMoveModeSpinner.setDataList(mouseMoveModeDataList);
-        ArrayList<String> gestureModeList = new ArrayList<>();
-        gestureModeList.add(activity.getString(R.string.menu_settings_gesture_mode_build));
-        gestureModeList.add(activity.getString(R.string.menu_settings_gesture_mode_fight));
-        ArrayAdapter<String> gestureModeAdapter = new ArrayAdapter<>(activity, R.layout.item_spinner_small, gestureModeList);
-        gestureModeAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown_small);
-        gestureModeSpinner.setAdapter(gestureModeAdapter);
-        ArrayList<String> mouseMoveModeList = new ArrayList<>();
-        mouseMoveModeList.add(activity.getString(R.string.menu_settings_mouse_mode_click));
-        mouseMoveModeList.add(activity.getString(R.string.menu_settings_mouse_mode_slide));
-        ArrayAdapter<String> mouseMoveModeAdapter = new ArrayAdapter<>(activity, R.layout.item_spinner_small, mouseMoveModeList);
-        mouseMoveModeAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown_small);
-        mouseMoveModeSpinner.setAdapter(mouseMoveModeAdapter);
-        FXUtils.bindSelection(gestureModeSpinner, menuSetting.getGestureModeProperty());
-        FXUtils.bindSelection(mouseMoveModeSpinner, menuSetting.getMouseMoveModeProperty());
-
-        initSeekbar(itemBarScaleSeekbar, menuSetting.getItemBarScale(), observable -> {
-            menuSetting.setItemBarScale(itemBarScaleSeekbar.progressProperty().get());
-            GameOption.GameOptionListener optionListener = gameItemBar.getOptionListener();
-            if (optionListener != null) {
-                optionListener.onOptionChanged();
-            }
-        });
-
-        initSeekbar(windowScaleSeekbar, (int) (menuSetting.getWindowScale() * 100), observable -> {
-            double doubleValue = windowScaleSeekbar.progressProperty().get() / 100d;
-            menuSetting.setWindowScale(doubleValue);
-            refreshWindowsSize(doubleValue);
-        });
-
-        initSeekbar(cursorOffsetSeekbar, (int) (menuSetting.getCursorOffset()), observable -> {
-            menuSetting.setCursorOffset(cursorOffsetSeekbar.progressProperty().get());
-            int screenWidth = AndroidUtils.getScreenWidth(FCLApplication.getCurrentActivity());
-            int screenHeight = AndroidUtils.getScreenHeight(FCLApplication.getCurrentActivity());
-            if (fclBridge != null) {
-                double scaleFactor = fclBridge.getScaleFactor();
-                int width = (int) ((screenWidth + cursorOffsetSeekbar.progressProperty().get()) * scaleFactor);
-                int height = (int) (screenHeight * scaleFactor);
-                fclBridge.getSurfaceTexture().setDefaultBufferSize(width, height);
-                fclBridge.pushEventWindow(width, height);
-            }
-        });
-
-        initSeekbar(mouseSensitivitySeekbar, (int) (menuSetting.getMouseSensitivity() * 100), observable -> menuSetting.setMouseSensitivity(mouseSensitivitySeekbar.progressProperty().get() / 100d));
-        initSeekbar(mouseSensitivityCursorSeekbar, (int) (menuSetting.getMouseSensitivityCursor() * 100), observable -> menuSetting.setMouseSensitivityCursor(mouseSensitivityCursorSeekbar.progressProperty().get() / 100d));
-        initSeekbar(mouseSizeSeekbar, menuSetting.getMouseSizeProperty().get(), observable -> menuSetting.setMouseSize(mouseSizeSeekbar.progressProperty().get()));
-        initSeekbar(gamepadDeadzoneSeekbar, (int) (menuSetting.getGamepadDeadzone() * 100), observable -> menuSetting.setGamepadDeadzone(gamepadDeadzoneSeekbar.progressProperty().get() / 100d));
-        initSeekbar(gyroSensitivitySeekbar, menuSetting.getGyroscopeSensitivityProperty().get(), observable -> menuSetting.setGyroscopeSensitivity(gyroSensitivitySeekbar.progressProperty().get()));
-
-        openMultiplayerButton.setOnClickListener(this);
-        manageQuickInput.setOnClickListener(this);
-        sendKeycode.setOnClickListener(this);
-        gamepadResetMapper.setOnClickListener(this);
-        gamepadButtonBinding.setOnClickListener(this);
-        forceExit.setOnClickListener(this);
+        logWindow.setVisibility(menuSetting.isShowLog() || (!isSimulated() && menuSetting.isAutoShowLog()));
     }
 
-    private void initSeekbar(FCLNumberSeekBar bar, int initValue, InvalidationListener listener) {
-        bar.addProgressListener();
-        bar.progressProperty().set(initValue);
-        bar.progressProperty().addListener(listener);
+    private void showCategory(RightMenuCategory category) {
+        switchRightMenuContent(true, () -> {
+            rightMenuAdapter.showCategory(category);
+            rightMenuTitle.setText(category.getTitleRes());
+            rightMenuBack.setVisibility(View.VISIBLE);
+        });
+    }
+
+    private void showCategories() {
+        switchRightMenuContent(false, () -> {
+            rightMenuAdapter.showCategories();
+            rightMenuTitle.setText(R.string.menu_settings);
+            rightMenuBack.setVisibility(View.GONE);
+        });
+    }
+
+    /** 菜单切换动画：旧列表淡出后切换内容，新列表滑入淡入 */
+    private void switchRightMenuContent(boolean toCategory, Runnable refresh) {
+        if (rightMenuAnimating) {
+            refresh.run();
+            return;
+        }
+        rightMenuAnimating = true;
+        AlphaAnimation fadeOut = new AlphaAnimation(1f, 0f);
+        fadeOut.setDuration(150);
+        fadeOut.setInterpolator(new AccelerateInterpolator());
+        fadeOut.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                refresh.run();
+                rightMenuList.scrollToPosition(0);
+                AnimationSet enter = new AnimationSet(true);
+                enter.addAnimation(new AlphaAnimation(0f, 1f));
+                // 进入二级菜单从右侧滑入，返回一级从左侧滑入
+                enter.addAnimation(new TranslateAnimation(
+                        Animation.RELATIVE_TO_SELF, toCategory ? 0.15f : -0.15f,
+                        Animation.RELATIVE_TO_SELF, 0f,
+                        Animation.RELATIVE_TO_SELF, 0f,
+                        Animation.RELATIVE_TO_SELF, 0f));
+                enter.setDuration(180);
+                enter.setInterpolator(new DecelerateInterpolator());
+                enter.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        rightMenuAnimating = false;
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+                    }
+                });
+                rightMenuList.startAnimation(enter);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+        rightMenuList.startAnimation(fadeOut);
     }
 
     @Override
@@ -550,6 +480,7 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
         this.activity = activity;
         this.fclBridge = fclBridge;
         this.simulated = fclBridge == null;
+        this.gamepadControl = activity.getSharedPreferences("launcher", MODE_PRIVATE).getBoolean("gamepad_control", true);
         this.fclInput = new FCLInput(this);
         if (!Controllers.isInitialized()) {
             Controllers.init();
@@ -583,7 +514,7 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
             this.menuSetting = new MenuSetting();
         }
 
-        this.menuSetting.addPropertyChangedListener(observable -> {
+        this.menuSetting.addOnChangeListener(() -> {
             String content = new GsonBuilder().setPrettyPrinting().create().toJson(menuSetting);
             try {
                 FileUtils.writeText(new File(FCLPath.FILES_DIR + "/menu_setting.json"), content);
@@ -594,12 +525,14 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
 
         editModeProperty.set(isSimulated());
         controllerProperty.set(Controllers.findControllerById(activity.getIntent().getExtras().getString("controller")));
+        selectDefaultViewGroup();
 
         baseLayout = findViewById(R.id.base_layout);
         touchPad = findViewById(R.id.touch_pad);
         gameItemBar = findViewById(R.id.game_item_bar);
         logWindow = findViewById(R.id.log_window);
         fpsText = findViewById(R.id.fps);
+        memoryText = findViewById(R.id.memory);
         touchCharInput = findViewById(R.id.input_scanner);
         touchControllerInputView = findViewById(R.id.touchcontroller_input_view);
         launchProgress = findViewById(R.id.launch_progress);
@@ -614,19 +547,9 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
         }
         touchPad.init(this);
         touchCharInput.setCharacterSender(this, new LwjglCharSender(this));
-        ViewGroup.LayoutParams layoutParams = cursorView.getLayoutParams();
-        layoutParams.width = ConvertUtils.dip2px(activity, menuSetting.getMouseSizeProperty().get());
-        layoutParams.height = ConvertUtils.dip2px(activity, menuSetting.getMouseSizeProperty().get());
-        cursorView.setLayoutParams(layoutParams);
-        menuSetting.getMouseSizeProperty().addListener(observable -> {
-            ViewGroup.LayoutParams params = cursorView.getLayoutParams();
-            params.width = ConvertUtils.dip2px(activity, menuSetting.getMouseSizeProperty().get());
-            params.height = ConvertUtils.dip2px(activity, menuSetting.getMouseSizeProperty().get());
-            cursorView.setLayoutParams(params);
-        });
+        initCursorView(activity);
 
         gyroscope = new Gyroscope(this);
-        gyroscope.enableProperty().bind(menuSetting.getEnableGyroscopeProperty());
 
         viewManager = new ViewManager(this);
 
@@ -635,27 +558,50 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
 
         viewManager.setup();
 
-        Bitmap bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
-        if (new File(FCLPath.FILES_DIR, "cursor.png").exists()) {
-            bitmap = BitmapFactory.decodeFile(new File(FCLPath.FILES_DIR, "cursor.png").getAbsolutePath());
+        // 初始化时应用开关副作用（FPS/内存线程、持续性能模式），
+        // 使重启后已开启的设置保持生效（开关行绑定不触发副作用回调）
+        toggleFps(menuSetting.isShowFps());
+        toggleMemory(menuSetting.isShowMemory());
+        activity.getWindow().setSustainedPerformanceMode(menuSetting.isPerformanceMode());
+
+        if (new File(FCLPath.FILES_DIR, "cursor.gif").exists()) {
+            Glide.with(getCursor()).asGif().skipMemoryCache(true).load(new File(FCLPath.FILES_DIR, "cursor.gif")).into(new CustomViewTarget<CursorView, GifDrawable>(getCursor()) {
+                @Override
+                public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                }
+
+                @Override
+                public void onResourceReady(@NonNull GifDrawable resource, @Nullable Transition<? super GifDrawable> transition) {
+                    getCursor().setImageDrawable(resource);
+                    resource.start();
+                }
+
+                @Override
+                protected void onResourceCleared(@Nullable Drawable placeholder) {
+                }
+            });
+        } else if (new File(FCLPath.FILES_DIR, "cursor.png").exists()) {
+            Bitmap bitmap = BitmapFactory.decodeFile(new File(FCLPath.FILES_DIR, "cursor.png").getAbsolutePath());
+            BitmapDrawable drawable = new BitmapDrawable(getActivity().getResources(), bitmap);
+            getCursor().setImageDrawable(drawable);
         } else {
             AssetManager assetManager = getActivity().getAssets();
             try (InputStream inputStream = assetManager.open("img/game_menu/cursor.png")) {
-                bitmap = BitmapFactory.decodeStream(inputStream);
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                BitmapDrawable drawable = new BitmapDrawable(getActivity().getResources(), bitmap);
+                getCursor().setImageDrawable(drawable);
             } catch (Exception e) {
-                e.printStackTrace();
+                Logging.LOG.log(Level.SEVERE, "Failed to load menu icon", e);
             }
         }
-        BitmapDrawable drawable = new BitmapDrawable(getActivity().getResources(), bitmap);
-        getCursor().setImageDrawable(drawable);
 
         if (getBridge() != null && getBridge().hasTouchController()) {
             SharedPreferences sharedPreferences = getActivity().getSharedPreferences("launcher", MODE_PRIVATE);
-            touchController = new TouchController(getActivity(), AndroidUtils.getScreenWidth(getActivity()), AndroidUtils.getScreenHeight(getActivity()), (int) sharedPreferences.getInt("vibrationDuration", 100));
+            touchController = new TouchController(getActivity(), AndroidUtilKt.getScreenWidth(), AndroidUtilKt.getScreenHeight(), sharedPreferences.getInt("vibrationDuration", 100));
 
             touchControllerInputView.setClient(touchController.getClient());
             touchControllerInputView.setFclInput(fclInput);
-            touchControllerInputView.setSize(AndroidUtils.getScreenWidth(getActivity()), AndroidUtils.getScreenHeight(getActivity()));
+            touchControllerInputView.setSize(AndroidUtilKt.getScreenWidth(), AndroidUtilKt.getScreenHeight());
             touchControllerInputView.setDisableFullScreenInput(sharedPreferences.getBoolean("disableFullscreenInput", true));
         }
 
@@ -669,7 +615,18 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
             }
             return false;
         });
+        if (menuSetting.isHideMenuView()) {
+            Toast.makeText(activity, R.string.tip_hide_menu_view, Toast.LENGTH_LONG).show();
+        }
+    }
 
+    private void initCursorView(FCLActivity activity) {
+        ViewGroup.LayoutParams layoutParams = cursorView.getLayoutParams();
+        layoutParams.width = ConvertUtils.dip2px(activity, menuSetting.getMouseSize());
+        layoutParams.height = ConvertUtils.dip2px(activity, menuSetting.getMouseSize());
+        cursorView.setLayoutParams(layoutParams);
+        cursorView.setOffsetX(menuSetting.getMouseOffsetX());
+        cursorView.setOffsetY(menuSetting.getMouseOffsetX());
     }
 
     @Override
@@ -689,7 +646,7 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
 
     @Override
     public FCLBridgeCallback getCallbackBridge() {
-        return new FCLProcessListener(this);
+        return this;
     }
 
     @Override
@@ -698,7 +655,7 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
     }
 
     @Override
-    public FCLImageView getCursor() {
+    public CursorView getCursor() {
         return cursorView;
     }
 
@@ -727,19 +684,21 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
         baseLayout.setBackground(null);
         baseLayout.removeView(launchProgress);
         if (!menuSetting.isShowLog() && menuSetting.isAutoShowLog()) {
-            logWindow.visibilityProperty().setValue(false);
+            logWindow.setVisibility(false);
         }
-        refreshWindowsSize(menuSetting.getWindowScale());
     }
 
     @Override
     public void onCursorModeChange(int mode) {
-        this.cursorModeProperty.set(mode);
         activity.runOnUiThread(() -> {
+            if (lastCursorMode == mode)
+                return;
+            lastCursorMode = mode;
+            this.cursorModeProperty.set(mode);
             if (mode == FCLBridge.CursorEnabled) {
                 getCursor().setVisibility(View.VISIBLE);
                 gameItemBar.setVisibility(View.GONE);
-                getInput().setPointer(AndroidUtils.getScreenWidth(FCLApplication.getCurrentActivity()) / 2, AndroidUtils.getScreenHeight(FCLApplication.getCurrentActivity()) / 2, "Gyro");
+                getInput().setPointer(AndroidUtilKt.getScreenWidth() / 2, AndroidUtilKt.getScreenHeight() / 2, "Gyro");
                 if (menuSetting.isPhysicalMouseMode()) {
                     getInput().getFocusableView().releasePointerCapture();
                     getInput().getFocusableView().clearFocus();
@@ -785,7 +744,7 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
     @Override
     public void onExit(int exitCode) {
         if (exitCode != 0 && fclBridge != null) {
-            JVMCrashActivity.startCrashActivity(true, activity, exitCode, fclBridge.getLogPath(), fclBridge.getRenderer(), fclBridge.getJava());
+            JVMCrashActivity.startCrashActivity(true, activity, exitCode, fclBridge.getLogPath());
             Logging.LOG.log(Level.INFO, "JVM crashed, start jvm crash activity to show errors now!");
         }
         android.os.Process.killProcess(android.os.Process.myPid());
@@ -801,109 +760,382 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
         dialog.show();
     }
 
-    @Override
-    public void onClick(View v) {
-        if (v == manageViewGroups) {
-            ViewGroupDialog dialog = new ViewGroupDialog(getActivity(), this, false, FXCollections.observableList(new ArrayList<>()), null);
-            dialog.show();
-        }
-        if (v == addButton) {
-            if (getViewGroup() == null) {
-                Toast.makeText(getActivity(), getActivity().getString(R.string.edit_view_no_group), Toast.LENGTH_SHORT).show();
-            } else {
-                EditViewDialog dialog = new EditViewDialog(getActivity(), new ControlButtonData(UUID.randomUUID().toString()), this, new EditViewDialog.Callback() {
-                    @Override
-                    public void onPositive(CustomControl view) {
-                        viewManager.addView(view);
-                    }
-
-                    @Override
-                    public void onClone(CustomControl view) {
-                        // Ignore
-                    }
-                }, false);
+    private void handleLeftButtonClick(LeftMenuTag tag) {
+        switch (tag) {
+            case MANAGE_VIEW_GROUPS: {
+                ViewGroupDialog dialog = new ViewGroupDialog(getActivity(), this, false, FXCollections.observableList(new ArrayList<>()), null);
                 dialog.show();
+                break;
             }
-        }
-        if (v == addDirection) {
-            if (getViewGroup() == null) {
-                Toast.makeText(getActivity(), getActivity().getString(R.string.edit_view_no_group), Toast.LENGTH_SHORT).show();
-            } else {
-                EditViewDialog dialog = new EditViewDialog(getActivity(), new ControlDirectionData(UUID.randomUUID().toString()), this, new EditViewDialog.Callback() {
-                    @Override
-                    public void onPositive(CustomControl view) {
-                        viewManager.addView(view);
-                    }
+            case ADD_BUTTON: {
+                if (getViewGroup() == null) {
+                    Toast.makeText(getActivity(), getActivity().getString(R.string.edit_view_no_group), Toast.LENGTH_SHORT).show();
+                } else {
+                    EditViewDialog dialog = new EditViewDialog(getActivity(), new ControlButtonData(UUID.randomUUID().toString()), this, new EditViewDialog.Callback() {
+                        @Override
+                        public void onPositive(CustomControl view) {
+                            viewManager.addView(view);
+                        }
 
-                    @Override
-                    public void onClone(CustomControl view) {
-                        // Ignore
-                    }
-                }, false);
+                        @Override
+                        public void onClone(CustomControl view) {
+                            // Ignore
+                        }
+                    }, false);
+                    dialog.show();
+                }
+                break;
+            }
+            case ADD_DIRECTION: {
+                if (getViewGroup() == null) {
+                    Toast.makeText(getActivity(), getActivity().getString(R.string.edit_view_no_group), Toast.LENGTH_SHORT).show();
+                } else {
+                    EditViewDialog dialog = new EditViewDialog(getActivity(), new ControlDirectionData(UUID.randomUUID().toString()), this, new EditViewDialog.Callback() {
+                        @Override
+                        public void onPositive(CustomControl view) {
+                            viewManager.addView(view);
+                        }
+
+                        @Override
+                        public void onClone(CustomControl view) {
+                            // Ignore
+                        }
+                    }, false);
+                    dialog.show();
+                }
+                break;
+            }
+            case MANAGE_BUTTON_STYLE: {
+                ButtonStyleDialog dialog = new ButtonStyleDialog(getActivity(), false, null, null);
                 dialog.show();
+                break;
+            }
+            case MANAGE_DIRECTION_STYLE: {
+                DirectionStyleDialog dialog = new DirectionStyleDialog(getActivity(), false, null, null);
+                dialog.show();
+                break;
             }
         }
-        if (v == manageButtonStyle) {
-            ButtonStyleDialog dialog = new ButtonStyleDialog(getActivity(), false, null, null);
-            dialog.show();
+    }
+
+    private void handleLeftSwitchToggle(LeftMenuTag tag, boolean checked) {
+        switch (tag) {
+            case EDIT_MODE:
+                setEditMode(checked);
+                if (checked) {
+                    selectDefaultViewGroup();
+                }
+                break;
+            case SHOW_BOUNDARY:
+                setShowViewBoundaries(checked);
+                break;
+            case HIDE_ALL:
+                setHideAllViews(checked);
+                break;
+            case AUTO_FIT:
+                menuSetting.setAutoFit(checked);
+                break;
         }
-        if (v == manageDirectionStyle) {
-            DirectionStyleDialog dialog = new DirectionStyleDialog(getActivity(), false, null, null);
-            dialog.show();
-        }
-        if (v == openMultiplayerButton) {
-            if (multiplayerDialog == null) {
-                int width = (int) (AndroidUtils.getScreenWidth(getActivity()) * 0.7);
-                int height = (int) (AndroidUtils.getScreenHeight(getActivity()) * 0.9);
-                multiplayerDialog = new MultiplayerDialog(getActivity(), getActivity(), width, height);
-            }
-            multiplayerDialog.show();
-        }
-        if (v == manageQuickInput) {
-            openQuickInput();
-        }
-        if (v == sendKeycode) {
-            ObservableList<Integer> list = FXCollections.observableList(new ArrayList<>());
-            new SelectKeycodeDialog(getActivity(), list, false, true, (dialog) -> {
-                Schedulers.io().execute(() -> {
-                    list.forEach(key -> getInput().sendKeyEvent(key, true));
-                    try {
-                        Thread.sleep(50);
-                    } catch (InterruptedException ignore) {
+    }
+
+    private void handleLeftSpinnerSelect(LeftMenuTag tag, int position) {
+        if (tag == LeftMenuTag.CURRENT_CONTROLLER) {
+            setController(Controllers.getControllers().get(position));
+        } else if (tag == LeftMenuTag.CURRENT_VIEW_GROUP) {
+            ControlViewGroup viewGroup = getController().viewGroups().get(position);
+            setViewGroup(viewGroup);
+            if (viewGroup != null) {
+                viewGroup.getViewData().buttonList().forEach(it -> {
+                    String name = it.getStyle().getName();
+                    ControlButtonStyle style = ButtonStyles.findStyleByName(name);
+                    if (name.equals(style.getName())) {
+                        it.setStyle(style);
                     }
-                    list.forEach(key -> getInput().sendKeyEvent(key, false));
                 });
-                return Unit.INSTANCE;
-            }).show();
-        }
-        if (v == gamepadResetMapper) {
-            Remapper.wipePreferences(getActivity());
-            getInput().resetMapper();
-        }
-        if (v == gamepadButtonBinding) {
-            fclInput.checkGamepad();
-            if (fclInput.getGamepad() != null) {
-                new GamepadMapDialog(getActivity(), fclInput).show();
+                viewGroup.getViewData().directionList().forEach(it -> {
+                    String name = it.getStyle().getName();
+                    ControlDirectionStyle style = DirectionStyles.findStyleByName(name);
+                    if (name.equals(style.getName())) {
+                        it.setStyle(style);
+                    }
+                });
             }
         }
-        if (v == forceExit) {
-            FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(activity);
-            builder.setAlertLevel(FCLAlertDialog.AlertLevel.ALERT);
-            builder.setMessage(activity.getString(R.string.menu_settings_force_exit_msg));
-            builder.setPositiveButton(() -> android.os.Process.killProcess(android.os.Process.myPid()));
-            builder.setNegativeButton(null);
-            builder.setCancelable(false);
-            builder.create().show();
+    }
+
+    private void handleLeftSeekBarChange(LeftMenuTag tag, int progress) {
+        if (tag == LeftMenuTag.AUTO_FIT_DIST) {
+            menuSetting.setAutoFitDist(progress);
+        }
+    }
+
+    private void handleRightButtonClick(RightMenuTag tag) {
+        switch (tag) {
+            case OPEN_MULTIPLAYER: {
+                if (multiplayerDialog == null) {
+                    int width = (int) (AndroidUtilKt.getScreenWidth() * 0.7);
+                    int height = (int) (AndroidUtilKt.getScreenHeight() * 0.9);
+                    multiplayerDialog = new MultiplayerDialog(getActivity(), getActivity(), width, height);
+                }
+                multiplayerDialog.show();
+                break;
+            }
+            case OPEN_QUICK_INPUT:
+                openQuickInput();
+                break;
+            case OPEN_SEND_KEY: {
+                ObservableList<Integer> list = FXCollections.observableList(new ArrayList<>());
+                new SelectKeycodeDialog(getActivity(), list, false, true, (dialog) -> {
+                    Schedulers.io().execute(() -> {
+                        list.forEach(key -> getInput().sendKeyEvent(key, true));
+                        try {
+                            Thread.sleep(50);
+                        } catch (InterruptedException ignore) {
+                        }
+                        list.forEach(key -> getInput().sendKeyEvent(key, false));
+                    });
+                    return Unit.INSTANCE;
+                }).show();
+                break;
+            }
+            case GAMEPAD_RESET_MAPPER:
+                Remapper.wipePreferences(getActivity());
+                getInput().resetMapper();
+                break;
+            case GAMEPAD_BUTTON_BINDING:
+                fclInput.checkGamepad();
+                if (fclInput.getGamepad() != null) {
+                    new GamepadMapDialog(getActivity(), fclInput).show();
+                }
+                break;
+            case FORCE_EXIT: {
+                FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(activity);
+                builder.setAlertLevel(FCLAlertDialog.AlertLevel.ALERT);
+                builder.setMessage(activity.getString(R.string.menu_settings_force_exit_msg));
+                builder.setPositiveButton(() -> android.os.Process.killProcess(android.os.Process.myPid()));
+                builder.setNegativeButton(null);
+                builder.setCancelable(false);
+                builder.create().show();
+                break;
+            }
+        }
+    }
+
+    private void handleRightSwitchToggle(RightMenuTag tag, boolean checked) {
+        switch (tag) {
+            case LOCK_VIEW:
+                menuSetting.setLockMenuView(checked);
+                break;
+            case HIDE_VIEW:
+                menuSetting.setHideMenuView(checked);
+                menuView.setVisibility(checked ? View.INVISIBLE : View.VISIBLE);
+                if (checked) {
+                    Toast.makeText(activity, R.string.tip_hide_menu_view, Toast.LENGTH_LONG).show();
+                }
+                break;
+            case SHOW_FPS:
+                toggleFps(checked);
+                break;
+            case SHOW_MEMORY:
+                toggleMemory(checked);
+                break;
+            case SOFT_KEYBOARD_ADJUST:
+                menuSetting.setDisableSoftKeyAdjust(checked);
+                break;
+            case DISABLE_GESTURE:
+                menuSetting.setDisableGesture(checked);
+                break;
+            case DISABLE_LEFT_TOUCH:
+                menuSetting.setDisableLeftTouch(checked);
+                break;
+            case GYRO:
+                menuSetting.setEnableGyroscope(checked);
+                if (checked) {
+                    gyroscope.enableSensor();
+                } else {
+                    gyroscope.disableSensor();
+                }
+                break;
+            case GYRO_INVERT:
+                menuSetting.setInvertGyroscope(checked);
+                break;
+            case PHYSICAL_MOUSE:
+                menuSetting.setPhysicalMouseMode(checked);
+                break;
+            case GAMEPAD_CONTROL:
+                setGamepadControl(checked);
+                // 联动刷新：手柄关闭时输入模式选择器禁用
+                rightMenuAdapter.rebuild();
+                break;
+            case PERFORMANCE_MODE:
+                menuSetting.setPerformanceMode(checked);
+                activity.getWindow().setSustainedPerformanceMode(checked);
+                break;
+            case SHOW_LOG:
+                menuSetting.setShowLog(checked);
+                logWindow.setVisibility(menuSetting.isShowLog());
+                break;
+            case AUTO_SHOW_LOG:
+                menuSetting.setAutoShowLog(checked);
+                if (baseLayout.getBackground() != null) {
+                    logWindow.setVisibility(menuSetting.isAutoShowLog());
+                }
+                break;
+            case SDL_AUTO_SHOW_IME:
+                SdlSettings.setSdlAutoShowIme(checked);
+                break;
+        }
+    }
+
+    private void handleRightSwitchLongClick(RightMenuTag tag) {
+        if (tag == RightMenuTag.SHOW_FPS) {
+            fpsText.resetPosition();
+        } else if (tag == RightMenuTag.SHOW_MEMORY) {
+            memoryText.resetPosition();
+        }
+    }
+
+    private void handleRightSpinnerSelect(RightMenuTag tag, int position) {
+        if (tag == RightMenuTag.GESTURE_MODE) {
+            menuSetting.setGestureMode(GestureMode.getById(position));
+        } else if (tag == RightMenuTag.MOUSE_MODE) {
+            menuSetting.setMouseMoveMode(MouseMoveMode.getById(position));
+        } else if (tag == RightMenuTag.GAMEPAD_INPUT_MODE) {
+            SdlSettings.setGamepadInputMode(GamepadInputMode.values()[position]);
+        }
+    }
+
+    private void handleRightSeekBarChange(RightMenuTag tag, int progress) {
+        int screenWidth = AndroidUtilKt.getScreenWidth();
+        int screenHeight = AndroidUtilKt.getScreenHeight();
+        switch (tag) {
+            case ITEM_BAR_WIDTH:
+                menuSetting.setItemBarWidth((int) (screenWidth / 100f * progress));
+                GameOption.GameOptionListener widthListener = gameItemBar.getOptionListener();
+                if (widthListener != null) {
+                    widthListener.onOptionChanged(true);
+                }
+                break;
+            case ITEM_BAR_HEIGHT:
+                menuSetting.setItemBarHeight((int) (screenHeight / 100f * progress));
+                GameOption.GameOptionListener heightListener = gameItemBar.getOptionListener();
+                if (heightListener != null) {
+                    heightListener.onOptionChanged(true);
+                }
+                break;
+            case WINDOW_SCALE: {
+                double doubleValue = progress / 100d;
+                menuSetting.setWindowScale(doubleValue);
+                refreshWindowsSize(doubleValue);
+                break;
+            }
+            case CURSOR_OFFSET:
+                menuSetting.setCursorOffset(progress);
+                if (fclBridge != null) {
+                    refreshWindowsSize(menuSetting.getWindowScale());
+                }
+                break;
+            case MOUSE_SENSITIVITY:
+                menuSetting.setMouseSensitivity(progress / 100d);
+                break;
+            case MOUSE_CURSOR_SENSITIVITY:
+                menuSetting.setMouseSensitivityCursor(progress / 100d);
+                break;
+            case MOUSE_SIZE:
+                menuSetting.setMouseSize(progress);
+                initCursorView(activity);
+                break;
+            case MOUSE_OFFSET_X:
+                menuSetting.setMouseOffsetX(progress);
+                cursorView.setOffsetX(menuSetting.getMouseOffsetX());
+                break;
+            case MOUSE_OFFSET_Y:
+                menuSetting.setMouseOffsetY(progress);
+                cursorView.setOffsetY(menuSetting.getMouseOffsetY());
+                break;
+            case GAMEPAD_DEADZONE:
+                menuSetting.setGamepadDeadzone(progress / 100d);
+                break;
+            case GYRO_SENSITIVITY:
+                menuSetting.setGyroscopeSensitivity(progress);
+                break;
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void toggleFps(boolean checked) {
+        menuSetting.setShowFps(checked);
+        if (isSimulated()) {
+            return;
+        }
+        if (checked) {
+            fpsThread = new Thread(() -> {
+                FCLBridge.getFps();
+                while (menuSetting.isShowFps() && !Thread.currentThread().isInterrupted()) {
+                    Schedulers.androidUIThread().execute(() -> fpsText.setText("FPS:" + FCLBridge.getFps()));
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignored) {
+                    }
+                }
+            });
+            fpsThread.setName("FCL FPS Thread");
+            fpsThread.start();
+        } else {
+            if (fpsThread != null) {
+                fpsThread.interrupt();
+                fpsThread = null;
+            }
+            fpsText.setText("");
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void toggleMemory(boolean checked) {
+        menuSetting.setShowMemory(checked);
+        if (isSimulated()) {
+            return;
+        }
+        if (checked) {
+            memoryThread = new Thread(() -> {
+                while (menuSetting.isShowMemory() && !Thread.currentThread().isInterrupted()) {
+                    long usedMemory = AndroidUtilKt.getUsedMemory(getActivity()) / 1024 / 1024;
+                    long totalMemory = AndroidUtilKt.getTotalMemory(getActivity()) / 1024 / 1024;
+                    long usage;
+                    if (totalMemory > 0) {
+                        usage = usedMemory * 100 / totalMemory;
+                    } else {
+                        usage = -1;
+                    }
+                    Schedulers.androidUIThread().execute(() -> memoryText.setText("Mem(" + usage + "%): " + usedMemory + " / " + totalMemory + " MB"));
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignored) {
+                    }
+                }
+            });
+            memoryThread.setName("FCL Memory Thread");
+            memoryThread.start();
+        } else {
+            if (memoryThread != null) {
+                memoryThread.interrupt();
+                memoryThread = null;
+            }
+            memoryText.setText("");
         }
     }
 
     private void refreshWindowsSize(double factor) {
-        int screenWidth = AndroidUtils.getScreenWidth(FCLApplication.getCurrentActivity());
-        int screenHeight = AndroidUtils.getScreenHeight(FCLApplication.getCurrentActivity());
+        int screenWidth = AndroidUtilKt.getScreenWidth();
+        int screenHeight = AndroidUtilKt.getScreenHeight();
         if (fclBridge != null) {
             fclBridge.setScaleFactor(factor);
             int width = (int) ((screenWidth + menuSetting.getCursorOffset()) * factor);
             int height = (int) (screenHeight * factor);
+            if (FCLBridge.FORCE_RESOLUTION) {
+                width = FCLBridge.FORCE_RESOLUTION_WIDTH;
+                height = FCLBridge.FORCE_RESOLUTION_HEIGHT;
+            }
             fclBridge.getSurfaceTexture().setDefaultBufferSize(width, height);
             fclBridge.pushEventWindow(width, height);
         }
@@ -912,34 +1144,5 @@ public class GameMenu implements MenuCallback, View.OnClickListener {
     @Nullable
     public TouchController getTouchController() {
         return touchController;
-    }
-
-    static class FCLProcessListener implements FCLBridgeCallback {
-
-        private final GameMenu gameMenu;
-
-        public FCLProcessListener(GameMenu gameMenu) {
-            this.gameMenu = gameMenu;
-        }
-
-        @Override
-        public void onCursorModeChange(int mode) {
-            gameMenu.onCursorModeChange(mode);
-        }
-
-        @Override
-        public void onHitResultTypeChange(int type) {
-            gameMenu.hitResultType = type;
-        }
-
-        @Override
-        public void onLog(String log) {
-            gameMenu.onLog(log);
-        }
-
-        @Override
-        public void onExit(int code) {
-            gameMenu.onExit(code);
-        }
     }
 }

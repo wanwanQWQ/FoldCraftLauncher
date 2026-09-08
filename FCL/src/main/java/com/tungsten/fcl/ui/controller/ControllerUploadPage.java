@@ -7,12 +7,10 @@ import android.view.View;
 
 import androidx.core.content.FileProvider;
 
-import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.control.download.ControllerIndex;
 import com.tungsten.fcl.control.download.ControllerVersion;
 import com.tungsten.fcl.setting.Controller;
-import com.tungsten.fcl.ui.ProgressDialog;
 import com.tungsten.fclauncher.utils.FCLPath;
 import com.tungsten.fclcore.task.Schedulers;
 import com.tungsten.fclcore.task.Task;
@@ -21,10 +19,10 @@ import com.tungsten.fclcore.util.function.ExceptionalConsumer;
 import com.tungsten.fclcore.util.gson.JsonUtils;
 import com.tungsten.fclcore.util.io.FileUtils;
 import com.tungsten.fclcore.util.io.Zipper;
-import com.tungsten.fcllibrary.component.ui.FCLTempPage;
+import com.tungsten.fcllibrary.component.ui.FCLPage;
 import com.tungsten.fcllibrary.component.view.FCLButton;
 import com.tungsten.fcllibrary.component.view.FCLTextView;
-import com.tungsten.fcllibrary.component.view.FCLUILayout;
+import com.tungsten.fcllibrary.ui.ProgressDialog;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -33,7 +31,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
-public class ControllerUploadPage extends FCLTempPage implements View.OnClickListener {
+public class ControllerUploadPage extends FCLPage implements View.OnClickListener {
 
     private final Controller controller;
 
@@ -44,8 +42,8 @@ public class ControllerUploadPage extends FCLTempPage implements View.OnClickLis
     private FCLButton community;
     private FCLButton share;
 
-    public ControllerUploadPage(Context context, int id, FCLUILayout parent, int resId, Controller controller) {
-        super(context, id, parent, resId);
+    public ControllerUploadPage(Context context, int id, Controller controller) {
+        super(context, id, R.layout.page_controller_upload);
         this.controller = controller;
         create();
     }
@@ -70,10 +68,6 @@ public class ControllerUploadPage extends FCLTempPage implements View.OnClickLis
         return null;
     }
 
-    @Override
-    public void onRestart() {
-
-    }
 
     @Override
     public void onClick(View view) {
@@ -97,7 +91,6 @@ public class ControllerUploadPage extends FCLTempPage implements View.OnClickLis
             Files.write(indexFile.toPath(), JsonUtils.GSON.toJson(index).getBytes(StandardCharsets.UTF_8));
             File versionFile = File.createTempFile("version", ".json");
             Files.write(versionFile.toPath(), JsonUtils.GSON.toJson(version).getBytes(StandardCharsets.UTF_8));
-
             FileUtils.copyFile(indexFile, new File(FCLPath.CACHE_DIR + "/control/upload/" + controller.getId() + "/index.json"));
             FileUtils.copyFile(versionFile, new File(FCLPath.CACHE_DIR + "/control/upload/" + controller.getId() + "/version.json"));
             for (int i = 1; i <= screenshots.size(); i++) {
@@ -113,14 +106,14 @@ public class ControllerUploadPage extends FCLTempPage implements View.OnClickLis
                 zipper.putDirectory(new File(FCLPath.CACHE_DIR + "/control/upload/" + controller.getId()).toPath(), controller.getId());
             }
             return FCLPath.CACHE_DIR + "/control/upload/" + controller.getId() + ".zip";
-        }).thenAcceptAsync(Schedulers.androidUIThread(), (ExceptionalConsumer<String, Exception>)s -> {
+        }).thenAcceptAsync(Schedulers.androidUIThread(), (ExceptionalConsumer<String, Exception>) s -> {
             Intent intent = new Intent(Intent.ACTION_SEND);
             Uri uri = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".provider", new File(s));
             intent.setType("text/plain");
             intent.putExtra(Intent.EXTRA_STREAM, uri);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            getActivity().startActivity(Intent.createChooser(intent, getContext().getString(com.tungsten.fcllibrary.R.string.crash_reporter_share)));
+            getActivity().startActivity(Intent.createChooser(intent, getContext().getString(com.tungsten.fcl.R.string.crash_reporter_share)));
         }).whenComplete(Schedulers.androidUIThread(), exception -> {
             dialog.dismiss();
             if (exception != null) {
@@ -131,13 +124,15 @@ public class ControllerUploadPage extends FCLTempPage implements View.OnClickLis
 
 
     public boolean joinCommunity() {
-        Uri uri = Uri.parse(FCLApplication.Prop.getProperty("community-controller","null://"));
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        Intent intent = new Intent();
+        Uri uri = Uri.parse(FCLPath.Prop.getProperty("community-controller","null://"));
+        intent.setData(uri);
         try {
             getContext().startActivity(intent);
-            return true;
-        } catch (Exception e) {
+        }
+         catch (Exception ignored) {
             return false;
         }
+        return true;
     }
 }

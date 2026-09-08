@@ -38,14 +38,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
 import android.content.Context;
 
 import com.google.gson.reflect.TypeToken;
-import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.game.OAuthServer;
 import com.tungsten.fclauncher.utils.FCLPath;
@@ -195,7 +196,7 @@ public final class Accounts {
 
     @SuppressWarnings("unchecked")
     private static void loadGlobalAccountStorages() {
-        Path globalAccountsFile = new File(FCLPath.EXTERNAL_DIR, "accounts.json").toPath();
+        Path globalAccountsFile = new File(FCLPath.ACCOUNTS_DIR, "accounts.json").toPath();
         if (Files.exists(globalAccountsFile)) {
             try (Reader reader = Files.newBufferedReader(globalAccountsFile)) {
                 globalAccountStorages.setAll((List<Map<Object, Object>>)
@@ -344,7 +345,7 @@ public final class Accounts {
             });
         }
 
-        if (FCLApplication.Prop.getProperty("download-online-authlib-injector", "false").equals("true")) {
+        if (FCLPath.Prop.getProperty("download-online-authlib-injector", "false").equals("true")) {
             triggerAuthlibInjectorUpdateCheck();
         }
 
@@ -375,6 +376,29 @@ public final class Accounts {
 
     public static ObjectProperty<Account> selectedAccountProperty() {
         return selectedAccount;
+    }
+
+    public static void addAccount(Account account) {
+        int oldIndex = Accounts.getAccounts().indexOf(account);
+        if (oldIndex == -1) {
+            Accounts.getAccounts().add(account);
+        } else {
+            // adding an already-added account
+            // instead of discarding the new account, we first remove the existing one then add the new one
+            Accounts.getAccounts().remove(oldIndex);
+            Accounts.getAccounts().add(oldIndex, account);
+        }
+    }
+
+    public static void replaceAccount(UUID uuid, Account account) {
+        List<Account> list = Accounts.getAccounts().stream().filter(a -> a.getUUID().equals(uuid)).collect(Collectors.toList());
+        if (list.isEmpty()) {
+            Accounts.getAccounts().add(account);
+        } else {
+            int oldIndex = Accounts.getAccounts().indexOf(list.get(0));
+            Accounts.getAccounts().remove(oldIndex);
+            Accounts.getAccounts().add(oldIndex, account);
+        }
     }
 
     // ==== authlib-injector ====
@@ -480,7 +504,9 @@ public final class Accounts {
             }
         } else if (exception instanceof MicrosoftService.XBox400Exception) {
             return context.getString(R.string.account_methods_microsoft_error_wrong_verify_method);
-        } else if (exception instanceof MicrosoftService.NoMinecraftJavaEditionProfileException) {
+        } else if (exception instanceof MicrosoftService.MinecraftJavaEditionLicenseNotFoundException) {
+            return context.getString(R.string.account_methods_microsoft_error_no_license);
+        } else if (exception instanceof MicrosoftService.MinecraftJavaEditionProfileNotFoundException) {
             return context.getString(R.string.account_methods_microsoft_error_no_character);
         } else if (exception instanceof MicrosoftService.NoXuiException) {
             return context.getString(R.string.account_methods_microsoft_error_add_family_probably);

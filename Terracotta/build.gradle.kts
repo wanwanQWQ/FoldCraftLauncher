@@ -18,18 +18,17 @@ android {
         getByName("release") {
             isMinifyEnabled = false
         }
-        create("fordebug") {
+        getByName("debug") {
             initWith(getByName("debug"))
         }
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
 dependencies {
-
-    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation(libs.appcompat)
 }

@@ -12,10 +12,12 @@ captures/
 release
 *.apk
 output.json
+android-ndk-r26d/
 
 # IntelliJ
 *.iml
 .idea/
+.trae/
 
 # VSCode
 .vscode/
@@ -32,3 +34,8 @@ controllerRepo/
 # Unknown
 FCL/src/main/java/com/mio/Main.kt
 .DS_Store
+AGENTS.md
+
+# ZCode 会话文件
+/.zcode/
+.kotlin/

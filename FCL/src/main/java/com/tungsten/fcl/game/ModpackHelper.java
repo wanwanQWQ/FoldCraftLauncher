@@ -28,6 +28,7 @@ import com.google.gson.reflect.TypeToken;
 import com.tungsten.fcl.setting.Profile;
 import com.tungsten.fcl.setting.Profiles;
 import com.tungsten.fcl.setting.VersionSetting;
+import com.tungsten.fclauncher.utils.FCLPath;
 import com.tungsten.fclcore.mod.MismatchedModpackTypeException;
 import com.tungsten.fclcore.mod.Modpack;
 import com.tungsten.fclcore.mod.ModpackCompletionException;
@@ -65,13 +66,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class ModpackHelper {
-    private ModpackHelper() {}
+    private ModpackHelper() {
+    }
 
     private static final Map<String, ModpackProvider> providers = mapOf(
             pair(CurseModpackProvider.INSTANCE.getName(), CurseModpackProvider.INSTANCE),
@@ -88,11 +90,16 @@ public final class ModpackHelper {
     }
 
     public static boolean isFileModpackByExtension(File file) {
-        String ext = FileUtils.getExtension(file);
+        String ext = FileUtils.getExtension(file).toLowerCase(Locale.ROOT);
         return "zip".equals(ext) || "mrpack".equals(ext);
     }
 
     public static Modpack readModpackManifest(Path file, Charset charset) throws UnsupportedModpackException, ManuallyCreatedModpackException {
+        String fileName = file.getFileName().toString().toLowerCase();
+        if (fileName.endsWith(".7z") || fileName.endsWith(".rar")) {
+            throw new ManuallyCreatedModpackException(file);
+        }
+
         try (ZipFile zipFile = CompressingUtils.openZipFile(file, charset)) {
             // Order for trying detecting manifest is necessary here.
             // Do not change to iterating providers.
@@ -114,8 +121,8 @@ public final class ModpackHelper {
         try (FileSystem fs = CompressingUtils.createReadOnlyZipFileSystem(file, charset)) {
             findMinecraftDirectoryInManuallyCreatedModpack(file.toString(), fs);
             throw new ManuallyCreatedModpackException(file);
-        } catch (IOException e) {
-            // ignore it
+        } catch (Throwable e) {
+            // 忽略：文件损坏（含 zipfs 抛 ZipError）或非整合包，统一走 UnsupportedModpackException
         }
 
         throw new UnsupportedModpackException(file.toString());
@@ -182,7 +189,7 @@ public final class ModpackHelper {
     }
 
     public static boolean isExternalGameNameConflicts(String name) {
-        return Files.exists(Paths.get(Environment.getExternalStorageDirectory().getAbsolutePath() + "/FCL").resolve(name));
+        return Files.exists(Paths.get(FCLPath.EXTERNAL_DIR).resolve(name));
     }
 
     public static Task<?> getInstallManuallyCreatedModpackTask(Profile profile, File zipFile, String name, Charset charset) {
@@ -193,7 +200,7 @@ public final class ModpackHelper {
         return new ManuallyCreatedModpackInstallTask(profile, zipFile.toPath(), charset, name)
                 .thenAcceptAsync(Schedulers.androidUIThread(), location -> {
                     Profile newProfile = new Profile(name, location.toFile());
-                    Profiles.getProfiles().add(newProfile);
+                    Profiles.addProfile(newProfile);
                     Profiles.setSelectedProfile(newProfile);
                 });
     }

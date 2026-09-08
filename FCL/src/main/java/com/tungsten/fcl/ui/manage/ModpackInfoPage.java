@@ -1,23 +1,19 @@
 package com.tungsten.fcl.ui.manage;
 
 import static com.tungsten.fcl.setting.ConfigHolder.config;
+import com.tungsten.fcl.ui.UIManager;
 
-import android.app.Activity;
 import android.content.Context;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.tungsten.fcl.R;
+import com.tungsten.fcl.activity.MainActivity;
 import com.tungsten.fcl.setting.Accounts;
 import com.tungsten.fcl.setting.Profile;
 import com.tungsten.fcl.setting.VersionSetting;
-import com.tungsten.fcl.ui.PageManager;
-import com.tungsten.fcl.util.FXUtils;
-import com.tungsten.fcl.util.RequestCodes;
 import com.tungsten.fclcore.auth.Account;
 import com.tungsten.fclcore.auth.authlibinjector.AuthlibInjectorServer;
-import com.tungsten.fclcore.fakefx.beans.binding.Bindings;
 import com.tungsten.fclcore.fakefx.beans.property.SimpleBooleanProperty;
 import com.tungsten.fclcore.fakefx.beans.property.SimpleIntegerProperty;
 import com.tungsten.fclcore.fakefx.beans.property.SimpleStringProperty;
@@ -28,16 +24,12 @@ import com.tungsten.fclcore.task.Task;
 import com.tungsten.fclcore.util.Lang;
 import com.tungsten.fclcore.util.StringUtils;
 import com.tungsten.fclcore.util.platform.OperatingSystem;
-import com.tungsten.fcllibrary.browser.FileBrowser;
-import com.tungsten.fcllibrary.browser.options.LibMode;
-import com.tungsten.fcllibrary.browser.options.SelectionMode;
-import com.tungsten.fcllibrary.component.ui.FCLTempPage;
+import com.tungsten.fcllibrary.component.ui.FCLPage;
 import com.tungsten.fcllibrary.component.view.FCLButton;
 import com.tungsten.fcllibrary.component.view.FCLEditText;
 import com.tungsten.fcllibrary.component.view.FCLImageButton;
 import com.tungsten.fcllibrary.component.view.FCLLinearLayout;
 import com.tungsten.fcllibrary.component.view.FCLNumberSeekBar;
-import com.tungsten.fcllibrary.component.view.FCLSeekBar;
 import com.tungsten.fcllibrary.component.view.FCLSpinner;
 import com.tungsten.fcllibrary.component.view.FCLSwitch;
 import com.tungsten.fcllibrary.component.view.FCLTextView;
@@ -54,7 +46,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class ModpackInfoPage extends FCLTempPage implements View.OnClickListener {
+public class ModpackInfoPage extends FCLPage implements View.OnClickListener {
 
     private final Profile profile;
     private final String versionName;
@@ -82,8 +74,8 @@ public class ModpackInfoPage extends FCLTempPage implements View.OnClickListener
     private FCLImageButton pathButton;
     private FCLButton next;
 
-    public ModpackInfoPage(Context context, int id, FCLUILayout parent, int resId, Profile profile, String version, String type, ModpackExportInfo.Options options) {
-        super(context, id, parent, resId);
+    public ModpackInfoPage(Context context, int id, Profile profile, String version, String type, ModpackExportInfo.Options options) {
+        super(context, id, R.layout.page_modpack_info);
         this.profile = profile;
         this.versionName = version;
         this.type = type;
@@ -96,12 +88,8 @@ public class ModpackInfoPage extends FCLTempPage implements View.OnClickListener
         minMemory.set(Optional.ofNullable(versionSetting.getMinMemory()).orElse(0));
         launchArguments.set(versionSetting.getMinecraftArgs());
         javaArguments.set(versionSetting.getJavaArgs());
-    }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-
+        // 原 onStart 逻辑：页面构造即绑定控件（findViewById 在 super 构造中已完成）
         FCLLinearLayout fileApiLayout = findViewById(R.id.file_api_layout);
         FCLLinearLayout launchArgsLayout = findViewById(R.id.minecraft_args_layout);
         FCLLinearLayout jvmArgsLayout = findViewById(R.id.jvm_args_layout);
@@ -137,8 +125,8 @@ public class ModpackInfoPage extends FCLTempPage implements View.OnClickListener
         nameText.stringProperty().bindBidirectional(name);
         authorText.setText(author.get());
         authorText.stringProperty().bindBidirectional(author);
-        versionText.setText(version.get());
-        versionText.stringProperty().bindBidirectional(version);
+        versionText.setText(this.version.get());
+        versionText.stringProperty().bindBidirectional(this.version);
         if (options.isRequireFileApi()) {
             if (options.isValidateFileApi()) {
                 fileApiText.setHint(getContext().getString(R.string.input_hint_not_empty));
@@ -180,13 +168,8 @@ public class ModpackInfoPage extends FCLTempPage implements View.OnClickListener
             list.add(0, "");
             map.put("", null);
             config().getAuthlibInjectorServers().forEach(it -> map.put(it.getName(), it.getUrl()));
-            serverSpinner.setDataList(list);
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), R.layout.item_spinner_auto_tint, list);
-            adapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
-            serverSpinner.setAdapter(adapter);
-            SimpleStringProperty serverName = new SimpleStringProperty("");
-            FXUtils.bindSelection(serverSpinner, serverName);
-            serverName.addListener(observable -> authlibInjectorServer.set(map.get(serverName.get())));
+            serverSpinner.setItems(list);
+            serverSpinner.setOnItemSelectedListener((index, item) -> authlibInjectorServer.set(map.get(item)));
         }
         serverLayout.setVisibility(options.isRequireAuthlibInjectorServer() ? View.VISIBLE : View.GONE);
         splitS.setVisibility(options.isRequireAuthlibInjectorServer() ? View.VISIBLE : View.GONE);
@@ -207,21 +190,11 @@ public class ModpackInfoPage extends FCLTempPage implements View.OnClickListener
         return null;
     }
 
-    @Override
-    public void onRestart() {
-
-    }
-
     private void selectPath() {
-        FileBrowser.Builder builder = new FileBrowser.Builder(getContext());
-        builder.setLibMode(LibMode.FOLDER_CHOOSER);
-        builder.setSelectionMode(SelectionMode.SINGLE_SELECTION);
-        builder.create().browse(getActivity(), RequestCodes.SELECT_EXPORT_FOLDER_CODE, ((requestCode, resultCode, data) -> {
-            if (requestCode == RequestCodes.SELECT_EXPORT_FOLDER_CODE && resultCode == Activity.RESULT_OK && data != null) {
-                String p = FileBrowser.getSelectedFiles(data).get(0);
-                path.set(p);
-            }
-        }));
+        MainActivity.getInstance().fileLauncher.launchSingleSelection(null, null, true, files -> {
+            if (files == null) return;
+            path.set(files.get(0).getPath());
+        });
     }
 
     @Override
@@ -276,8 +249,8 @@ public class ModpackInfoPage extends FCLTempPage implements View.OnClickListener
                     )));
                 }
 
-                ModpackFileSelectionPage page = new ModpackFileSelectionPage(getContext(), PageManager.PAGE_ID_TEMP, getParent(), R.layout.page_modpack_file, profile, versionName, type, ModAdviser::suggestMod, exportInfo, file);
-                ManagePageManager.getInstance().showTempPage(page);
+                ModpackFileSelectionPage page = new ModpackFileSelectionPage(getContext(), FCLPage.PAGE_ID_TEMP, profile, versionName, type, ModAdviser::suggestMod, exportInfo, file);
+                UIManager.getInstance().getManageUI().showTempPage(page);
             }
         }
     }

@@ -8,14 +8,10 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
 import com.tungsten.fclauncher.bridge.FCLBridge;
-import com.tungsten.fclcore.fakefx.beans.property.BooleanProperty;
-import com.tungsten.fclcore.fakefx.beans.property.BooleanPropertyBase;
 
 public class Gyroscope implements SensorEventListener {
 
     private static final float NS2S = 1.0f / 40000000.0f;
-
-    private BooleanProperty enableProperty;
 
     private final GameMenu gameMenu;
     private final SensorManager sensorManager;
@@ -32,33 +28,6 @@ public class Gyroscope implements SensorEventListener {
         } else {
             disableSensor();
         }
-    }
-
-    public BooleanProperty enableProperty() {
-        if (enableProperty == null) {
-            enableProperty = new BooleanPropertyBase() {
-                @Override
-                protected void invalidated() {
-                    super.invalidated();
-                    if (get()) {
-                        enableSensor();
-                    } else {
-                        disableSensor();
-                    }
-                }
-
-                @Override
-                public Object getBean() {
-                    return this;
-                }
-
-                @Override
-                public String getName() {
-                    return "enable";
-                }
-            };
-        }
-        return enableProperty;
     }
 
     public void enableSensor() {
@@ -83,7 +52,11 @@ public class Gyroscope implements SensorEventListener {
                 angle[0] += event.values[0] * dT * gameMenu.getMenuSetting().getGyroscopeSensitivity();
                 angle[1] += event.values[1] * dT * gameMenu.getMenuSetting().getGyroscopeSensitivity();
                 if (gameMenu.getBridge() != null) {
-                    gameMenu.getBridge().pushEventPointer((gameMenu.getPointerX() - angle[0]), (gameMenu.getPointerY() + angle[1]));
+                    if (gameMenu.getMenuSetting().isInvertGyroscope()) {
+                        gameMenu.getBridge().pushEventPointer((gameMenu.getPointerX() + angle[0]), (gameMenu.getPointerY() - angle[1]));
+                    } else {
+                        gameMenu.getBridge().pushEventPointer((gameMenu.getPointerX() - angle[0]), (gameMenu.getPointerY() + angle[1]));
+                    }
                 }
             }
             timestamp = event.timestamp;

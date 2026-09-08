@@ -2,29 +2,29 @@ package com.tungsten.fcl.ui.manage;
 
 import static com.tungsten.fclcore.util.Logging.LOG;
 import static com.tungsten.fclcore.util.StringUtils.isNotBlank;
-import static com.tungsten.fcllibrary.browser.FileBrowser.SELECTED_FILES;
 
-import android.app.Activity;
-import android.content.ContentResolver;
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.net.Uri;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.CompoundButton;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.Toast;
+
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.activity.MainActivity;
 import com.tungsten.fcl.game.FCLGameRepository;
 import com.tungsten.fcl.setting.Profile;
-import com.tungsten.fcl.ui.PageManager;
 import com.tungsten.fcl.ui.TaskDialog;
-import com.tungsten.fcl.ui.download.DownloadPageManager;
-import com.tungsten.fcl.util.AndroidUtils;
+import com.tungsten.fcl.ui.UIManager;
+import com.tungsten.fcl.ui.download.DownloadUI;
 import com.tungsten.fcl.util.ModTranslations;
-import com.tungsten.fcl.util.RequestCodes;
 import com.tungsten.fcl.util.TaskCancellationAction;
 import com.tungsten.fclcore.download.LibraryAnalyzer;
 import com.tungsten.fclcore.fakefx.beans.InvalidationListener;
@@ -43,43 +43,51 @@ import com.tungsten.fclcore.task.Schedulers;
 import com.tungsten.fclcore.task.Task;
 import com.tungsten.fclcore.task.TaskExecutor;
 import com.tungsten.fclcore.util.StringUtils;
-import com.tungsten.fcllibrary.browser.FileBrowser;
-import com.tungsten.fcllibrary.browser.options.LibMode;
-import com.tungsten.fcllibrary.browser.options.SelectionMode;
+import com.tungsten.fclcore.util.io.FileUtils;
+import com.tungsten.fcllibrary.browser.SelectedFile;
 import com.tungsten.fcllibrary.component.dialog.FCLAlertDialog;
-import com.tungsten.fcllibrary.component.ui.FCLCommonPage;
+import com.tungsten.fcllibrary.component.ui.FCLPage;
 import com.tungsten.fcllibrary.component.view.FCLButton;
 import com.tungsten.fcllibrary.component.view.FCLCheckBox;
 import com.tungsten.fcllibrary.component.view.FCLEditText;
 import com.tungsten.fcllibrary.component.view.FCLLinearLayout;
 import com.tungsten.fcllibrary.component.view.FCLProgressBar;
 import com.tungsten.fcllibrary.component.view.FCLTextView;
-import com.tungsten.fcllibrary.component.view.FCLUILayout;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class ModListPage extends FCLCommonPage implements ManageUI.VersionLoadable, View.OnClickListener {
+import kotlin.Unit;
+
+public class ModListPage extends FCLPage implements ManageUI.VersionLoadable, View.OnClickListener {
+
+    /**
+     * 增量加载时每解析多少个模组刷新一次列表
+     */
+    private static final int BATCH_SIZE = 16;
 
     private final BooleanProperty modded = new SimpleBooleanProperty(this, "modded", false);
     private final ListProperty<ModInfoObject> itemsProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
+    /**
+     * 已解析的全部模组（未过滤），勾选 enabled/disabled 时直接在其中筛选，仅在 UI 线程访问
+     */
+    private final List<ModInfoObject> allMods = new ArrayList<>();
 
     private ModManager modManager;
-    private LibraryAnalyzer libraryAnalyzer;
     private Profile profile;
     private String versionId;
 
@@ -87,9 +95,8 @@ public class ModListPage extends FCLCommonPage implements ManageUI.VersionLoadab
 
     private FCLTextView warningText;
     private ScrollView left;
-    private RelativeLayout right;
+    private CoordinatorLayout right;
     private FCLEditText searchBar;
-    private FCLButton searchButton;
     private FCLLinearLayout normalGroup;
     private FCLLinearLayout selectedGroup;
     private FCLButton addButton;
@@ -98,19 +105,24 @@ public class ModListPage extends FCLCommonPage implements ManageUI.VersionLoadab
     private FCLButton refreshButton;
     private FCLButton deleteButton;
     private FCLButton selectAllButton;
+    private FCLButton selectInvertButton;
     private FCLButton cancelButton;
     private FCLProgressBar progressBar;
-    private ListView listView;
+    private RecyclerView recyclerView;
 
     private FCLCheckBox enabled;
     private FCLCheckBox disabled;
 
     private final LocalModListAdapter adapter;
 
-    public ModListPage(Context context, int id, FCLUILayout parent, int resId) {
-        super(context, id, parent, resId);
-        adapter = new LocalModListAdapter(getContext(), this);
-        listView.setAdapter(adapter);
+    public ModListPage(Context context, int id) {
+        super(context, id, R.layout.page_manage_mod);
+        adapter = new LocalModListAdapter(getContext(), this, () -> {
+            calculateMod();
+            return Unit.INSTANCE;
+        });
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(context));
         Bindings.bindContent(adapter.listProperty(), itemsProperty);
 
         adapter.selectedItemsProperty().addListener((InvalidationListener) observable -> switchLayout(adapter.selectedItemsProperty().getSize() > 0));
@@ -125,7 +137,6 @@ public class ModListPage extends FCLCommonPage implements ManageUI.VersionLoadab
         left = findViewById(R.id.left);
         right = findViewById(R.id.right);
         searchBar = findViewById(R.id.search_filter);
-        searchButton = findViewById(R.id.search);
         normalGroup = findViewById(R.id.normal_layout);
         selectedGroup = findViewById(R.id.selected_layout);
         addButton = findViewById(R.id.add);
@@ -134,32 +145,51 @@ public class ModListPage extends FCLCommonPage implements ManageUI.VersionLoadab
         refreshButton = findViewById(R.id.refresh);
         deleteButton = findViewById(R.id.delete);
         selectAllButton = findViewById(R.id.select_all);
+        selectInvertButton = findViewById(R.id.select_invert);
         cancelButton = findViewById(R.id.cancel);
         progressBar = findViewById(R.id.progress);
-        listView = findViewById(R.id.list);
+        recyclerView = findViewById(R.id.list);
         enabled = findViewById(R.id.enabled);
         disabled = findViewById(R.id.disabled);
 
-        searchButton.setOnClickListener(this);
         addButton.setOnClickListener(this);
         checkUpdateAllButton.setOnClickListener(this);
         checkUpdateButton.setOnClickListener(this);
         refreshButton.setOnClickListener(this);
         deleteButton.setOnClickListener(this);
         selectAllButton.setOnClickListener(this);
+        selectInvertButton.setOnClickListener(this);
         cancelButton.setOnClickListener(this);
         CompoundButton.OnCheckedChangeListener listener = (compoundButton, b) -> {
-            refresh();
+            // 直接在已加载的模组列表中筛选，避免重新扫描磁盘
+            itemsProperty.setAll(filterMods(allMods));
+            if (isSearching) {
+                search();
+            }
         };
         enabled.setOnCheckedChangeListener(listener);
         disabled.setOnCheckedChangeListener(listener);
+
+        searchBar.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                search();
+            }
+        });
     }
 
     @Override
     public void onClick(View v) {
-        if (v == searchButton) {
-            search();
-        }
         if (v == addButton) {
             add();
         }
@@ -186,6 +216,9 @@ public class ModListPage extends FCLCommonPage implements ManageUI.VersionLoadab
         if (v == selectAllButton) {
             adapter.selectAll();
         }
+        if (v == selectInvertButton) {
+            adapter.selectInvert();
+        }
         if (v == cancelButton) {
             adapter.selectedItemsProperty().clear();
         }
@@ -198,6 +231,14 @@ public class ModListPage extends FCLCommonPage implements ManageUI.VersionLoadab
 
     @Override
     public void loadVersion(Profile profile, String version) {
+        // 同一版本重复加载（如从其他页面返回时 ManageUI.onStart 触发）直接跳过，
+        // 避免每次显示都全量重扫模组 zip：上百个模组时解析耗时长，
+        // 且与上一次扫描交错时 calculateMod 在主线程触发 getMods 会 ANR。
+        // 模组增删/更新/回滚等数据变更路径内部已有显式 loadMods 刷新。
+        if (profile == this.profile && Objects.equals(version, this.versionId) && modManager != null) {
+            return;
+        }
+
         this.profile = profile;
         this.versionId = version;
 
@@ -207,7 +248,7 @@ public class ModListPage extends FCLCommonPage implements ManageUI.VersionLoadab
 
         FCLGameRepository repository = profile.getRepository();
         Version resolved = repository.getResolvedPreservingPatchesVersion(versionId);
-        libraryAnalyzer = LibraryAnalyzer.analyze(resolved, repository.getGameVersion(resolved).orElse(null));
+        LibraryAnalyzer libraryAnalyzer = LibraryAnalyzer.analyze(resolved, repository.getGameVersion(resolved).orElse(null));
         setModded(libraryAnalyzer.hasModLoader());
         loadMods(profile.getRepository().getModManager(version));
     }
@@ -229,27 +270,35 @@ public class ModListPage extends FCLCommonPage implements ManageUI.VersionLoadab
             if (loading) {
                 cancelSearch();
                 searchBar.setEnabled(false);
-                searchButton.setEnabled(false);
                 addButton.setEnabled(false);
                 checkUpdateAllButton.setEnabled(false);
                 checkUpdateButton.setEnabled(false);
                 refreshButton.setEnabled(false);
                 deleteButton.setEnabled(false);
                 selectAllButton.setEnabled(false);
+                selectInvertButton.setEnabled(false);
                 cancelButton.setEnabled(false);
-                listView.setVisibility(View.GONE);
+                // 禁用筛选复选框，避免加载中勾选触发列表全量重绘（跑马灯文字重置）
+                enabled.setEnabled(false);
+                disabled.setEnabled(false);
+                // 加载期间保持列表可见，已解析的模组会分批显示出来
+                // 禁用 itemAnimator，避免逐条插入时动画堆积卡顿
+                recyclerView.setItemAnimator(null);
                 progressBar.setVisibility(View.VISIBLE);
             } else {
                 searchBar.setEnabled(true);
-                searchButton.setEnabled(true);
                 addButton.setEnabled(true);
                 checkUpdateAllButton.setEnabled(true);
                 checkUpdateButton.setEnabled(true);
                 refreshButton.setEnabled(true);
                 deleteButton.setEnabled(true);
                 selectAllButton.setEnabled(true);
+                selectInvertButton.setEnabled(true);
                 cancelButton.setEnabled(true);
-                listView.setVisibility(View.VISIBLE);
+                enabled.setEnabled(true);
+                disabled.setEnabled(true);
+                recyclerView.setItemAnimator(new DefaultItemAnimator());
+                recyclerView.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.GONE);
                 cancelSearch();
             }
@@ -270,26 +319,51 @@ public class ModListPage extends FCLCommonPage implements ManageUI.VersionLoadab
         loadMods(modManager);
     }
 
-    private CompletableFuture<?> loadMods(ModManager modManager) {
+    private void loadMods(ModManager modManager) {
         this.modManager = modManager;
-        return CompletableFuture.supplyAsync(() -> {
+        CompletableFuture.supplyAsync(() -> {
             try {
                 synchronized (ModListPage.this) {
                     setLoading(true);
-                    modManager.refreshMods();
-                    return modManager.getMods().stream().map(it -> new ModInfoObject(getContext(), it)).collect(Collectors.toList());
+                    // 清空旧列表，避免切换版本/刷新时旧内容与增量内容混合显示
+                    Schedulers.androidUIThread().execute(() -> {
+                        allMods.clear();
+                        itemsProperty.clear();
+                    });
+                    // 边扫描边分批把已解析的模组追加到列表末尾显示，无需等待全部加载完成
+                    List<ModInfoObject> pending = new ArrayList<>();
+                    modManager.refreshMods(mod -> {
+                        pending.add(new ModInfoObject(getContext(), mod));
+                        if (pending.size() >= BATCH_SIZE) {
+                            List<ModInfoObject> batch = new ArrayList<>(pending);
+                            pending.clear();
+                            Schedulers.androidUIThread().execute(() -> {
+                                allMods.addAll(batch);
+                                itemsProperty.addAll(filterMods(batch));
+                            });
+                        }
+                    });
+                    if (!pending.isEmpty()) {
+                        List<ModInfoObject> batch = new ArrayList<>(pending);
+                        Schedulers.androidUIThread().execute(() -> {
+                            allMods.addAll(batch);
+                            itemsProperty.addAll(filterMods(batch));
+                        });
+                    }
+                    return null;
                 }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
-        }, Schedulers.defaultScheduler()).whenCompleteAsync((list, exception) -> {
+        }, Schedulers.defaultScheduler()).whenCompleteAsync((result, exception) -> {
+            // 已被更新的 loadMods 取代时跳过，避免旧扫描回调操作新状态（如主线程触发未加载实例的 getMods）
+            if (this.modManager != modManager) return;
             setLoading(false);
             if (exception == null)
                 try {
-                    itemsProperty.setAll(list.stream().filter(modInfoObject -> {
-                        boolean active = modInfoObject.getModInfo().isActive();
-                        return (enabled.isChecked() && active) || (disabled.isChecked() && !active);
-                    }).collect(Collectors.toList()));
+                    // 增量阶段已把全部模组追加进列表，无需再整体刷新列表
+                    calculateMod();
+                    showBrokenModsDialog();
                 } catch (Throwable e) {
                     LOG.log(Level.SEVERE, "Failed to load local mod list", e);
                 }
@@ -298,72 +372,92 @@ public class ModListPage extends FCLCommonPage implements ManageUI.VersionLoadab
         }, Schedulers.androidUIThread());
     }
 
+    /**
+     * 按 enabled/disabled 复选框过滤模组列表，仅在 UI 线程调用
+     */
+    private List<ModInfoObject> filterMods(List<ModInfoObject> list) {
+        return list.stream().filter(modInfoObject -> {
+            boolean active = modInfoObject.getModInfo().isActive();
+            return (enabled.isChecked() && active) || (disabled.isChecked() && !active);
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 加载完成后若有损坏的模组文件，弹对话框列出并询问是否删除（仅在 UI 线程调用）
+     */
+    private void showBrokenModsDialog() {
+        List<Path> brokenFiles = modManager.getBrokenFiles();
+        if (brokenFiles.isEmpty()) return;
+        String names = brokenFiles.stream()
+                .map(FileUtils::getName)
+                .collect(Collectors.joining("\n"));
+        FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
+        builder.setCancelable(false);
+        builder.setAlertLevel(FCLAlertDialog.AlertLevel.ALERT);
+        builder.setMessage(getContext().getString(R.string.message_broken_mods, names));
+        builder.setPositiveButton(getContext().getString(R.string.button_remove), () -> deleteBrokenMods(brokenFiles));
+        builder.setNegativeButton(getContext().getString(R.string.button_cancel), null);
+        builder.create().show();
+    }
+
+    /**
+     * 删除损坏的模组文件（UI 线程）
+     */
+    private void deleteBrokenMods(List<Path> brokenFiles) {
+        try {
+            for (Path file : brokenFiles) {
+                Files.deleteIfExists(file);
+            }
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to delete broken mod files", e);
+            Toast.makeText(getContext(), getContext().getString(R.string.message_failed), Toast.LENGTH_SHORT).show();
+        }
+    }
+
     public void add() {
         ArrayList<String> suffix = new ArrayList<>();
         suffix.add(".jar");
         suffix.add(".zip");
         suffix.add(".litemod");
-        FileBrowser.Builder builder = new FileBrowser.Builder(getContext());
-        builder.setLibMode(LibMode.FILE_CHOOSER);
-        builder.setTitle(getContext().getString(R.string.mods_choose_mod));
-        builder.setSuffix(suffix);
-        builder.setSelectionMode(SelectionMode.MULTIPLE_SELECTION);
-        builder.create().browse(getActivity(), RequestCodes.SELECT_MODS_CODE, (requestCode, resultCode, data) -> {
-            if (requestCode == RequestCodes.SELECT_MODS_CODE && resultCode == Activity.RESULT_OK && data != null) {
-                ArrayList<Uri> selectedFiles = data.getParcelableArrayListExtra(SELECTED_FILES);
-                List<Object> res = selectedFiles.stream().filter(Objects::nonNull).map(uri -> {
-                    if (Objects.equals(uri.getScheme(), ContentResolver.SCHEME_CONTENT) || Objects.equals(uri.getScheme(), ContentResolver.SCHEME_FILE)) {
-                        return uri;
-                    } else {
-                        return new File(uri.toString());
-                    }
-                }).collect(Collectors.toList());
-                // It's guaranteed that succeeded and failed are thread safe here.
-                List<String> succeeded = new ArrayList<>(res.size());
-                List<String> failed = new ArrayList<>();
+        MainActivity.getInstance().fileLauncher.launchMultiSelection(null, suffix, files -> {
+            if (files == null) return;
 
-                Task.runAsync(() -> {
-                    for (Object obj : res) {
-                        if (obj instanceof File) {
-                            File file = (File) obj;
-                            try {
-                                modManager.addMod(file.toPath());
-                                succeeded.add(file.getName());
-                            } catch (Exception e) {
-                                LOG.log(Level.WARNING, "Unable to add mod " + file, e);
-                                failed.add(file.getName());
+            // It's guaranteed that succeeded and failed are thread safe here.
+            List<String> succeeded = new ArrayList<>(files.size());
+            List<String> failed = new ArrayList<>();
 
-                                // Actually addMod will not throw exceptions because FileChooser has already filtered files.
-                            }
+            Task.runAsync(() -> {
+                for (SelectedFile file : files) {
+                    String name = file.fileName(getActivity());
+                    try {
+                        if (file.isContent()) {
+                            modManager.addMod(getActivity(), file.getUri(), name);
                         } else {
-                            try {
-                                Uri uri = (Uri) obj;
-                                modManager.addMod(getActivity(), uri);
-                                succeeded.add(new File(uri.getPath()).getName());
-                            } catch (Exception e) {
-                                LOG.log(Level.WARNING, "Unable to add mod " + obj.toString(), e);
-                                failed.add(obj.toString());
-
-                                // Actually addMod will not throw exceptions because FileChooser has already filtered files.
-                            }
+                            modManager.addMod(file.getFile().toPath());
                         }
+                        succeeded.add(name);
+                    } catch (Exception e) {
+                        LOG.log(Level.WARNING, "Unable to add mod " + file.getPath(), e);
+                        failed.add(name);
+
+                        // Actually addMod will not throw exceptions because FileChooser has already filtered files.
                     }
-                }).withRunAsync(Schedulers.androidUIThread(), () -> {
-                    List<String> prompt = new ArrayList<>(1);
-                    if (!succeeded.isEmpty())
-                        prompt.add(AndroidUtils.getLocalizedText(getContext(), "mods_add_success", String.join(", ", succeeded)));
-                    if (!failed.isEmpty())
-                        prompt.add(AndroidUtils.getLocalizedText(getContext(), "mods_add_failed", String.join(", ", failed)));
-                    FCLAlertDialog.Builder builder1 = new FCLAlertDialog.Builder(getContext());
-                    builder1.setCancelable(false);
-                    builder1.setAlertLevel(failed.isEmpty() ? FCLAlertDialog.AlertLevel.INFO : FCLAlertDialog.AlertLevel.ALERT);
-                    builder1.setTitle(getContext().getString(R.string.mods_add));
-                    builder1.setMessage(String.join("\n", prompt));
-                    builder1.setNegativeButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_positive), null);
-                    builder1.create().show();
-                    loadMods(modManager);
-                }).start();
-            }
+                }
+            }).withRunAsync(Schedulers.androidUIThread(), () -> {
+                List<String> prompt = new ArrayList<>(1);
+                if (!succeeded.isEmpty())
+                    prompt.add(getContext().getString(R.string.mods_add_success, String.join(", ", succeeded)));
+                if (!failed.isEmpty())
+                    prompt.add(getContext().getString(R.string.mods_add_failed, String.join(", ", failed)));
+                FCLAlertDialog.Builder builder1 = new FCLAlertDialog.Builder(getContext());
+                builder1.setCancelable(false);
+                builder1.setAlertLevel(failed.isEmpty() ? FCLAlertDialog.AlertLevel.INFO : FCLAlertDialog.AlertLevel.ALERT);
+                builder1.setTitle(getContext().getString(R.string.mods_add));
+                builder1.setMessage(String.join("\n", prompt));
+                builder1.setNegativeButton(getContext().getString(com.tungsten.fcl.R.string.dialog_positive), null);
+                builder1.create().show();
+                loadMods(modManager);
+            }).start();
         });
     }
 
@@ -402,24 +496,25 @@ public class ModListPage extends FCLCommonPage implements ManageUI.VersionLoadab
                     .whenComplete(Schedulers.androidUIThread(), (result, exception) -> {
                         checkUpdateAllButton.setFocusable(true);
                         checkUpdateButton.setFocusable(true);
+                        if (exception instanceof CancellationException) return;
                         if (exception != null || result == null) {
                             FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
                             builder.setCancelable(false);
                             builder.setAlertLevel(FCLAlertDialog.AlertLevel.ALERT);
                             builder.setTitle(getContext().getString(R.string.message_failed));
                             builder.setMessage("Failed to check updates");
-                            builder.setNegativeButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_positive), null);
+                            builder.setNegativeButton(getContext().getString(com.tungsten.fcl.R.string.dialog_positive), null);
                             builder.create().show();
                         } else if (result.isEmpty()) {
                             FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
                             builder.setCancelable(false);
                             builder.setAlertLevel(FCLAlertDialog.AlertLevel.INFO);
                             builder.setMessage(getContext().getString(R.string.mods_check_updates_empty));
-                            builder.setNegativeButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_positive), null);
+                            builder.setNegativeButton(getContext().getString(com.tungsten.fcl.R.string.dialog_positive), null);
                             builder.create().show();
                         } else {
-                            ModUpdatesPage page = new ModUpdatesPage(getContext(), PageManager.PAGE_ID_TEMP, getParent(), R.layout.page_mod_update, this, modManager, result);
-                            ManagePageManager.getInstance().showTempPage(page);
+                            ModUpdatesPage page = new ModUpdatesPage(getContext(), FCLPage.PAGE_ID_TEMP, this, modManager, result);
+                            UIManager.getInstance().getManageUI().showTempPage(page);
                         }
                     })
                     .withStagesHint(Collections.singletonList("mods.check_updates"));
@@ -445,7 +540,7 @@ public class ModListPage extends FCLCommonPage implements ManageUI.VersionLoadab
     public void download() {
         MainActivity.getInstance().refreshMenuView(null);
         MainActivity.getInstance().binding.download.setSelected(true);
-        DownloadPageManager.getInstance().switchPage(DownloadPageManager.PAGE_ID_DOWNLOAD_MOD);
+        UIManager.getInstance().getDownloadUI().showDownloadPage(DownloadUI.PAGE_ID_DOWNLOAD_MOD);
     }
 
     public void rollback(LocalModFile from, LocalModFile to) {
@@ -491,16 +586,29 @@ public class ModListPage extends FCLCommonPage implements ManageUI.VersionLoadab
                 predicate = s -> s.toLowerCase(Locale.ROOT).contains(lowerQueryString);
             }
 
-            // Do we need to search in the background thread?
-            for (ModInfoObject item : itemsProperty.get()) {
-                if (predicate.test(item.getModInfo().getFileName())) {
-                    adapter.listProperty().add(item);
-                }
-            }
+            // 一次性 setAll 整体替换，避免逐条 add 触发多次列表通知
+            List<ModInfoObject> filtered = itemsProperty.get().stream().filter(item ->
+                    predicate.test(item.getModInfo().getFileName()) || (item.getRemoteMod() != null && predicate.test(item.getRemoteMod().getTitle()))
+            ).collect(Collectors.toList());
+            adapter.listProperty().setAll(filtered);
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void calculateMod() {
+        try {
+            List<LocalModFile> mods = modManager.getMods();
+            long activeCount = mods.stream().filter(LocalModFile::isActive).count();
+            enabled.setText(getContext().getString(R.string.enabled) + " (" + activeCount + ")");
+            disabled.setText(getContext().getString(R.string.disabled) + " (" + (mods.size() - activeCount) + ")");
+        } catch (Exception ignore) {
+            enabled.setText(getContext().getString(R.string.enabled));
+            disabled.setText(getContext().getString(R.string.disabled));
         }
     }
 
     public static class ModInfoObject {
+
         private final BooleanProperty active;
         private final LocalModFile localModFile;
         private final String title;

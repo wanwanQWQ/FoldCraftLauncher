@@ -17,9 +17,11 @@
  */
 package com.tungsten.fcl.game;
 
+import static android.content.Context.MODE_PRIVATE;
 import static com.tungsten.fclcore.util.Logging.LOG;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 
@@ -28,13 +30,15 @@ import androidx.appcompat.content.res.AppCompatResources;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
+import com.google.gson.reflect.TypeToken;
 import com.mio.manager.RendererManager;
-import com.tungsten.fcl.FCLApplication;
+import com.mio.util.LauncherUtilKt;
+import com.tungsten.fcl.FCLApp;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.setting.Profile;
 import com.tungsten.fcl.setting.VersionSetting;
-import com.tungsten.fcl.util.AndroidUtils;
-import com.tungsten.fclauncher.utils.FCLPath;
+import com.mio.util.AndroidUtilKt;
+import com.tungsten.fclauncher.bridge.FCLBridge;
 import com.tungsten.fclcore.download.LibraryAnalyzer;
 import com.tungsten.fclcore.event.Event;
 import com.tungsten.fclcore.event.EventManager;
@@ -43,6 +47,7 @@ import com.tungsten.fclcore.game.GameDirectoryType;
 import com.tungsten.fclcore.game.JavaVersion;
 import com.tungsten.fclcore.game.LaunchOptions;
 import com.tungsten.fclcore.game.Version;
+import com.tungsten.fclcore.game.VersionNotFoundException;
 import com.tungsten.fclcore.mod.ModAdviser;
 import com.tungsten.fclcore.mod.Modpack;
 import com.tungsten.fclcore.mod.ModpackConfiguration;
@@ -62,7 +67,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
@@ -70,7 +83,7 @@ public class FCLGameRepository extends DefaultGameRepository {
     private final Profile profile;
 
     // local version settings
-    private final Map<String, VersionSetting> localVersionSettings = new HashMap<>();
+    private final Map<String, VersionSetting> localVersionSettings = new ConcurrentHashMap<>();
     private final Set<String> beingModpackVersions = new HashSet<>();
 
     public final EventManager<Event> onVersionIconChanged = new EventManager<>();
@@ -95,14 +108,10 @@ public class FCLGameRepository extends DefaultGameRepository {
 
     @Override
     public File getRunDirectory(String id) {
-        switch (getGameDirectoryType(id)) {
-            case VERSION_FOLDER:
-                return getVersionRoot(id);
-            case ROOT_FOLDER:
-                return super.getRunDirectory(id);
-            default:
-                throw new Error();
-        }
+        return switch (getGameDirectoryType(id)) {
+            case VERSION_FOLDER -> getVersionRoot(id);
+            case ROOT_FOLDER -> super.getRunDirectory(id);
+        };
     }
 
     public Stream<Version> getDisplayVersions() {
@@ -112,9 +121,43 @@ public class FCLGameRepository extends DefaultGameRepository {
                         .thenComparing(v -> VersionNumber.asVersion(v.getId())));
     }
 
+    /**
+     * 已解析版本缓存（版本刷新时清空；resolve 基于内存版本对象，与文件修改时机一致）
+     */
+    private final ConcurrentHashMap<String, Version> resolvedVersionCache = new ConcurrentHashMap<>();
+
+    /**
+     * 整合包配置缓存（版本刷新时清空；仅缓存存在的 modpack.json，避免重复文件读取）
+     */
+    private final ConcurrentHashMap<String, ModpackConfiguration<?>> modpackConfigCache = new ConcurrentHashMap<>();
+
+    @Override
+    public Version getResolvedPreservingPatchesVersion(String id) throws VersionNotFoundException {
+        return resolvedVersionCache.computeIfAbsent(id, k -> getVersion(k).resolvePreservingPatches(this));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <M> ModpackConfiguration<M> readModpackConfiguration(String version) throws VersionNotFoundException {
+        if (!hasVersion(version)) throw new VersionNotFoundException(version);
+        File file = getModpackConfiguration(version);
+        if (!file.exists()) return null;
+        return (ModpackConfiguration<M>) modpackConfigCache.computeIfAbsent(version, v -> {
+            try {
+                return JsonUtils.GSON.fromJson(FileUtils.readText(file), new TypeToken<ModpackConfiguration<M>>() {
+                }.getType());
+            } catch (IOException e) {
+                // 读取失败按无配置处理（与原调用方捕获异常的效果一致）
+                return null;
+            }
+        });
+    }
+
     @Override
     protected void refreshVersionsImpl() {
         localVersionSettings.clear();
+        resolvedVersionCache.clear();
+        modpackConfigCache.clear();
         super.refreshVersionsImpl();
         versions.keySet().forEach(this::loadLocalVersionSetting);
         versions.keySet().forEach(version -> {
@@ -145,17 +188,6 @@ public class FCLGameRepository extends DefaultGameRepository {
     public void clean(String id) throws IOException {
         clean(getBaseDirectory());
         clean(getRunDirectory(id));
-    }
-
-    public boolean switchTouchMod(String id) throws IOException {
-        File touchModEnableFile = new File(getRunDirectory(id), "/config/enableTouchMod");
-        if (touchModEnableFile.exists()) {
-            FileUtils.forceDelete(touchModEnableFile);
-            return false;
-        } else {
-            FileUtils.writeText(touchModEnableFile, "");
-            return true;
-        }
     }
 
     public void duplicateVersion(String srcId, String dstId, boolean copySaves) throws IOException {
@@ -231,7 +263,7 @@ public class FCLGameRepository extends DefaultGameRepository {
 
     private VersionSetting initLocalVersionSetting(String id, VersionSetting vs) {
         localVersionSettings.put(id, vs);
-        vs.addPropertyChangedListener(a -> saveVersionSetting(id));
+        vs.addOnChangeListener(() -> saveVersionSetting(id));
         return vs;
     }
 
@@ -251,21 +283,15 @@ public class FCLGameRepository extends DefaultGameRepository {
         return setting;
     }
 
-    @Nullable
-    public VersionSetting getLocalVersionSettingOrCreate(String id) {
-        VersionSetting vs = getLocalVersionSetting(id);
-        if (vs == null) {
-            vs = createLocalVersionSetting(id);
-        }
-        return vs;
-    }
-
     public VersionSetting getVersionSetting(String id) {
-        VersionSetting vs = getLocalVersionSetting(id);
+        // null id 表示全局设置（ConcurrentHashMap 不接受 null key，需先行短路）
+        VersionSetting vs = id == null ? null : getLocalVersionSetting(id);
         if (vs == null || vs.isUsesGlobal()) {
-            profile.getGlobal().setGlobal(true); // always keep global.isGlobal = true
-            profile.getGlobal().setUsesGlobal(true);
-            return profile.getGlobal();
+            VersionSetting global = profile.getGlobalVersionSetting();
+            // 仅在不满足时修正（读取路径不写值，避免列表滑动逐项读取时重复触发配置保存）
+            if (!global.isUsesGlobal())
+                global.setUsesGlobal(true);
+            return global;
         } else
             return vs;
     }
@@ -278,13 +304,26 @@ public class FCLGameRepository extends DefaultGameRepository {
     public Drawable getVersionIconImage(String id) {
         if (id == null || !isLoaded())
             return getDrawable(R.drawable.img_grass);
+        return getVersionIconImage(getVersion(id).resolve(this), id);
+    }
 
-        Version version = getVersion(id).resolve(this);
+    /**
+     * 使用已解析的版本判断图标（避免列表加载时重复解析）
+     */
+    @SuppressLint("UseCompatLoadingForDrawables")
+    public Drawable getVersionIconImage(Version version, String id) {
+        return getVersionIconImage(LibraryAnalyzer.analyze(version, null), id);
+    }
+
+    /**
+     * 使用已有的库分析结果判断图标（避免列表加载时重复 analyze）
+     */
+    @SuppressLint("UseCompatLoadingForDrawables")
+    public Drawable getVersionIconImage(LibraryAnalyzer analyze, String id) {
         File iconFile = getVersionIconFile(id);
         if (iconFile.exists())
             return BitmapDrawable.createFromPath(iconFile.getAbsolutePath());
         else {
-            LibraryAnalyzer analyze = LibraryAnalyzer.analyze(version, null);
             if (analyze.has(LibraryAnalyzer.LibraryType.FORGE))
                 return getDrawable(R.drawable.img_forge);
             else if (analyze.has(LibraryAnalyzer.LibraryType.CLEANROOM))
@@ -304,23 +343,27 @@ public class FCLGameRepository extends DefaultGameRepository {
         }
     }
 
+    /**
+     * 图标资源状态缓存：newDrawable 每次返回独立实例，避免共享 Drawable 的 bounds 被
+     * 其他控件（如版本列表 item 设置 background）修改后互相污染（主界面 icon 放大显示不完全）
+     */
+    private static final Map<Integer, Drawable.ConstantState> DRAWABLE_CACHE = new ConcurrentHashMap<>();
+
     private Drawable getDrawable(int id) {
-        return AppCompatResources.getDrawable(FCLPath.CONTEXT, id);
+        return DRAWABLE_CACHE.computeIfAbsent(id, k -> AppCompatResources.getDrawable(FCLApp.getAppContext(), k).getConstantState()).newDrawable();
     }
 
-    public boolean saveVersionSetting(String id) {
+    public void saveVersionSetting(String id) {
         if (!localVersionSettings.containsKey(id))
-            return false;
+            return;
         File file = getLocalVersionSettingFile(id);
         if (!FileUtils.makeDirectory(file.getAbsoluteFile().getParentFile()))
-            return false;
+            return;
 
         try {
             FileUtils.writeText(file, GSON.toJson(localVersionSettings.get(id)));
-            return true;
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Unable to save version setting of " + id, e);
-            return false;
         }
     }
 
@@ -346,48 +389,37 @@ public class FCLGameRepository extends DefaultGameRepository {
             vs.setUsesGlobal(true);
     }
 
-    public LaunchOptions getLaunchOptions(String version, JavaVersion javaVersion, File gameDir, List<String> javaAgents) {
+    public LaunchOptions getLaunchOptions(String version, JavaVersion javaVersion, File gameDir, double scaleFactor) {
         VersionSetting vs = getVersionSetting(version);
+        initForceResolution(vs);
         String profileName = (gameDir.getParentFile() != null) ? gameDir.getParentFile().getName() : "Minecraft";
-
         LaunchOptions.Builder builder = new LaunchOptions.Builder()
                 .setGameDir(gameDir)
                 .setJava(javaVersion)
-                .setVersionType("error")    // Please use version.getType().getId()
+                .setVersionType(LauncherUtilKt.getLauncherName(FCLApp.getAppContext()))
                 .setVersionName(version)
                 .setProfileName(profileName)
                 .setGameArguments(StringUtils.tokenize(vs.getMinecraftArgs()))
-                .setOverrideJavaArguments(StringUtils.tokenize(vs.getJavaArgs()))
+                .setJavaArguments(StringUtils.tokenize(vs.getJavaArgs()))
                 .setMaxMemory((int) (getAllocatedMemory(
                         vs.getMaxMemory() * 1024L * 1024L,
-                        MemoryUtils.getFreeDeviceMemory(FCLPath.CONTEXT),
+                        MemoryUtils.getFreeDeviceMemory(FCLApp.getAppContext()) * 1024L * 1024L,
                         vs.isAutoMemory()
                 ) / 1024 / 1024))
-                .setMinMemory(vs.getMinMemory())
-                .setUUid(vs.getUuid())
-                .setWidth((int) (AndroidUtils.getScreenWidth(FCLApplication.getCurrentActivity()) * vs.getScaleFactor() / 100.0))
-                .setHeight((int) (AndroidUtils.getScreenHeight(FCLApplication.getCurrentActivity()) * vs.getScaleFactor() / 100.0))
+                .setMinMemory(vs.getMaxMemory())
+                .setWidth(vs.isForceResolution() ? FCLBridge.FORCE_RESOLUTION_WIDTH : (int) (AndroidUtilKt.getScreenWidth() * scaleFactor))
+                .setHeight(vs.isForceResolution() ? FCLBridge.FORCE_RESOLUTION_HEIGHT : (int) (AndroidUtilKt.getScreenHeight() * scaleFactor))
                 .setServerIp(vs.getServerIp())
-                .setJavaAgents(javaAgents)
-                .setBEGesture(vs.isBeGesture())
                 .setVkDriverSystem(vs.isVKDriverSystem())
-                .setPojavBigCore(vs.isPojavBigCore())
-                .setRenderer(RendererManager.getRenderer(vs.getRenderer()));
+                .setRenderer(RendererManager.getRenderer(vs.getRenderer()))
+                .setDebugLog(vs.isDebugLog());
 
-        File json = getModpackConfiguration(version);
-        if (json.exists()) {
-            try {
-                String jsonText = FileUtils.readText(json);
-                ModpackConfiguration<?> modpackConfiguration = JsonUtils.GSON.fromJson(jsonText, ModpackConfiguration.class);
-                ModpackProvider provider = ModpackHelper.getProviderByType(modpackConfiguration.getType());
-                if (provider != null) provider.injectLaunchOptions(jsonText, builder);
-            } catch (IOException | JsonParseException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (vs.isAutoMemory() && builder.getJavaArguments().stream().anyMatch(it -> it.startsWith("-Xmx")))
+        if (vs.isAutoMemory() && builder.getJavaArguments().stream().anyMatch(it -> it.startsWith("-Xmx"))) {
             builder.setMaxMemory(null);
+            builder.setMinMemory(null);
+        }
+        if (vs.isAutoMemory() && builder.getJavaArguments().stream().anyMatch(it -> it.startsWith("-Xms")))
+            builder.setMinMemory(null);
 
         return builder.create();
     }
@@ -459,6 +491,23 @@ public class FCLGameRepository extends DefaultGameRepository {
             return Math.max(minimum, suggested);
         } else {
             return minimum;
+        }
+    }
+
+    private void initForceResolution(VersionSetting vs) {
+        FCLBridge.FORCE_RESOLUTION = vs.isForceResolution();
+        if (FCLBridge.FORCE_RESOLUTION) {
+            try {
+                SharedPreferences preferences = Objects.requireNonNull(FCLApp.getActivity()).getSharedPreferences("launcher", MODE_PRIVATE);
+                String[] split = preferences.getString("force_resolution", "1920x1080").toLowerCase().split("x");
+                if (split.length == 2) {
+                    int w = Integer.parseInt(split[0]);
+                    int h = Integer.parseInt(split[1]);
+                    FCLBridge.FORCE_RESOLUTION_WIDTH = w;
+                    FCLBridge.FORCE_RESOLUTION_HEIGHT = h;
+                }
+            } catch (Exception ignore) {
+            }
         }
     }
 }

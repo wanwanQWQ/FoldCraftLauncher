@@ -1,20 +1,17 @@
 package com.tungsten.fcl.ui.version;
 
-import android.app.Activity;
 import android.content.Context;
+import com.tungsten.fcl.ui.UIManager;
 import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
 import com.tungsten.fcl.R;
+import com.tungsten.fcl.activity.MainActivity;
 import com.tungsten.fcl.setting.Profile;
 import com.tungsten.fcl.setting.Profiles;
-import com.tungsten.fcl.ui.UIManager;
-import com.tungsten.fcl.util.RequestCodes;
 import com.tungsten.fclcore.util.StringUtils;
-import com.tungsten.fcllibrary.browser.FileBrowser;
-import com.tungsten.fcllibrary.browser.options.LibMode;
 import com.tungsten.fcllibrary.component.dialog.FCLDialog;
 import com.tungsten.fcllibrary.component.view.FCLButton;
 import com.tungsten.fcllibrary.component.view.FCLEditText;
@@ -22,15 +19,14 @@ import com.tungsten.fcllibrary.component.view.FCLImageButton;
 import com.tungsten.fcllibrary.component.view.FCLTextView;
 
 import java.io.File;
-import java.util.ArrayList;
 
 public class AddProfileDialog extends FCLDialog implements View.OnClickListener {
 
-    private FCLEditText editText;
-    private FCLTextView pathText;
-    private FCLImageButton editPath;
-    private FCLButton positive;
-    private FCLButton negative;
+    private final FCLEditText editText;
+    private final FCLTextView pathText;
+    private final FCLImageButton editPath;
+    private final FCLButton positive;
+    private final FCLButton negative;
 
     public AddProfileDialog(@NonNull Context context) {
         super(context);
@@ -49,14 +45,9 @@ public class AddProfileDialog extends FCLDialog implements View.OnClickListener 
     @Override
     public void onClick(View view) {
         if (view == editPath) {
-            FileBrowser.Builder builder = new FileBrowser.Builder(getContext());
-            builder.setLibMode(LibMode.FOLDER_CHOOSER);
-            builder.setTitle(getContext().getString(R.string.profile_select));
-            builder.create().browse(UIManager.getInstance().getVersionUI().getActivity(), RequestCodes.SELECT_PROFILE_CODE, (requestCode, resultCode, data) -> {
-                if (requestCode == RequestCodes.SELECT_PROFILE_CODE && resultCode == Activity.RESULT_OK && data != null) {
-                    ArrayList<String> strings = FileBrowser.getSelectedFiles(data);
-                    pathText.setText(strings.get(0));
-                }
+            MainActivity.getInstance().fileLauncher.launchSingleSelection(null, null, true, files -> {
+                if (files == null) return;
+                pathText.setText(files.get(0).getPath());
             });
         }
         if (view == positive) {
@@ -65,8 +56,8 @@ public class AddProfileDialog extends FCLDialog implements View.OnClickListener 
             } else if (Profiles.getProfiles().stream().anyMatch(profile -> profile.getName().equals(editText.getText().toString()))) {
                 Toast.makeText(getContext(), getContext().getString(R.string.profile_already_exist), Toast.LENGTH_SHORT).show();
             } else {
-                Profiles.getProfiles().add(new Profile(editText.getText().toString(), new File(pathText.getText().toString())));
-                ((VersionListPage) VersionPageManager.getInstance().getAllPages().get(0)).refreshProfile();
+                Profiles.addProfile(new Profile(editText.getText().toString(), new File(pathText.getText().toString())));
+                ((VersionListPage) UIManager.getInstance().getVersionUI().getPage(0)).refreshProfile();
                 dismiss();
             }
         }

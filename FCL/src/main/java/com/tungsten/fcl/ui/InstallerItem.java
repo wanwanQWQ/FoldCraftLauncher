@@ -20,7 +20,7 @@ import android.view.View;
 import androidx.appcompat.widget.LinearLayoutCompat;
 
 import com.tungsten.fcl.R;
-import com.tungsten.fcl.util.AndroidUtils;
+import com.mio.util.AndroidUtilKt;
 import com.tungsten.fclcore.download.LibraryAnalyzer;
 import com.tungsten.fclcore.fakefx.beans.InvalidationListener;
 import com.tungsten.fclcore.fakefx.beans.binding.Bindings;
@@ -30,7 +30,7 @@ import com.tungsten.fclcore.fakefx.beans.property.SimpleBooleanProperty;
 import com.tungsten.fclcore.fakefx.beans.property.SimpleObjectProperty;
 import com.tungsten.fclcore.fakefx.beans.property.SimpleStringProperty;
 import com.tungsten.fclcore.fakefx.beans.property.StringProperty;
-import com.tungsten.fclcore.util.versioning.VersionNumber;
+import com.tungsten.fclcore.util.versioning.GameVersionNumber;
 import com.tungsten.fcllibrary.component.theme.ThemeEngine;
 import com.tungsten.fcllibrary.component.view.FCLImageButton;
 import com.tungsten.fcllibrary.component.view.FCLImageView;
@@ -62,7 +62,7 @@ public class InstallerItem {
     public InstallerItem(Context context, LibraryAnalyzer.LibraryType id) {
         this.context = context;
         this.id = id.getPatchId();
-        this.name = AndroidUtils.getLocalizedText(context, "install_installer_" + id.getPatchId().replace(".", "_").replace("-", "_"));
+        this.name = AndroidUtilKt.getLocalizedText(context, "install_installer_" + id.getPatchId().replace(".", "_").replace("-", "_"));
         this.icon = getDrawable(context, id);
     }
 
@@ -206,7 +206,7 @@ public class InstallerItem {
                 this.libraries = new InstallerItem[]{forge, neoForge, liteLoader, optiFine, fabric, fabricApi, quilt, quiltApi, cleanroom};
             } else if (gameVersion.equals("1.12.2")) {
                 this.libraries = new InstallerItem[]{forge, cleanroom, liteLoader, optiFine};
-            } else if (VersionNumber.compare(gameVersion, "1.13") < 0) {
+            } else if (GameVersionNumber.compare(gameVersion, "1.13") < 0) {
                 this.libraries = new InstallerItem[]{forge, liteLoader, optiFine};
             } else {
                 this.libraries = new InstallerItem[]{forge, neoForge, optiFine, fabric, fabricApi, quilt, quiltApi};
@@ -263,9 +263,9 @@ public class InstallerItem {
                 String incompatibleWith = installerItem.incompatibleLibraryName.get();
                 String version = installerItem.libraryVersion.get();
                 if (installerItem.incompatibleWithGame.get()) {
-                    return AndroidUtils.getLocalizedText(context, "install_installer_change_version", version);
+                    return context.getString(R.string.install_installer_change_version, version);
                 } else if (incompatibleWith != null) {
-                    return AndroidUtils.getLocalizedText(context, "install_installer_incompatible", AndroidUtils.getLocalizedText(context, "install_installer_" + incompatibleWith.replace("-", "_")));
+                    return context.getString(R.string.install_installer_incompatible, AndroidUtilKt.getLocalizedText(context, "install_installer_" + incompatibleWith.replace("-", "_")));
                 } else if (version == null) {
                     return context.getString(R.string.install_installer_not_installed);
                 } else {

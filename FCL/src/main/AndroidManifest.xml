@@ -14,6 +14,8 @@
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -25,13 +27,14 @@
         tools:ignore="HighSamplingRate" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <permission
-        android:name="com.tungsten.fcl.modpack_aa9bf311.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature|development"
-        tools:replace="android:protectionLevel" />
-    <uses-permission android:name="com.tungsten.fcl.modpack_aa9bf311.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+        tools:replace="android:name, android:protectionLevel" />
+    <uses-permission android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        tools:replace="android:name" />
 
     <application
-        android:name=".FCLApplication"
+        android:name=".FCLApp"
         android:allowBackup="true"
         android:allowNativeHeapPointerTagging="false"
         android:appCategory="game"
@@ -52,7 +55,7 @@
         tools:ignore="DiscouragedApi">
         <activity
             android:name=".activity.SplashActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation|uiMode"
             android:exported="true"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/Theme.Splash">
@@ -62,18 +65,51 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity-alias
+            android:name=".ImportActivity"
+            android:exported="true"
+            android:label="@string/app_name_import"
+            android:targetActivity=".activity.SplashActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/x-zip-compressed" />
+                <data android:mimeType="application/x-7z-compressed" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.zip" />
+                <data android:pathPattern=".*\\.mrpack" />
+                <data android:pathPattern=".*\\.7z" />
+            </intent-filter>
+        </activity-alias>
         <activity
             android:name=".activity.MainActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation|uiMode"
             android:screenOrientation="sensorLandscape" />
         <activity
             android:name=".activity.ControllerActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation|uiMode"
             android:screenOrientation="sensorLandscape" />
         <activity
             android:name=".activity.ShellActivity"
             android:exported="true"
-            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation|uiMode"
             android:screenOrientation="sensorPortrait"
             android:windowSoftInputMode="adjustResize"
             tools:ignore="LockedOrientationActivity">
@@ -85,30 +121,34 @@
         <activity
             android:name=".activity.JVMActivity"
             android:alwaysRetainTaskState="true"
-            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation|uiMode"
             android:launchMode="standard"
-            android:multiprocess="true"
-            android:process=":jvm"
             android:screenOrientation="sensorLandscape" />
         <activity
             android:name=".activity.JVMCrashActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation|uiMode"
             android:process=":crash"
-            android:screenOrientation="sensor" />
+            android:screenOrientation="sensorLandscape" />
         <activity
             android:name="com.tungsten.fcllibrary.browser.FileBrowserActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation|uiMode"
             android:screenOrientation="sensorLandscape" />
         <activity
             android:name="com.tungsten.fcllibrary.crash.CrashReportActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
-            android:screenOrientation="sensor" />
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation|uiMode"
+            android:screenOrientation="sensorLandscape" />
 
         <service
             android:name="com.tungsten.fclcore.download.ProcessService"
             android:enabled="true"
+            android:exported="false"
             android:foregroundServiceType="dataSync"
-            android:process=":processService" />
+            android:process=":jvm" />
+        <service
+            android:name="com.mio.download.DownloadService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
         <service
             android:name=".terracotta.TerracottaVPNService"
             android:permission="android.permission.BIND_VPN_SERVICE"
@@ -139,6 +179,11 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>
+        <provider
+            android:name="com.tungsten.fcllibrary.crash.CrashReporterInitProvider"
+            android:authorities="${applicationId}.crashreporterinitprovider"
+            android:exported="false"
+            android:initOrder="101" />
     </application>
     <queries>
         <package android:name="net.kdt.pojavlaunch.ffmpeg" />

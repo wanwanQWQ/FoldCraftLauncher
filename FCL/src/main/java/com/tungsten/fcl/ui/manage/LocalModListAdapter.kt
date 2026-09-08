@@ -8,50 +8,53 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.mio.ui.adapter.ViewHolder
 import com.tungsten.fcl.R
 import com.tungsten.fcl.activity.MainActivity
 import com.tungsten.fcl.databinding.ItemLocalModBinding
+import com.tungsten.fcl.ui.download.DownloadUI
 import com.tungsten.fcl.ui.manage.ModListPage.ModInfoObject
 import com.tungsten.fclcore.fakefx.beans.Observable
-import com.tungsten.fclcore.fakefx.beans.property.BooleanProperty
 import com.tungsten.fclcore.fakefx.beans.property.ListProperty
 import com.tungsten.fclcore.fakefx.beans.property.SimpleListProperty
 import com.tungsten.fclcore.fakefx.collections.FXCollections
+import com.tungsten.fclcore.fakefx.collections.ListChangeListener
 import com.tungsten.fclcore.mod.LocalModFile
 import com.tungsten.fclcore.mod.ModLoaderType
 import com.tungsten.fclcore.mod.RemoteMod
 import com.tungsten.fclcore.util.Logging
 import com.tungsten.fclcore.util.StringUtils
-import com.tungsten.fcllibrary.component.FCLAdapter
 import com.tungsten.fcllibrary.component.theme.ThemeEngine
-import com.tungsten.fcllibrary.component.view.FCLCheckBox
-import com.tungsten.fcllibrary.component.view.FCLImageButton
-import com.tungsten.fcllibrary.component.view.FCLImageView
-import com.tungsten.fcllibrary.component.view.FCLLinearLayout
-import com.tungsten.fcllibrary.component.view.FCLTextView
 import com.tungsten.fcllibrary.util.LocaleUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Optional
 import java.util.logging.Level
+import kotlin.time.Duration.Companion.milliseconds
 
-class LocalModListAdapter(context: Context, private val modListPage: ModListPage) :
-    FCLAdapter(context) {
-
+class LocalModListAdapter(
+    private val context: Context,
+    private val modListPage: ModListPage,
+    val onChecked: () -> Unit
+) :
+    RecyclerView.Adapter<ViewHolder>() {
     val listProperty: ListProperty<ModInfoObject> = SimpleListProperty(
         FXCollections.observableArrayList()
     )
     val selectedItemsProperty: ListProperty<ModInfoObject?> =
-        SimpleListProperty<ModInfoObject?>(
+        SimpleListProperty(
             FXCollections.observableArrayList<ModInfoObject?>()
         )
 
     val drawable = AppCompatResources.getDrawable(context, R.drawable.ic_cube)!!
-    private val jobs = HashMap<Int, Job>()
+    private val jobs = HashMap<String, Job>()
 
     fun listProperty(): ListProperty<ModInfoObject> {
         return listProperty
@@ -66,190 +69,53 @@ class LocalModListAdapter(context: Context, private val modListPage: ModListPage
         selectedItemsProperty.addAll(listProperty)
     }
 
+    fun selectInvert() {
+        val list = ArrayList<ModInfoObject>()
+        listProperty.forEach {
+            if (!selectedItemsProperty.get().contains(it)) {
+                list.add(it)
+            }
+        }
+        selectedItemsProperty.clear()
+        selectedItemsProperty.addAll(list)
+    }
+
     private var fromSelf = false
 
     init {
-        this.listProperty.addListener { observable: Observable? ->
-            fromSelf = true
-            selectedItemsProperty.clear()
-            fromSelf = false
-            notifyDataSetChanged()
-        }
-        selectedItemsProperty.addListener { observable: Observable? ->
+        this.listProperty.addListener(ListChangeListener { c -> // 增量插入只通知新条目（notifyItemRangeInserted），已显示条目不会重绘，
+            // 避免其在每次增量刷新时被重绘（图标重新加载、状态闪烁）
+            var replaced = false
+            while (c.next()) {
+                if (c.wasReplaced()) {
+                    // 全量替换（搜索 / 勾选筛选）：整体刷新，远程查询与选中状态全部重置
+                    replaced = true
+                } else if (c.wasRemoved()) {
+                    c.removed.forEach {
+                        jobs.remove(it.modInfo.fileName)?.cancel()
+                        fromSelf = true
+                        selectedItemsProperty.remove(it)
+                        fromSelf = false
+                    }
+                    notifyItemRangeRemoved(c.from, c.removedSize)
+                } else if (c.wasAdded()) {
+                    notifyItemRangeInserted(c.from, c.addedSize)
+                }
+            }
+            if (replaced) {
+                jobs.values.forEach { it.cancel() }
+                jobs.clear()
+                fromSelf = true
+                selectedItemsProperty.clear()
+                fromSelf = false
+                notifyDataSetChanged()
+            }
+        })
+        selectedItemsProperty.addListener { _: Observable? ->
             if (!fromSelf) {
                 notifyDataSetChanged()
             }
         }
-    }
-
-    private class ViewHolder {
-        lateinit var parent: FCLLinearLayout
-        lateinit var checkBox: FCLCheckBox
-        lateinit var icon: FCLImageView
-        lateinit var name: FCLTextView
-        lateinit var tag: FCLTextView
-        lateinit var description: FCLTextView
-        lateinit var restore: FCLImageButton
-        lateinit var info: FCLImageButton
-        var booleanProperty: BooleanProperty? = null
-        var pos: Int = -1
-    }
-
-    override fun getCount(): Int {
-        return listProperty.size
-    }
-
-    override fun getItem(i: Int): Any? {
-        return listProperty[i]
-    }
-
-    @SuppressLint("SetTextI18n")
-    override fun getView(i: Int, view: View?, viewGroup: ViewGroup?): View {
-        var view = view
-        val viewHolder: ViewHolder
-        if (view == null) {
-            viewHolder = ViewHolder()
-            val binding = ItemLocalModBinding.inflate(LayoutInflater.from(context))
-            view = binding.root
-            viewHolder.parent = binding.parent
-            viewHolder.checkBox = binding.check
-            viewHolder.icon = binding.icon
-            viewHolder.name = binding.name
-            viewHolder.tag = binding.tag
-            viewHolder.description = binding.description
-            viewHolder.restore = binding.restore
-            viewHolder.info = binding.info
-            viewHolder.pos = i
-            view.tag = viewHolder
-        } else {
-            viewHolder = view.tag as ViewHolder
-        }
-        jobs[viewHolder.pos]?.cancel()
-        jobs.remove(viewHolder.pos)
-
-        val modInfoObject = listProperty[i]
-        viewHolder.parent.backgroundTintList = ColorStateList(
-            arrayOf<IntArray?>(intArrayOf()),
-            intArrayOf(
-                if (selectedItemsProperty.contains(modInfoObject)) ThemeEngine.getInstance()
-                    .getTheme().color else ThemeEngine.getInstance().getTheme()
-                    .ltColor
-            )
-        )
-        ThemeEngine.getInstance().registerEvent(viewHolder.parent) {
-            viewHolder.parent.backgroundTintList = ColorStateList(
-                arrayOf<IntArray?>(intArrayOf()),
-                intArrayOf(
-                    if (selectedItemsProperty.contains(modInfoObject)) ThemeEngine.getInstance()
-                        .getTheme().color else ThemeEngine.getInstance().getTheme()
-                        .ltColor
-                )
-            )
-        }
-        viewHolder.parent.setOnClickListener { v: View? ->
-            if (selectedItemsProperty.contains(modInfoObject)) {
-                fromSelf = true
-                selectedItemsProperty.remove(modInfoObject)
-                fromSelf = false
-                viewHolder.parent.backgroundTintList = ColorStateList(
-                    arrayOf<IntArray?>(
-                        intArrayOf()
-                    ), intArrayOf(ThemeEngine.getInstance().getTheme().ltColor)
-                )
-            } else {
-                fromSelf = true
-                selectedItemsProperty.add(modInfoObject)
-                fromSelf = false
-                viewHolder.parent.backgroundTintList = ColorStateList(
-                    arrayOf<IntArray?>(
-                        intArrayOf()
-                    ), intArrayOf(ThemeEngine.getInstance().getTheme().color)
-                )
-            }
-        }
-        viewHolder.checkBox.addCheckedChangeListener()
-        viewHolder.booleanProperty?.let {
-            viewHolder.checkBox.checkProperty().unbindBidirectional(it)
-        }
-        viewHolder.checkBox.checkProperty()
-            .bindBidirectional(modInfoObject.active.also { viewHolder.booleanProperty = it })
-        viewHolder.icon.tag = i
-        viewHolder.name.text = modInfoObject.title
-        viewHolder.name.isSelected = true
-        val tag = getTag(modInfoObject)
-        viewHolder.tag.text = tag
-        viewHolder.tag.isSelected = true
-        viewHolder.tag.visibility = if (tag == "") View.GONE else View.VISIBLE
-        viewHolder.description.text = modInfoObject.subtitle
-        viewHolder.description.isSelected = true
-        viewHolder.restore.visibility = if (modInfoObject.modInfo.mod.oldFiles
-                .isEmpty()
-        ) View.GONE else View.VISIBLE
-        viewHolder.restore.setOnClickListener {
-            val dialog = ModRollbackDialog(
-                context,
-                ArrayList<LocalModFile?>(modInfoObject.modInfo.mod.oldFiles)
-            ) { localModFile: LocalModFile? ->
-                modListPage.rollback(modInfoObject.modInfo, localModFile)
-                notifyDataSetChanged()
-            }
-            dialog.show()
-        }
-        viewHolder.info.setOnClickListener {
-            val dialog = ModInfoDialog(context, modInfoObject)
-            dialog.show()
-        }
-
-        drawable.setTint(ThemeEngine.getInstance().getTheme().color)
-        viewHolder.icon.setImageDrawable(drawable)
-        val job = MainActivity.getInstance().lifecycleScope.launch {
-            val mod = withContext(Dispatchers.IO) {
-                if (modInfoObject.modInfo.file.toFile()
-                        .length() > 104857600
-                ) return@withContext null
-                for (type in RemoteMod.Type.entries.toTypedArray()) {
-                    try {
-                        if (modInfoObject.remoteMod == null) {
-                            val remoteVersion: Optional<RemoteMod.Version?> =
-                                type.remoteModRepository.getRemoteVersionByLocalFile(
-                                    modInfoObject.modInfo,
-                                    modInfoObject.modInfo.file
-                                )
-                            if (remoteVersion.isPresent) {
-                                val remoteMod: RemoteMod? = type.remoteModRepository
-                                    .getModById(remoteVersion.get().modid)
-                                modInfoObject.modInfo.remoteVersion = remoteVersion.get()
-                                modInfoObject.remoteMod = remoteMod
-                            } else {
-                                continue
-                            }
-                        }
-                        return@withContext modInfoObject.remoteMod
-                    } catch (e: Throwable) {
-                        System.gc()
-                        Logging.LOG.log(Level.SEVERE, e.toString())
-                    }
-                }
-                null
-            }
-            mod?.let {
-                if (isActive && viewHolder.icon.tag as Int == i) {
-                    viewHolder.icon.visibility = View.VISIBLE
-                    Glide.with(viewHolder.icon).load(mod.iconUrl).error(drawable)
-                        .into(viewHolder.icon)
-                    viewHolder.name.text = mod.title
-                    if (modInfoObject.mod != null && LocaleUtils.isChinese(context)) {
-                        val name = modInfoObject.mod.name
-                        if (name.isNotEmpty() && StringUtils.containsChinese(name)) {
-                            viewHolder.name.text = "[${name}]${mod.title}"
-                        }
-                    }
-
-                }
-            }
-        }
-        jobs[viewHolder.pos] = job
-        return view
     }
 
     private fun getTag(modInfoObject: ModInfoObject): String {
@@ -272,5 +138,201 @@ class LocalModListAdapter(context: Context, private val modListPage: ModListPage
             ModLoaderType.QUILT -> context.getString(R.string.install_installer_quilt)
             else -> ""
         }
+    }
+
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): ViewHolder {
+        return ViewHolder(
+            ItemLocalModBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            ).root
+        )
+    }
+
+    override fun onBindViewHolder(
+        holder: ViewHolder,
+        position: Int
+    ) {
+        val binding = ItemLocalModBinding.bind(holder.itemView)
+        val modInfoObject = listProperty[position]
+        val key = modInfoObject.modInfo.fileName
+        jobs[key]?.cancel()
+        jobs.remove(key)
+        binding.parent.backgroundTintList = ColorStateList(
+            arrayOf<IntArray?>(intArrayOf()),
+            intArrayOf(
+                if (selectedItemsProperty.contains(modInfoObject)) ThemeEngine.getInstance()
+                    .getTheme().getColor() else ThemeEngine.getInstance().getTheme()
+                    .ltColor
+            )
+        )
+        ThemeEngine.getInstance().unregisterEvent(binding.root)
+        ThemeEngine.getInstance().registerEvent(binding.root) {
+            binding.parent.backgroundTintList = ColorStateList(
+                arrayOf<IntArray?>(intArrayOf()),
+                intArrayOf(
+                    if (selectedItemsProperty.contains(modInfoObject)) ThemeEngine.getInstance()
+                        .getTheme().color else ThemeEngine.getInstance().getTheme()
+                        .ltColor
+                )
+            )
+        }
+        binding.parent.setOnClickListener { _: View? ->
+            if (selectedItemsProperty.contains(modInfoObject)) {
+                fromSelf = true
+                selectedItemsProperty.remove(modInfoObject)
+                fromSelf = false
+                binding.parent.backgroundTintList = ColorStateList(
+                    arrayOf<IntArray?>(
+                        intArrayOf()
+                    ), intArrayOf(ThemeEngine.getInstance().getTheme().ltColor)
+                )
+            } else {
+                fromSelf = true
+                selectedItemsProperty.add(modInfoObject)
+                fromSelf = false
+                binding.parent.backgroundTintList = ColorStateList(
+                    arrayOf<IntArray?>(
+                        intArrayOf()
+                    ), intArrayOf(ThemeEngine.getInstance().getTheme().getColor())
+                )
+            }
+        }
+        //必须先清除Listener
+        binding.check.setOnCheckedChangeListener(null)
+        binding.check.isChecked = modInfoObject.active.get()
+        binding.check.setOnCheckedChangeListener { _, checked ->
+            modInfoObject.active.set(checked)
+            onChecked.invoke()
+        }
+        binding.name.text = modInfoObject.title
+        val tag = getTag(modInfoObject)
+        binding.tag.text = tag
+        binding.tag.visibility = if (tag == "") View.GONE else View.VISIBLE
+        binding.description.text = modInfoObject.subtitle
+        binding.restore.visibility = if (modInfoObject.modInfo.mod.oldFiles
+                .isEmpty()
+        ) View.GONE else View.VISIBLE
+        binding.restore.setOnClickListener {
+            val dialog = ModRollbackDialog(
+                context,
+                ArrayList<LocalModFile?>(modInfoObject.modInfo.mod.oldFiles)
+            ) { localModFile: LocalModFile? ->
+                modListPage.rollback(modInfoObject.modInfo, localModFile)
+                notifyDataSetChanged()
+            }
+            dialog.show()
+        }
+        binding.info.setOnClickListener {
+            val dialog = ModInfoDialog(context, modInfoObject)
+            dialog.show()
+        }
+        binding.jump.visibility = View.GONE
+        binding.jump.setOnClickListener {
+            val uiManager = MainActivity.getInstance().uiManager
+            MainActivity.getInstance().binding.download.isSelected = true
+            uiManager.downloadUI.showDownloadPage(DownloadUI.PAGE_ID_DOWNLOAD_MOD)
+            uiManager.downloadUI.downloadPage.jumpToModPage(modInfoObject.remoteMod)
+        }
+
+        drawable.setTint(ThemeEngine.getInstance().getTheme().getColor())
+        binding.icon.setImageDrawable(drawable)
+        val cachedRemoteMod = modInfoObject.remoteMod
+        if (cachedRemoteMod != null) {
+            applyRemoteMod(binding, cachedRemoteMod, modInfoObject)
+        }
+    }
+
+    /**
+     * 远程信息查询挂在 attach 生命周期上而不是 onBindViewHolder：RecyclerView 的 view cache
+     * （视口外侧各约 2 个条目）复用缓存 view 重新显示时不会重新绑定，挂在绑定上会导致
+     * 查询被防抖跳过后（如快速滑动）永久失去重试机会；attach 则每次重新显示都会触发。
+     * detach 时取消在途查询，delay(200ms) 后仍存活即说明条目停在了屏幕上。
+     */
+    override fun onViewAttachedToWindow(holder: ViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        val position = holder.bindingAdapterPosition
+        if (position == RecyclerView.NO_POSITION || position >= listProperty.size) return
+        val modInfoObject = listProperty[position]
+        if (modInfoObject.remoteMod != null) return
+        val key = modInfoObject.modInfo.fileName
+        val existing = jobs[key]
+        if (existing != null && existing.isActive) return
+        val binding = ItemLocalModBinding.bind(holder.itemView)
+        holder.itemView.tag = key
+        val job = MainActivity.getInstance().lifecycleScope.launch {
+            delay(200L.milliseconds)
+            val mod = withContext(Dispatchers.IO) {
+                for (type in RemoteMod.Type.entries.toTypedArray()) {
+                    ensureActive()
+                    try {
+                        if (modInfoObject.remoteMod == null) {
+                            val remoteVersion: Optional<RemoteMod.Version?> =
+                                type.remoteModRepository.getRemoteVersionByLocalFile(
+                                    modInfoObject.modInfo,
+                                    modInfoObject.modInfo.file
+                                )
+                            if (remoteVersion.isPresent) {
+                                val remoteMod: RemoteMod? = type.remoteModRepository
+                                    .getModById(remoteVersion.get().modid())
+                                modInfoObject.modInfo.remoteVersion =
+                                    remoteVersion.get()
+                                modInfoObject.remoteMod = remoteMod
+                            } else {
+                                continue
+                            }
+                        }
+                        return@withContext modInfoObject.remoteMod
+                    } catch (e: Throwable) {
+                        Logging.LOG.log(
+                            Level.SEVERE,
+                            "getRemoteVersionByLocalFile error: ${modInfoObject.modInfo.file.fileName}\n${e.toString()}"
+                        )
+                    }
+                }
+                null
+            }
+            if (isActive) {
+                mod?.let {
+                    applyRemoteMod(binding, it, modInfoObject)
+                }
+            }
+        }
+        jobs[key] = job
+    }
+
+    override fun onViewDetachedFromWindow(holder: ViewHolder) {
+        super.onViewDetachedFromWindow(holder)
+        val key = holder.itemView.tag as? String ?: return
+        holder.itemView.tag = null
+        jobs[key]?.cancel()
+        jobs.remove(key)
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun applyRemoteMod(
+        binding: ItemLocalModBinding,
+        mod: RemoteMod,
+        modInfoObject: ModInfoObject
+    ) {
+        binding.icon.visibility = View.VISIBLE
+        Glide.with(binding.icon).load(mod.iconUrl).error(drawable)
+            .into(binding.icon)
+        binding.name.text = mod.title
+        binding.jump.visibility = View.VISIBLE
+        if (modInfoObject.mod != null && LocaleUtils.isChinese(context)) {
+            val name = modInfoObject.mod.name()
+            if (name.isNotEmpty() && StringUtils.containsChinese(name)) {
+                binding.name.text = "[${name}]${mod.title}"
+            }
+        }
+    }
+
+    override fun getItemCount(): Int {
+        return listProperty.size
     }
 }

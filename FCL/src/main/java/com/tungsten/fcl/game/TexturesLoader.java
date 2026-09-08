@@ -19,22 +19,6 @@ package com.tungsten.fcl.game;
 
 import static com.tungsten.fclcore.util.Lang.threadPool;
 import static com.tungsten.fclcore.util.Logging.LOG;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.requireNonNull;
@@ -42,8 +26,9 @@ import static java.util.Objects.requireNonNull;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 
 import com.tungsten.fcl.util.ResourceNotFoundError;
@@ -64,27 +49,31 @@ import com.tungsten.fclcore.task.FileDownloadTask;
 import com.tungsten.fclcore.util.StringUtils;
 import com.tungsten.fclcore.util.fakefx.BindingMapping;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+
 public final class TexturesLoader {
 
     private TexturesLoader() {
     }
 
     // ==== Texture Loading ====
-    public static class LoadedTexture {
-        private final Bitmap image;
-        private final Map<String, String> metadata;
-
+    public record LoadedTexture(Bitmap image, Map<String, String> metadata) {
         public LoadedTexture(Bitmap image, Map<String, String> metadata) {
             this.image = requireNonNull(image);
             this.metadata = requireNonNull(metadata);
-        }
-
-        public Bitmap getImage() {
-            return image;
-        }
-
-        public Map<String, String> getMetadata() {
-            return metadata;
         }
     }
 
@@ -117,11 +106,11 @@ public final class TexturesLoader {
             OfflineAccount account = accounts[0];
             Skin skin = account.getSkin();
             if (skin != null) {
-                Skin.LoadedSkin loadedSkin = skin.load(account.getUsername()).run();
+                Skin.LoadedSkin loadedSkin = skin.load().run();
                 if (loadedSkin != null) {
-                    Bitmap img = loadedSkin.getSkin() == null ? null : loadedSkin.getSkin().getImage();
+                    Bitmap img = loadedSkin.skin() == null ? null : loadedSkin.skin().getImage();
                     if (img == null) {
-                        img = getDefaultSkin(TextureModel.detectUUID(account.getUUID())).getImage();
+                        img = getDefaultSkin(TextureModel.detectUUID(account.getUUID())).image();
                     }
                     return new LoadedTexture(img, metadata);
                 }
@@ -164,9 +153,10 @@ public final class TexturesLoader {
             OfflineAccount account = accounts[0];
             Skin skin = account.getSkin();
             if (skin != null) {
-                Skin.LoadedSkin loadedSkin = skin.load(account.getUsername()).run();
-                if (loadedSkin != null) {
-                    return loadedSkin.getSkin() == null ? null : loadedSkin.getCape().getImage();
+                Skin.LoadedSkin loadedSkin = skin.load().run();
+                // 离线皮肤可能没有 cape（ALEX/STEVE 默认皮肤、未配置本地披风时 cape 为 null）
+                if (loadedSkin != null && loadedSkin.cape() != null) {
+                    return loadedSkin.cape().getImage();
                 }
             }
             return null;
@@ -277,8 +267,39 @@ public final class TexturesLoader {
                 }, uuidFallback);
     }
 
+    /**
+     * 同步加载账户皮肤与披风（在 IO 线程调用）。
+     * 供 SkinTextureLoader 的回调式加载使用，兜底行为与 textureBinding 一致：加载失败返回默认皮肤。
+     */
+    public static Bitmap[] loadSkinAndCape(Account account) {
+        Bitmap defaultSkin = getDefaultSkin(TextureModel.detectUUID(account.getUUID())).image();
+        Bitmap finalSkin = defaultSkin;
+        Bitmap finalCape = null;
+        try {
+            Optional<Map<TextureType, Texture>> textures = account.getTextures().get();
+            if (textures.isPresent()) {
+                Texture skin = textures.get().get(TextureType.SKIN);
+                Texture cape = textures.get().get(TextureType.CAPE);
+                if (skin != null && StringUtils.isNotBlank(skin.getUrl())) {
+                    if (account instanceof OfflineAccount) {
+                        finalSkin = loadTexture(skin, (OfflineAccount) account).image();
+                        finalCape = loadCape(skin, (OfflineAccount) account);
+                    } else {
+                        finalSkin = loadTexture(skin).image();
+                    }
+                }
+                if (cape != null && StringUtils.isNotBlank(cape.getUrl())) {
+                    finalCape = loadCape(cape);
+                }
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Failed to load texture, using default", e);
+        }
+        return new Bitmap[]{finalSkin, finalCape};
+    }
+
     public static ObjectBinding<Bitmap[]> textureBinding(Account account) {
-        Bitmap[] fallback = new Bitmap[] { getDefaultSkin(TextureModel.detectUUID(account.getUUID())).getImage(), null };
+        Bitmap[] fallback = new Bitmap[]{getDefaultSkin(TextureModel.detectUUID(account.getUUID())).image(), null};
         return BindingMapping.of(account.getTextures())
                 .asyncMap(it -> {
                     if (it.isPresent()) {
@@ -287,15 +308,15 @@ public final class TexturesLoader {
                         boolean loadSkin = skin != null && StringUtils.isNotBlank(skin.getUrl());
                         boolean loadCape = cape != null && StringUtils.isNotBlank(cape.getUrl());
                         return CompletableFuture.supplyAsync(() -> {
-                            Bitmap finalSkin = getDefaultSkin(TextureModel.detectUUID(account.getUUID())).getImage();
+                            Bitmap finalSkin = getDefaultSkin(TextureModel.detectUUID(account.getUUID())).image();
                             Bitmap finalCape = null;
                             try {
                                 if (loadSkin) {
                                     if (account instanceof OfflineAccount) {
-                                        finalSkin = loadTexture(skin, (OfflineAccount) account).getImage();
+                                        finalSkin = loadTexture(skin, (OfflineAccount) account).image();
                                         finalCape = loadCape(skin, (OfflineAccount) account);
                                     } else {
-                                        finalSkin = loadTexture(skin).getImage();
+                                        finalSkin = loadTexture(skin).image();
                                     }
                                 }
                                 if (loadCape) {
@@ -304,7 +325,7 @@ public final class TexturesLoader {
                             } catch (Exception e) {
                                 LOG.log(Level.WARNING, "Failed to load texture, using default", e);
                             }
-                            return new Bitmap[] { finalSkin, finalCape };
+                            return new Bitmap[]{finalSkin, finalCape};
                         }, POOL);
                     } else {
                         return CompletableFuture.completedFuture(fallback);
@@ -315,25 +336,39 @@ public final class TexturesLoader {
     // ====
 
     // ==== Avatar ====
-    public static Bitmap toAvatar(Bitmap skin, int size) {
-        float faceOffset = Math.round(size / 18.0);
+    private static final Paint AVATAR_PAINT = new Paint();
+
+    static {
+        AVATAR_PAINT.setFilterBitmap(false);
+    }
+
+    public static Bitmap toAvatar(
+            final Bitmap skin,
+            final int pixelSize
+    ) {
+        float faceOffset = (float) Math.round(pixelSize / 18.0);
         float scaleFactor = skin.getWidth() / 64.0f;
         int faceSize = Math.round(8 * scaleFactor);
-        Bitmap faceBitmap = Bitmap.createBitmap(skin, faceSize, faceSize, faceSize, faceSize, (Matrix) null, false);
-        Bitmap hatBitmap = Bitmap.createBitmap(skin, Math.round(40 * scaleFactor), faceSize, faceSize, faceSize, (Matrix) null, false);
-        Bitmap avatar = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        int faceEnd = faceSize * 2;
+        int hatSrcX = Math.round(40 * scaleFactor);
+        Bitmap avatar = Bitmap.createBitmap(pixelSize, pixelSize, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(avatar);
-        Matrix matrix;
-        float faceScale = ((size - 2 * faceOffset) / faceSize);
-        float hatScale = ((float) size / faceSize);
-        matrix = new Matrix();
-        matrix.postScale(faceScale, faceScale);
-        Bitmap newFaceBitmap = Bitmap.createBitmap(faceBitmap, 0, 0 , faceSize, faceSize, matrix, false);
-        matrix = new Matrix();
-        matrix.postScale(hatScale, hatScale);
-        Bitmap newHatBitmap = Bitmap.createBitmap(hatBitmap, 0, 0, faceSize, faceSize, matrix, false);
-        canvas.drawBitmap(newFaceBitmap, faceOffset, faceOffset, new Paint(Paint.ANTI_ALIAS_FLAG));
-        canvas.drawBitmap(newHatBitmap, 0, 0, new Paint(Paint.ANTI_ALIAS_FLAG));
+
+        float innerEnd = pixelSize - faceOffset;
+        canvas.drawBitmap(
+                skin,
+                new Rect(faceSize, faceSize, faceEnd, faceEnd),
+                new RectF(faceOffset, faceOffset, innerEnd, innerEnd),
+                AVATAR_PAINT
+        );
+
+        canvas.drawBitmap(
+                skin,
+                new Rect(hatSrcX, faceSize, hatSrcX + faceSize, faceEnd),
+                new RectF(0f, 0f, pixelSize, pixelSize),
+                AVATAR_PAINT
+        );
+
         return avatar;
     }
 

@@ -1,5 +1,6 @@
 package com.tungsten.fcl.setting;
 
+import com.tungsten.fcl.FCLApp;
 import com.tungsten.fclauncher.utils.FCLPath;
 import com.tungsten.fclcore.util.Logging;
 import com.tungsten.fclcore.util.platform.MemoryUtils;
@@ -15,21 +16,21 @@ import java.util.logging.Level;
 public class VersionSettingDefault {
     private static String javaArgs = "";
     private static String minecraftArgs = "";
-    private static int maxMemory = MemoryUtils.findBestRAMAllocation(FCLPath.CONTEXT);
+    private static int maxMemory = MemoryUtils.findBestRAMAllocation(FCLApp.getAppContext());
     private static boolean autoMemory = true;
     private static String serverIp = "";
     private static String java = "Auto";
-    private static int newScaleFactor = 100;
     private static boolean notCheckGame = false;
     private static boolean notCheckJVM = true;
-    private static boolean beGesture = false;
+    private static boolean touchMod = false;
+    private static String graphicsBackend = "default";
     private static boolean vulkanDriverSystem = false;
     private static String controller = "f9b80a8f2";
     private static String renderer = "e7b90ed6-e518-4d4e-93dc-5c7133cd5b31";
     private static String driver = "Turnip";
     private static boolean isolateGameDir = false;
-    private static boolean pojavBigCore = false;
-    private static String uuid = "00000000-0000-0000-0000-000000000000";
+    private static boolean debugLog = false;
+    private static boolean forceResolution = false;
 
     static {
         loadDefaultConfig();
@@ -53,17 +54,17 @@ public class VersionSettingDefault {
     public static String getJava() {
         return java;
     }
-    public static int getNewScaleFactor() {
-        return newScaleFactor;
-    }
     public static boolean getNotCheckGame() {
         return notCheckGame;
     }
     public static boolean getNotCheckJVM() {
         return notCheckJVM;
     }
-    public static boolean getBeGesture() {
-        return beGesture;
+    public static boolean getTouchMod() {
+        return touchMod;
+    }
+    public static String getGraphicsBackend() {
+        return graphicsBackend;
     }
     public static boolean getVulkanDriverSystem() {
         return vulkanDriverSystem;
@@ -80,11 +81,11 @@ public class VersionSettingDefault {
     public static boolean getIsolateGameDir() {
         return isolateGameDir;
     }
-    public static boolean getPojavBigCore() {
-        return pojavBigCore;
+    public static boolean getDebugLog() {
+        return debugLog;
     }
-    public static String getUuid() {
-        return uuid;
+    public static boolean getForceResolution() {
+        return forceResolution;
     }
 
     private static void loadDefaultConfig() {
@@ -98,17 +99,17 @@ public class VersionSettingDefault {
             autoMemory = defaultConfig.has("autoMemory") ? defaultConfig.get("autoMemory").getAsBoolean() : autoMemory;
             serverIp = defaultConfig.has("serverIp") ? defaultConfig.get("serverIp").getAsString() : serverIp;
             java = defaultConfig.has("java") ? defaultConfig.get("java").getAsString() : java;
-            newScaleFactor = defaultConfig.has("newScaleFactor") ? defaultConfig.get("newScaleFactor").getAsInt() : newScaleFactor;
             notCheckGame = defaultConfig.has("notCheckGame") ? defaultConfig.get("notCheckGame").getAsBoolean() : notCheckGame;
             notCheckJVM = defaultConfig.has("notCheckJVM") ? defaultConfig.get("notCheckJVM").getAsBoolean() : notCheckJVM;
-            beGesture = defaultConfig.has("beGesture") ? defaultConfig.get("beGesture").getAsBoolean() : beGesture;
+            touchMod = defaultConfig.has("enableTouchMod") ? defaultConfig.get("enableTouchMod").getAsBoolean() : touchMod;
+            graphicsBackend = defaultConfig.has("graphicsBackend") ? defaultConfig.get("graphicsBackend").getAsString() : graphicsBackend;
             vulkanDriverSystem = defaultConfig.has("vulkanDriverSystem") ? defaultConfig.get("vulkanDriverSystem").getAsBoolean() : vulkanDriverSystem;
             controller = defaultConfig.has("controller") ? defaultConfig.get("controller").getAsString() : controller;
             renderer = defaultConfig.has("renderer") ? defaultConfig.get("renderer").getAsString() : renderer;
             driver = defaultConfig.has("driver") ? defaultConfig.get("driver").getAsString() : driver;
             isolateGameDir = defaultConfig.has("isolateGameDir") ? defaultConfig.get("isolateGameDir").getAsBoolean() : isolateGameDir;
-            pojavBigCore = defaultConfig.has("pojavBigCore") ? defaultConfig.get("pojavBigCore").getAsBoolean() : pojavBigCore;
-            uuid = defaultConfig.has("uuid") ? defaultConfig.get("uuid").getAsString() : uuid;
+            debugLog = defaultConfig.has("debugLog") ? defaultConfig.get("debugLog").getAsBoolean() : debugLog;
+            forceResolution = defaultConfig.has("forceResolution") ? defaultConfig.get("forceResolution").getAsBoolean() : forceResolution;
         } catch (Exception e) {
             Logging.LOG.log(Level.SEVERE, "Failed to load default_config.json", e);
         }

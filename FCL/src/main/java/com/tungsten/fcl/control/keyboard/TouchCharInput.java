@@ -6,12 +6,16 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.tungsten.fcl.control.GameMenu;
+import com.tungsten.fcl.game.sdl.SdlBridge;
+
+import org.libsdl.app.SDLActivity;
 
 /**
  * From PojavLauncher
@@ -90,27 +94,24 @@ public class TouchCharInput extends androidx.appcompat.widget.AppCompatEditText 
      * Toggle on and off the soft keyboard, depending of the state
      */
     public void switchKeyboardState() {
-        InputMethodManager inputMethodManager = (InputMethodManager) getContext().getSystemService(INPUT_METHOD_SERVICE);
-        if (hasFocus()) {
-            inputMethodManager.hideSoftInputFromWindow(getWindowToken(), 0);
-            clear();
-            disable();
-            if (menu != null && menu.getInput().getFocusableView() != null) {
-                if (!menu.getMenuSetting().isPhysicalMouseMode()) {
-                    menu.getInput().getFocusableView().requestFocus();
-                    menu.getInput().getFocusableView().requestPointerCapture();
-                }
+        // SDL 集成启用时由 SDL 输入框接管（字符经 SDLInputConnection 直达 SDL 原生文本事件）
+        if (SdlBridge.getSdlEnabled()) {
+            if (SDLActivity.isSDLEditKeyboardShown()) {
+                SDLActivity.disableSDLEditKeyboard();
+            } else {
+                SDLActivity.enableSDLEditKeyboard();
             }
-        } else {
-            if (menu != null && menu.getInput().getFocusableView() != null) {
-                if (!menu.getMenuSetting().isPhysicalMouseMode()) {
-                    menu.getInput().getFocusableView().releasePointerCapture();
-                    menu.getInput().getFocusableView().clearFocus();
-                }
-            }
-            enable();
-            inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT);
+            return;
         }
+        InputMethodManager inputMethodManager = (InputMethodManager) getContext().getSystemService(INPUT_METHOD_SERVICE);
+        if (menu != null && menu.getInput().getFocusableView() != null) {
+            if (!menu.getMenuSetting().isPhysicalMouseMode()) {
+                menu.getInput().getFocusableView().requestFocus();
+                menu.getInput().getFocusableView().requestPointerCapture();
+            }
+        }
+        enable();
+        inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT);
     }
 
 
@@ -134,6 +135,7 @@ public class TouchCharInput extends androidx.appcompat.widget.AppCompatEditText 
         setFocusable(true);
         setVisibility(VISIBLE);
         requestFocus();
+        sActiveInput = this;
     }
 
     /**
@@ -144,6 +146,18 @@ public class TouchCharInput extends androidx.appcompat.widget.AppCompatEditText 
         setVisibility(GONE);
         clearFocus();
         setEnabled(false);
+        if (sActiveInput == this) {
+            sActiveInput = null;
+        }
+    }
+
+    // 当前激活的字符输入控件，供 SDL 输入法接管时统一关闭（见 SDLActivity）
+    private static TouchCharInput sActiveInput;
+
+    public static void disableActiveInput() {
+        if (sActiveInput != null) {
+            sActiveInput.disable();
+        }
     }
 
     /**
@@ -167,11 +181,8 @@ public class TouchCharInput extends androidx.appcompat.widget.AppCompatEditText 
      */
     private void setup() {
         setOnEditorActionListener((textView, i, keyEvent) -> {
-            InputMethodManager imm = (InputMethodManager) getContext().getSystemService(INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(getWindowToken(), 0);
             sendEnter();
             clear();
-            disable();
             if (menu != null && menu.getInput().getFocusableView() != null) {
                 if (!menu.getMenuSetting().isPhysicalMouseMode()) {
                     menu.getInput().getFocusableView().requestFocus();
@@ -180,6 +191,9 @@ public class TouchCharInput extends androidx.appcompat.widget.AppCompatEditText 
             }
             return false;
         });
+        setInputType(EditorInfo.TYPE_CLASS_TEXT);
+        // setImeOptions(EditorInfo.IME_ACTION_NONE);
+        // setSingleLine(true);
         clear();
         disable();
     }

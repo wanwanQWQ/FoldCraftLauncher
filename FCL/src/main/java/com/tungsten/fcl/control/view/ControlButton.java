@@ -1,5 +1,7 @@
 package com.tungsten.fcl.control.view;
 
+import static com.tungsten.fclauncher.keycodes.MinecraftKeyBindingMapper.BINDING_CHAT;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -19,7 +21,6 @@ import androidx.appcompat.widget.AppCompatButton;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.tungsten.fcl.FCLApplication;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.control.EditViewDialog;
 import com.tungsten.fcl.control.GameMenu;
@@ -31,10 +32,9 @@ import com.tungsten.fcl.control.data.ControlButtonData;
 import com.tungsten.fcl.control.data.ControlViewGroup;
 import com.tungsten.fcl.control.data.CustomControl;
 import com.tungsten.fcl.setting.GameOption;
-import com.tungsten.fcl.util.AndroidUtils;
+import com.mio.util.AndroidUtilKt;
 import com.tungsten.fclauncher.bridge.FCLBridge;
 import com.tungsten.fclauncher.keycodes.FCLKeycodes;
-import com.tungsten.fclauncher.keycodes.LwjglKeycodeMap;
 import com.tungsten.fclcore.fakefx.beans.InvalidationListener;
 import com.tungsten.fclcore.fakefx.beans.binding.Bindings;
 import com.tungsten.fclcore.fakefx.beans.property.BooleanProperty;
@@ -46,12 +46,8 @@ import com.tungsten.fclcore.task.Schedulers;
 import com.tungsten.fclcore.util.StringUtils;
 import com.tungsten.fcllibrary.util.ConvertUtils;
 
-import org.lwjgl.glfw.CallbackBridge;
-
 import java.util.Objects;
 import java.util.UUID;
-
-import static com.tungsten.fclauncher.keycodes.MinecraftKeyBindingMapper.BINDING_CHAT;
 
 /**
  * Custom game control button.
@@ -70,6 +66,7 @@ public class ControlButton extends AppCompatButton implements CustomView {
     private final Paint boundaryPaint;
     private final int screenWidth;
     private final int screenHeight;
+    private int cursorMode;
 
     private BooleanProperty visibilityProperty;
 
@@ -114,8 +111,8 @@ public class ControlButton extends AppCompatButton implements CustomView {
         boundaryPaint.setColor(Color.RED);
         boundaryPaint.setStyle(Paint.Style.STROKE);
         boundaryPaint.setStrokeWidth(3);
-        screenWidth = AndroidUtils.getScreenWidth(FCLApplication.getCurrentActivity());
-        screenHeight = AndroidUtils.getScreenHeight(FCLApplication.getCurrentActivity());
+        screenWidth = AndroidUtilKt.getScreenWidth();
+        screenHeight = AndroidUtilKt.getScreenHeight();
 
         notifyListener = invalidate -> Schedulers.androidUIThread().execute(() -> {
             notifyData();
@@ -195,8 +192,8 @@ public class ControlButton extends AppCompatButton implements CustomView {
         post(() -> {
             int x;
             int y;
-            x = (int) ((screenWidth - width) * (data.getBaseInfo().getXPosition() / 1000f));
-            y = (int) ((screenHeight - height) * (data.getBaseInfo().getYPosition() / 1000f));
+            x = Math.round((screenWidth - width) * (data.getBaseInfo().getXPosition() / 1000f));
+            y = Math.round((screenHeight - height) * (data.getBaseInfo().getYPosition() / 1000f));
             setX(x);
             setY(y);
         });
@@ -339,8 +336,8 @@ public class ControlButton extends AppCompatButton implements CustomView {
                         }, true);
                         dialog.show();
                     } else {
-                        getData().getBaseInfo().setXPosition((int) ((1000 * getX()) / (screenWidth - getMeasuredWidth())));
-                        getData().getBaseInfo().setYPosition((int) ((1000 * getY()) / (screenHeight - getMeasuredHeight())));
+                        getData().getBaseInfo().setXPosition(Math.round((1000 * getX()) / (screenWidth - getMeasuredWidth())));
+                        getData().getBaseInfo().setYPosition(Math.round((1000 * getY()) / (screenHeight - getMeasuredHeight())));
                         menu.getViewManager().saveController();
                     }
                     break;
@@ -351,11 +348,11 @@ public class ControlButton extends AppCompatButton implements CustomView {
             }
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
+                    cursorMode = menu.getCursorMode();
                     setPressedStyle();
                     downX = event.getX();
                     downY = event.getY();
-                    initialX = menu.getCursorMode() == FCLBridge.CursorEnabled ? menu.getCursorX() : menu.getPointerX();
-                    initialY = menu.getCursorMode() == FCLBridge.CursorEnabled ? menu.getCursorY() : menu.getPointerY();
+                    setInitialPosition();
                     positionX = getX();
                     positionY = getY();
                     downTime = System.currentTimeMillis();
@@ -363,6 +360,10 @@ public class ControlButton extends AppCompatButton implements CustomView {
                     handler.postDelayed(runnable, 400);
                     break;
                 case MotionEvent.ACTION_MOVE:
+                    if (cursorMode != menu.getCursorMode()) {
+                        cursorMode = menu.getCursorMode();
+                        setInitialPosition();
+                    }
                     handleMoveEvent(event);
                     if ((Math.abs(event.getX() - downX) > 2 || Math.abs(event.getY() - downY) > 2) && System.currentTimeMillis() - downTime < 400) {
                         handler.removeCallbacks(runnable);
@@ -403,6 +404,11 @@ public class ControlButton extends AppCompatButton implements CustomView {
             }
         }
         return true;
+    }
+
+    private void setInitialPosition() {
+        initialX = cursorMode == FCLBridge.CursorEnabled ? menu.getCursorX() : menu.getPointerX();
+        initialY = cursorMode == FCLBridge.CursorEnabled ? menu.getCursorY() : menu.getPointerY();
     }
 
     private void showLine(int orientation, int pref, int self) {
@@ -500,6 +506,12 @@ public class ControlButton extends AppCompatButton implements CustomView {
         cancelTickEvent(getData().getEvent().getClickEvent());
         cancelTickEvent(getData().getEvent().getDoubleClickEvent());
         setNormalStyle();
+        pressEvent = false;
+        longPress = false;
+        longPressEvent = false;
+        clickEvent = false;
+        clickCount = 0;
+        doubleClickEvent = false;
     }
 
     private void handleMoveEvent(MotionEvent event) {
@@ -662,14 +674,14 @@ public class ControlButton extends AppCompatButton implements CustomView {
         }
         if (event.isSwitchTouchMode()) {
             menu.getMenuSetting().setGestureMode(menu.getMenuSetting().getGestureMode() == GestureMode.BUILD ? GestureMode.FIGHT : GestureMode.BUILD);
-            Toast.makeText(getContext(), AndroidUtils.getLocalizedText(getContext(), "menu_settings_gesture_current",
+            Toast.makeText(getContext(), getContext().getString(R.string.menu_settings_gesture_current,
                     menu.getMenuSetting().getGestureMode() == GestureMode.BUILD ?
                             getContext().getString(R.string.menu_settings_gesture_mode_build) :
                             getContext().getString(R.string.menu_settings_gesture_mode_fight)), Toast.LENGTH_SHORT).show();
         }
         if (event.isSwitchMouseMode()) {
             menu.getMenuSetting().setMouseMoveMode(menu.getMenuSetting().getMouseMoveMode() == MouseMoveMode.CLICK ? MouseMoveMode.SLIDE : MouseMoveMode.CLICK);
-            Toast.makeText(getContext(), AndroidUtils.getLocalizedText(getContext(), "menu_settings_gesture_current",
+            Toast.makeText(getContext(), getContext().getString(R.string.menu_settings_gesture_current,
                     menu.getMenuSetting().getMouseMoveMode() == MouseMoveMode.CLICK ?
                             getContext().getString(R.string.menu_settings_mouse_mode_click) :
                             getContext().getString(R.string.menu_settings_mouse_mode_slide)), Toast.LENGTH_SHORT).show();

@@ -5,8 +5,10 @@ import static com.tungsten.fclcore.fakefx.collections.FXCollections.observableAr
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
 import com.tungsten.fclauncher.utils.FCLPath;
 import com.tungsten.fclcore.fakefx.beans.Observable;
 import com.tungsten.fclcore.fakefx.beans.property.ReadOnlyListProperty;
@@ -18,7 +20,6 @@ import com.tungsten.fclcore.util.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.logging.Level;
 
 public class DirectionStyles {
@@ -26,8 +27,9 @@ public class DirectionStyles {
     private DirectionStyles() {
     }
 
-    private static final ObservableList<ControlDirectionStyle> styles = observableArrayList(style -> new Observable[] { style });
+    private static final ObservableList<ControlDirectionStyle> styles = observableArrayList(style -> new Observable[]{style});
     private static final ReadOnlyListWrapper<ControlDirectionStyle> stylesWrapper = new ReadOnlyListWrapper<>(styles);
+    private static final Gson PRETTY_GSON = new GsonBuilder().setPrettyPrinting().create();
 
     public static void checkStyles() {
         if (!initialized)
@@ -65,7 +67,7 @@ public class DirectionStyles {
         if (initialized)
             return;
 
-        getStylesFromDisk().forEach(DirectionStyles::addStyle);
+        styles.addAll(getStylesFromDisk());
         checkStyles();
 
         initialized = true;
@@ -75,12 +77,13 @@ public class DirectionStyles {
         ArrayList<ControlDirectionStyle> list = new ArrayList<>();
         try {
             String json = FileUtils.readText(new File(FCLPath.CONTROLLER_DIR + "/styles/direction_styles.json"));
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            ArrayList<ControlDirectionStyle> styles =  gson.fromJson(json, new TypeToken<ArrayList<ControlDirectionStyle>>(){}.getType());
-            if (Objects.isNull(styles)) {
-                new File(FCLPath.CONTROLLER_DIR + "/styles/button_styles.json").delete();
+            JsonElement element = JsonParser.parseString(json);
+            if (element.isJsonArray()) {
+                for (JsonElement item : element.getAsJsonArray()) {
+                    list.add(new ControlDirectionStyle.Serializer().deserialize(item, null, null));
+                }
             } else {
-                list.addAll(styles);
+                new File(FCLPath.CONTROLLER_DIR + "/styles/direction_styles.json").delete();
             }
         } catch (IOException e) {
             Logging.LOG.log(Level.SEVERE, "Failed to get direction styles", e);
@@ -99,8 +102,11 @@ public class DirectionStyles {
     }
 
     public static void saveStyles() {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(new ArrayList<>(styles));
+        JsonArray array = new JsonArray();
+        for (ControlDirectionStyle style : styles) {
+            array.add(new ControlDirectionStyle.Serializer().serialize(style, null, null));
+        }
+        String json = PRETTY_GSON.toJson(array);
         try {
             FileUtils.writeText(new File(FCLPath.CONTROLLER_DIR + "/styles/direction_styles.json"), json);
         } catch (IOException e) {
@@ -118,6 +124,16 @@ public class DirectionStyles {
             styles.add(style);
     }
 
+    public static void addStyle(ControlDirectionStyle style, int index) {
+        if (!initialized) return;
+        boolean add = true;
+        for (ControlDirectionStyle directionStyle : getStyles())
+            if (directionStyle.getName().equals(style.getName()))
+                add = false;
+        if (add)
+            styles.add(index, style);
+    }
+
     public static void removeStyles(ControlDirectionStyle style) {
         if (!initialized) return;
         styles.remove(style);
@@ -128,4 +144,8 @@ public class DirectionStyles {
         return styles.stream().filter(it -> it.getName().equals(name)).findFirst().orElse(styles.get(0));
     }
 
+    public static int findStyleIndexByName(String name) {
+        checkStyles();
+        return styles.indexOf(findStyleByName(name));
+    }
 }

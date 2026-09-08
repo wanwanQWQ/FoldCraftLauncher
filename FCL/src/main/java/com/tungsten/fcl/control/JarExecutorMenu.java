@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.mio.ui.view.CursorView;
 import com.tungsten.fcl.BuildConfig;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.activity.JVMCrashActivity;
@@ -30,7 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 
-public class JarExecutorMenu implements MenuCallback, View.OnClickListener, View.OnTouchListener {
+public class JarExecutorMenu implements MenuCallback, FCLBridgeCallback, View.OnClickListener, View.OnTouchListener {
 
     private FCLActivity activity;
     private FCLBridge fclBridge;
@@ -39,7 +40,7 @@ public class JarExecutorMenu implements MenuCallback, View.OnClickListener, View
     private View layout;
     private View touchPad;
     private LogWindow logWindow;
-    private FCLImageView cursorView;
+    private CursorView cursorView;
     private TouchCharInput touchCharInput;
     private FCLButton forceExit;
     private FCLButton showLog;
@@ -73,7 +74,7 @@ public class JarExecutorMenu implements MenuCallback, View.OnClickListener, View
         cursorView = findViewById(R.id.cursor);
         touchCharInput = findViewById(R.id.input_scanner);
         touchPad.setOnTouchListener(this);
-        logWindow.setVisibilityValue(true);
+        logWindow.setVisibility(true);
         touchCharInput.setCharacterSender(null, new AwtCharSender(awtInput));
 
         forceExit = findViewById(R.id.force_exit);
@@ -118,7 +119,7 @@ public class JarExecutorMenu implements MenuCallback, View.OnClickListener, View
 
     @Override
     public FCLBridgeCallback getCallbackBridge() {
-        return new JarExecutorProcessListener(this);
+        return this;
     }
 
     @Override
@@ -128,7 +129,7 @@ public class JarExecutorMenu implements MenuCallback, View.OnClickListener, View
     }
 
     @Override
-    public FCLImageView getCursor() {
+    public CursorView getCursor() {
         return cursorView;
     }
 
@@ -165,16 +166,16 @@ public class JarExecutorMenu implements MenuCallback, View.OnClickListener, View
         if (log.contains("OR:") || log.contains("ERROR:") || log.contains("INTERNAL ERROR:")) {
             return;
         }
-        logWindow.appendLog(log + "\n");
+        logWindow.appendLog(log);
         if (BuildConfig.DEBUG) {
             Log.d("FCL Debug", log);
         }
         try {
             if (firstLog) {
-                FileUtils.writeText(new File(fclBridge.getLogPath()), log + "\n");
+                FileUtils.writeText(new File(fclBridge.getLogPath()), log);
                 firstLog = false;
             } else {
-                FileUtils.writeTextWithAppendMode(new File(fclBridge.getLogPath()), log + "\n");
+                FileUtils.writeTextWithAppendMode(new File(fclBridge.getLogPath()), log);
             }
         } catch (IOException e) {
             Logging.LOG.log(Level.WARNING, "Can't log jar executor log to target file", e.getMessage());
@@ -184,7 +185,7 @@ public class JarExecutorMenu implements MenuCallback, View.OnClickListener, View
     @Override
     public void onExit(int exitCode) {
         if (exitCode != 0) {
-            JVMCrashActivity.startCrashActivity(false, activity, exitCode, fclBridge.getLogPath(), fclBridge.getRenderer(), fclBridge.getJava());
+            JVMCrashActivity.startCrashActivity(false, activity, exitCode, fclBridge.getLogPath());
             Logging.LOG.log(Level.INFO, "JVM crashed, start jvm crash activity to show errors now!");
         }
         android.os.Process.killProcess(android.os.Process.myPid());
@@ -202,7 +203,7 @@ public class JarExecutorMenu implements MenuCallback, View.OnClickListener, View
             builder.create().show();
         }
         if (view == showLog) {
-            logWindow.setVisibilityValue(!logWindow.getVisibilityValue());
+            logWindow.setVisibility(!(logWindow.getVisibility() == View.VISIBLE));
         }
         if (view == mouseMode) {
             clickMode = !clickMode;
@@ -293,34 +294,5 @@ public class JarExecutorMenu implements MenuCallback, View.OnClickListener, View
     @NonNull
     public final <T extends View> T findViewById(int id) {
         return getLayout().findViewById(id);
-    }
-
-    static class JarExecutorProcessListener implements FCLBridgeCallback {
-
-        private final JarExecutorMenu menu;
-
-        public JarExecutorProcessListener(JarExecutorMenu menu) {
-            this.menu = menu;
-        }
-
-        @Override
-        public void onCursorModeChange(int mode) {
-            menu.onCursorModeChange(mode);
-        }
-
-        @Override
-        public void onHitResultTypeChange(int type) {
-            // Ignore
-        }
-
-        @Override
-        public void onLog(String log) {
-            menu.onLog(log);
-        }
-
-        @Override
-        public void onExit(int code) {
-            menu.onExit(code);
-        }
     }
 }

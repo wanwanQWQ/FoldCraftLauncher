@@ -9,22 +9,27 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
+import android.view.View
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.annotation.StringRes
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
+import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.mio.JavaManager
+import com.mio.manager.RendererManager
 import com.mio.util.ImageUtil
+import com.mio.util.getFileName
 import com.tungsten.fcl.R
+import com.tungsten.fcl.databinding.ActivitySplashBinding
 import com.tungsten.fcl.fragment.EulaFragment
 import com.tungsten.fcl.fragment.RuntimeFragment
 import com.tungsten.fcl.setting.ConfigHolder
+import com.tungsten.fcl.setting.Controllers
 import com.tungsten.fcl.util.RuntimeUtils
 import com.tungsten.fclauncher.utils.FCLPath
 import com.tungsten.fclcore.util.Logging
@@ -42,44 +47,40 @@ import java.io.IOException
 import java.nio.file.Paths
 import java.util.Locale
 import java.util.logging.Level
-import androidx.core.content.edit
-import com.mio.manager.RendererManager
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : FCLActivity() {
-    private lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
-    private lateinit var permissionResultLauncher: ActivityResultLauncher<Array<String>>
+    companion object {
+        /** enterLauncher 内的加载步骤总数，进度按步骤均分 */
+        private const val LOADING_TOTAL = 4
+    }
+
     var lwjgl: Boolean = false
     var cacio: Boolean = false
     var cacio17: Boolean = false
     var java8: Boolean = false
-    var java11: Boolean = false
     var java17: Boolean = false
     var java21: Boolean = false
+    var java25: Boolean = false
     var jna: Boolean = false
     var gameResource: Boolean = false
     var others: Boolean = false
+    lateinit var binding: ActivitySplashBinding
     private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
-        setContentView(R.layout.activity_splash)
+        binding = ActivitySplashBinding.inflate(layoutInflater)
         sharedPreferences = getSharedPreferences("launcher", MODE_PRIVATE)
-        val background = findViewById<ConstraintLayout>(R.id.background)
+        setContentView(binding.root)
+        ThemeEngine.getInstance().registerEvent(binding.loadingProgress) {
+            refreshLoadingProgressTheme()
+        }
+        refreshLoadingProgressTheme()
         ImageUtil.loadInto(
-            background,
-            ThemeEngine.getInstance().getTheme().getBackground(this)
+            binding.background, ThemeEngine.getInstance().getTheme().getBackground(this)
         )
-
-        activityResultLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-                checkPermission()
-            }
-        permissionResultLauncher =
-            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-                checkPermission()
-            }
         if (sharedPreferences.getBoolean("is_agree", false)) {
             checkPermission()
         } else {
@@ -91,7 +92,7 @@ class SplashActivity : FCLActivity() {
                     sharedPreferences.edit { putBoolean("is_agree", true) }
                     checkPermission()
                 }
-                setNegativeButton(getString(com.tungsten.fcllibrary.R.string.crash_reporter_close)) { finish() }
+                setNegativeButton(getString(R.string.crash_reporter_close)) { finish() }
                 create().show()
             }
         }
@@ -134,7 +135,7 @@ class SplashActivity : FCLActivity() {
     }
 
     fun checkRuntime() {
-        if (lwjgl && cacio && cacio17 && java8 && java11 && java17 && java21 && jna && gameResource && others) {
+        if (lwjgl && cacio && cacio17 && java8 && java17 && java21 && java25 && jna && gameResource && others) {
             enterLauncher()
         } else {
             supportFragmentManager.beginTransaction()
@@ -144,20 +145,71 @@ class SplashActivity : FCLActivity() {
     }
 
     fun enterLauncher() {
+        binding.loadingPanel.visibility = View.VISIBLE
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
+                updateLoading(R.string.splash_loading_renderer, 1)
                 RendererManager.init(this@SplashActivity)
+                updateLoading(R.string.splash_loading_java, 2)
                 JavaManager.init()
+                updateLoading(R.string.message_loading_controllers, 3)
+                Controllers.init()
+                updateLoading(R.string.splash_loading_config, 4)
                 runCatching { ConfigHolder.init() }.exceptionOrNull()?.let {
                     Logging.LOG.log(Level.WARNING, it.message)
                 }
             }
             startActivity(
-                Intent(this@SplashActivity, MainActivity::class.java),
+                handleModpack(Intent(this@SplashActivity, MainActivity::class.java)),
                 ActivityOptionsCompat.makeCustomAnimation(this@SplashActivity, 0, 0).toBundle()
             )
             finish()
         }
+    }
+
+    /** 更新加载信息区：当前步骤文案、步骤计数与进度条（进度按步骤均匀划分，平滑动画过渡） */
+    @SuppressLint("SetTextI18n")
+    private suspend fun updateLoading(@StringRes textRes: Int, step: Int) {
+        withContext(Dispatchers.Main) {
+            binding.loadingInfo.setText(textRes)
+            binding.loadingCount.text = "$step/$LOADING_TOTAL"
+            binding.loadingProgress.setProgressCompat(
+                step * binding.loadingProgress.max / LOADING_TOTAL, true
+            )
+        }
+    }
+
+    /** 进度条跟随主题：主色系三段渐变指示器 + 半透明主色轨道 */
+    private fun refreshLoadingProgressTheme() {
+        val theme = ThemeEngine.getInstance().getTheme()
+        binding.loadingProgress.setIndicatorColor(theme.dkColor, theme.getColor(), theme.ltColor)
+        binding.loadingProgress.trackColor = ColorUtils.setAlphaComponent(
+            theme.getColor(), 51
+        )
+    }
+
+    private fun handleModpack(newIntent: Intent): Intent {
+        val intent = intent
+        val action = intent.action
+        val data = intent.data
+
+        if (Intent.ACTION_VIEW == action && data != null) {
+            try {
+                val fileName = getFileName(this, data)
+                val cacheFile = File(cacheDir, fileName)
+                contentResolver.openInputStream(data)?.use { input ->
+                    cacheFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                newIntent.putExtra("modpack_cache_path", cacheFile.absolutePath)
+            } catch (e: Exception) {
+                Logging.LOG.log(
+                    Level.WARNING, "Failed to handle modpack intent: ${e.message}"
+                )
+            }
+        }
+        return newIntent
     }
 
     private fun requestPermission() {
@@ -165,32 +217,37 @@ class SplashActivity : FCLActivity() {
             try {
                 Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
                     data = "package:$packageName".toUri()
-                    activityResultLauncher.launch(this)
+                    startActivityForResult(this) {
+                        checkPermission()
+                    }
                 }
             } catch (_: Exception) {
-                activityResultLauncher.launch(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION))
+                startActivityForResult(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)) {
+                    checkPermission()
+                }
             }
         } else {
             if (!ActivityCompat.shouldShowRequestPermissionRationale(
-                    this,
-                    permission.WRITE_EXTERNAL_STORAGE
+                    this, permission.WRITE_EXTERNAL_STORAGE
                 ) || !ActivityCompat.shouldShowRequestPermissionRationale(
-                    this,
-                    permission.READ_EXTERNAL_STORAGE
+                    this, permission.READ_EXTERNAL_STORAGE
                 )
             ) {
-                permissionResultLauncher.launch(
+                requestPermissions(
                     arrayOf(
-                        permission.WRITE_EXTERNAL_STORAGE,
-                        permission.READ_EXTERNAL_STORAGE
+                        permission.WRITE_EXTERNAL_STORAGE, permission.READ_EXTERNAL_STORAGE
                     )
-                )
+                ) {
+                    checkPermission()
+                }
             } else {
                 Toast.makeText(this, R.string.splash_permission_settings_msg, Toast.LENGTH_LONG)
                     .show()
                 Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                     data = "package:$packageName".toUri()
-                    activityResultLauncher.launch(this)
+                    startActivityForResult(this) {
+                        checkPermission()
+                    }
                 }
             }
         }
@@ -201,35 +258,31 @@ class SplashActivity : FCLActivity() {
             return Environment.isExternalStorageManager()
         }
         return ContextCompat.checkSelfPermission(
-            this,
-            permission.READ_EXTERNAL_STORAGE
+            this, permission.READ_EXTERNAL_STORAGE
         ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-            this,
-            permission.WRITE_EXTERNAL_STORAGE
+            this, permission.WRITE_EXTERNAL_STORAGE
         ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun initState() {
         try {
             lwjgl = RuntimeUtils.isLatest(
-                FCLPath.LWJGL_DIR,
-                "/assets/app_runtime/lwjgl"
+                FCLPath.LWJGL_DIR + "/3.3.3",
+                "/assets/app_runtime/lwjgl/3.3.3"
             ) && RuntimeUtils.isLatest(
-                FCLPath.LWJGL_DIR + "-boat",
-                "/assets/app_runtime/lwjgl-boat"
+                FCLPath.LWJGL_DIR + "/3.4.1",
+                "/assets/app_runtime/lwjgl/3.4.1"
             )
             cacio = RuntimeUtils.isLatest(
-                FCLPath.CACIOCAVALLO_8_DIR,
-                "/assets/app_runtime/caciocavallo"
+                FCLPath.CACIOCAVALLO_8_DIR, "/assets/app_runtime/caciocavallo"
             )
             cacio17 = RuntimeUtils.isLatest(
-                FCLPath.CACIOCAVALLO_17_DIR,
-                "/assets/app_runtime/caciocavallo17"
+                FCLPath.CACIOCAVALLO_17_DIR, "/assets/app_runtime/caciocavallo17"
             )
             java8 = RuntimeUtils.isLatest(FCLPath.JAVA_8_PATH, "/assets/app_runtime/java/jre8")
-            java11 = RuntimeUtils.isLatest(FCLPath.JAVA_11_PATH, "/assets/app_runtime/java/jre11")
             java17 = RuntimeUtils.isLatest(FCLPath.JAVA_17_PATH, "/assets/app_runtime/java/jre17")
             java21 = RuntimeUtils.isLatest(FCLPath.JAVA_21_PATH, "/assets/app_runtime/java/jre21")
+            java25 = RuntimeUtils.isLatest(FCLPath.JAVA_25_PATH, "/assets/app_runtime/java/jre25")
             jna = RuntimeUtils.isLatest(FCLPath.JNA_PATH, "/assets/app_runtime/jna")
             gameResource = RuntimeUtils.isLatest(FCLPath.EXTERNAL_DIR, "/assets/modpackExternal")
             others = RuntimeUtils.isLatest(FCLPath.INTERNAL_DIR, "/assets/modpackInternal")

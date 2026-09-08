@@ -6,8 +6,6 @@ import static com.tungsten.fclcore.util.Lang.thread;
 import static com.tungsten.fclcore.util.Logging.LOG;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,288 +13,90 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.provider.Settings;
-import android.view.View;
 import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.palette.graphics.Palette;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.mio.ui.adapter.SpacingItemDecoration;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.activity.MainActivity;
+import com.tungsten.fcl.databinding.PageSettingLauncherBinding;
 import com.tungsten.fcl.setting.DownloadProviders;
 import com.tungsten.fcl.upgrade.UpdateChecker;
-import com.tungsten.fcl.util.AndroidUtils;
-import com.tungsten.fcl.util.FXUtils;
-import com.tungsten.fcl.util.RequestCodes;
 import com.tungsten.fcl.util.RuntimeUtils;
+import com.tungsten.fclcore.mod.RemoteModCache;
 import com.tungsten.fclauncher.utils.FCLPath;
-import com.tungsten.fclcore.fakefx.beans.binding.Bindings;
 import com.tungsten.fclcore.task.FetchTask;
 import com.tungsten.fclcore.task.Schedulers;
 import com.tungsten.fclcore.task.Task;
 import com.tungsten.fclcore.util.Logging;
 import com.tungsten.fclcore.util.io.FileUtils;
-import com.tungsten.fcllibrary.browser.FileBrowser;
-import com.tungsten.fcllibrary.browser.options.LibMode;
-import com.tungsten.fcllibrary.browser.options.SelectionMode;
 import com.tungsten.fcllibrary.component.dialog.FCLAlertDialog;
 import com.tungsten.fcllibrary.component.dialog.FCLColorPickerDialog;
-import com.tungsten.fcllibrary.component.theme.Theme;
+import com.tungsten.fcllibrary.component.theme.ThemeData;
 import com.tungsten.fcllibrary.component.theme.ThemeEngine;
-import com.tungsten.fcllibrary.component.ui.FCLCommonPage;
-import com.tungsten.fcllibrary.component.view.FCLButton;
-import com.tungsten.fcllibrary.component.view.FCLCheckBox;
-import com.tungsten.fcllibrary.component.view.FCLNumberSeekBar;
-import com.tungsten.fcllibrary.component.view.FCLSeekBar;
-import com.tungsten.fcllibrary.component.view.FCLSpinner;
-import com.tungsten.fcllibrary.component.view.FCLSwitch;
-import com.tungsten.fcllibrary.component.view.FCLTextView;
-import com.tungsten.fcllibrary.component.view.FCLUILayout;
+import com.tungsten.fcllibrary.component.ui.FCLPage;
 import com.tungsten.fcllibrary.util.LocaleUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.function.IntConsumer;
 import java.util.logging.Level;
 
-public class LauncherSettingPage extends FCLCommonPage implements View.OnClickListener, AdapterView.OnItemSelectedListener, CompoundButton.OnCheckedChangeListener {
+/**
+ * 启动器设置页。设置项由 {@link LauncherSettingAdapter} 以 RecyclerView 行级复用渲染，
+ * 页面只负责对话框、文件选择与权限等业务逻辑。
+ */
+public class LauncherSettingPage extends FCLPage implements LauncherSettingAdapter.Listener {
 
-    public static final long ONE_DAY = 1000 * 60 * 60 * 24;
+    private SharedPreferences sharedPreferences;
 
-    private FCLSpinner<String> language;
-    private FCLButton checkUpdate;
-    private FCLButton clearCache;
-    private FCLButton exportLog;
-    private FCLButton requestAudioRecord;
-    private FCLSwitch autoExitLauncher;
-    private FCLButton theme;
-    private FCLButton theme2;
-    private FCLButton theme2Dark;
-    private FCLButton ltBackground;
-    private FCLButton dkBackground;
-    private FCLButton liveBackground;
-    private FCLButton cursor;
-    private FCLButton menuIcon;
-    private FCLButton resetTheme;
-    private FCLButton resetTheme2;
-    private FCLButton resetTheme2Dark;
-    private FCLButton fetchBackgroundColor;
-    private FCLButton fetchBackgroundColor2;
-    private FCLButton fetchBackgroundColor2Dark;
-    private FCLButton resetLtBackground;
-    private FCLButton resetDkBackground;
-    private FCLButton resetLiveBackground;
-    private FCLButton resetCursor;
-    private FCLButton resetMenuIcon;
-    private FCLSwitch ignoreNotch;
-    private FCLSwitch closeSkinModel;
-    private FCLNumberSeekBar animationSpeed;
-    private FCLNumberSeekBar vibrationDuration;
-    private FCLSwitch disableFullscreenInput;
-    private FCLCheckBox autoSource;
-    private FCLSpinner<String> versionList;
-    private FCLSpinner<String> downloadType;
-    private FCLCheckBox autoThreads;
-    private FCLNumberSeekBar threads;
-
-    private boolean isFirst = true;
-
-    public LauncherSettingPage(Context context, int id, FCLUILayout parent, int resId) {
-        super(context, id, parent, resId);
+    public LauncherSettingPage(Context context, int id) {
+        super(context, id, R.layout.page_setting_launcher);
     }
 
     public void clearCacheDirs() {
         FileUtils.cleanDirectoryQuietly(new File(FCLPath.CACHE_DIR));
         FileUtils.deleteDirectoryQuietly(new File(FCLPath.INTERNAL_DIR + "/code_cache"));
         FileUtils.deleteDirectoryQuietly(new File(FCLPath.INTERNAL_DIR.replaceFirst("user","user_de")));
-        RuntimeUtils.copyAssetsDirToLocalDir(getContext(), "othersInternal/cache", FCLPath.CACHE_DIR);
+        RuntimeUtils.copyAssetsDirToLocalDir(getContext(), "modpackInternal/cache", FCLPath.CACHE_DIR);
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("launcher", MODE_PRIVATE);
-        language = findViewById(R.id.language);
-        checkUpdate = findViewById(R.id.check_update);
-        clearCache = findViewById(R.id.clear_cache);
-        exportLog = findViewById(R.id.export_log);
-        requestAudioRecord = findViewById(R.id.request_audio_record);
-        autoExitLauncher = findViewById(R.id.auto_exit_launcher);
-        theme = findViewById(R.id.theme);
-        theme2 = findViewById(R.id.theme2);
-        theme2Dark = findViewById(R.id.theme2_dark);
-        ltBackground = findViewById(R.id.background_lt);
-        dkBackground = findViewById(R.id.background_dk);
-        liveBackground = findViewById(R.id.background_live);
-        cursor = findViewById(R.id.cursor);
-        menuIcon = findViewById(R.id.menu_icon);
-        resetTheme = findViewById(R.id.reset_theme);
-        resetTheme2 = findViewById(R.id.reset_theme2);
-        resetTheme2Dark = findViewById(R.id.reset_theme2_dark);
-        fetchBackgroundColor = findViewById(R.id.fetch_background_color);
-        fetchBackgroundColor2 = findViewById(R.id.fetch_background_color2);
-        fetchBackgroundColor2Dark = findViewById(R.id.fetch_background_color2_dark);
-        resetLtBackground = findViewById(R.id.reset_background_lt);
-        resetDkBackground = findViewById(R.id.reset_background_dk);
-        resetLiveBackground = findViewById(R.id.reset_background_live);
-        resetCursor = findViewById(R.id.reset_cursor);
-        resetMenuIcon = findViewById(R.id.reset_menu_icon);
-        ignoreNotch = findViewById(R.id.ignore_notch);
-        closeSkinModel = findViewById(R.id.close_skin_model);
-        animationSpeed = findViewById(R.id.animation_speed);
-        vibrationDuration = findViewById(R.id.vibration_duration);
-        disableFullscreenInput = findViewById(R.id.disable_fullscreen_input);
-        autoSource = findViewById(R.id.check_auto_source);
-        versionList = findViewById(R.id.source_auto);
-        downloadType = findViewById(R.id.source);
-        autoThreads = findViewById(R.id.check_auto_threads);
-        threads = findViewById(R.id.threads);
-
-        checkUpdate.setOnClickListener(this);
-        clearCache.setOnClickListener(this);
-        exportLog.setOnClickListener(this);
-        requestAudioRecord.setOnClickListener(this);
-        theme.setOnClickListener(this);
-        theme2.setOnClickListener(this);
-        theme2Dark.setOnClickListener(this);
-        ltBackground.setOnClickListener(this);
-        dkBackground.setOnClickListener(this);
-        liveBackground.setOnClickListener(this);
-        cursor.setOnClickListener(this);
-        menuIcon.setOnClickListener(this);
-        resetTheme.setOnClickListener(this);
-        resetTheme2.setOnClickListener(this);
-        fetchBackgroundColor.setOnClickListener(this);
-        fetchBackgroundColor2.setOnClickListener(this);
-        resetLtBackground.setOnClickListener(this);
-        resetDkBackground.setOnClickListener(this);
-        resetLiveBackground.setOnClickListener(this);
-        resetCursor.setOnClickListener(this);
-        resetMenuIcon.setOnClickListener(this);
-
-        theme.setSelected(true);
-        theme2.setSelected(true);
-        theme2Dark.setSelected(true);
-        resetTheme.setSelected(true);
-        resetTheme2.setSelected(true);
-        fetchBackgroundColor.setSelected(true);
-        fetchBackgroundColor2.setSelected(true);
-        fetchBackgroundColor2Dark.setSelected(true);
-
-        ArrayList<String> languageList = new ArrayList<>();
-        languageList.add(getContext().getString(R.string.settings_launcher_language_system));
-        languageList.add(getContext().getString(R.string.settings_launcher_language_english));
-        languageList.add(getContext().getString(R.string.settings_launcher_language_simplified_chinese));
-        languageList.add(getContext().getString(R.string.settings_launcher_language_russian));
-        languageList.add(getContext().getString(R.string.settings_launcher_language_brazilian_portuguese));
-        languageList.add(getContext().getString(R.string.settings_launcher_language_persian));
-        languageList.add(getContext().getString(R.string.settings_launcher_language_ukrainian));
-        languageList.add(getContext().getString(R.string.settings_launcher_language_german));
-        languageList.add(getContext().getString(R.string.settings_launcher_language_traditional_chinese_hk));
-        ArrayAdapter<String> languageAdapter = new ArrayAdapter<>(getContext(), R.layout.item_spinner_auto_tint, languageList);
-        languageAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
-        language.setAdapter(languageAdapter);
-        language.setSelection(LocaleUtils.getLanguage(getContext()));
-        language.setOnItemSelectedListener(this);
-
-        autoExitLauncher.setChecked(sharedPreferences.getBoolean("autoExitLauncher", false));
-        autoExitLauncher.setOnCheckedChangeListener(this);
-
-        ignoreNotch.setChecked(ThemeEngine.getInstance().getTheme().isFullscreen());
-        ignoreNotch.setOnCheckedChangeListener(this);
-
-        closeSkinModel.setChecked(ThemeEngine.getInstance().getTheme().isCloseSkinModel());
-        closeSkinModel.setOnCheckedChangeListener(this);
-
-        animationSpeed.setProgress(ThemeEngine.getInstance().getTheme().getAnimationSpeed());
-        animationSpeed.addProgressListener();
-        animationSpeed.progressProperty().bindBidirectional(ThemeEngine.getInstance().getTheme().animationSpeedProperty());
-        ThemeEngine.getInstance().getTheme().animationSpeedProperty().addListener(observable -> Theme.saveTheme(getContext(), ThemeEngine.getInstance().getTheme()));
-
-        vibrationDuration.setProgress(sharedPreferences.getInt("vibrationDuration", 100));
-        vibrationDuration.addProgressListener();
-        vibrationDuration.progressProperty().addListener(observable -> {
-            sharedPreferences.edit().putInt("vibrationDuration", vibrationDuration.getProgress()).apply();
-        });
-        disableFullscreenInput.setChecked(sharedPreferences.getBoolean("disableFullscreenInput", true));
-        disableFullscreenInput.setOnCheckedChangeListener(this);
-
-        autoSource.setChecked(config().autoChooseDownloadTypeProperty().get());
-        autoSource.addCheckedChangeListener();
-        autoSource.checkProperty().bindBidirectional(config().autoChooseDownloadTypeProperty());
-        versionList.visibilityProperty().bind(autoSource.checkProperty());
-        downloadType.visibilityProperty().bind(autoSource.checkProperty().not());
-        versionList.setDataList(new ArrayList<>(DownloadProviders.providersById.keySet()));
-        ArrayList<String> versionListSourceList = new ArrayList<>();
-        versionListSourceList.add(getContext().getString(R.string.download_provider_official));
-        versionListSourceList.add(getContext().getString(R.string.download_provider_balanced));
-        versionListSourceList.add(getContext().getString(R.string.download_provider_mirror));
-        ArrayAdapter<String> versionListAdapter = new ArrayAdapter<>(getContext(), R.layout.item_spinner_auto_tint, versionListSourceList);
-        versionListAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
-        versionList.setAdapter(versionListAdapter);
-        versionList.setSelection(getSourcePosition(config().versionListSourceProperty().get()));
-        FXUtils.bindSelection(versionList, config().versionListSourceProperty());
-        downloadType.setDataList(new ArrayList<>(DownloadProviders.rawProviders.keySet()));
-        ArrayList<String> downloadTypeList = new ArrayList<>();
-        downloadTypeList.add(getContext().getString(R.string.download_provider_mojang));
-        downloadTypeList.add(getContext().getString(R.string.download_provider_bmclapi));
-        ArrayAdapter<String> downloadTypeAdapter = new ArrayAdapter<>(getContext(), R.layout.item_spinner_auto_tint, downloadTypeList);
-        downloadTypeAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
-        downloadType.setAdapter(downloadTypeAdapter);
-        downloadType.setSelection(getSourcePosition(config().downloadTypeProperty().get()));
-        FXUtils.bindSelection(downloadType, config().downloadTypeProperty());
-        autoThreads.setChecked(config().getAutoDownloadThreads());
-        autoThreads.addCheckedChangeListener();
-        autoThreads.checkProperty().bindBidirectional(config().autoDownloadThreadsProperty());
-        autoThreads.checkProperty().addListener(observable -> {
-            if (autoThreads.isChecked()) {
-                config().downloadThreadsProperty().set(FetchTask.DEFAULT_CONCURRENCY);
-            }
-        });
-
-        threads.setProgress(config().getDownloadThreads());
-        threads.addProgressListener();
-        threads.progressProperty().bindBidirectional(config().downloadThreadsProperty());
-
-        // if (System.currentTimeMillis() - getLastClearCacheTime() >= 3 * ONE_DAY) {
-            // FileUtils.cleanDirectoryQuietly(new File(FCLPath.CACHE_DIR).getParentFile());
-            // setLastClearCacheTime(System.currentTimeMillis());
-        // }
-    }
-
-    // public long getLastClearCacheTime() {
-        // SharedPreferences sharedPreferences = getContext().getSharedPreferences("launcher", MODE_PRIVATE);
-        // return sharedPreferences.getLong("clear_cache", 0L);
-    // }
-
-    // public void setLastClearCacheTime(long time) {
-        // SharedPreferences sharedPreferences = getContext().getSharedPreferences("launcher", MODE_PRIVATE);
-        // @SuppressLint("CommitPrefEdits") SharedPreferences.Editor editor = sharedPreferences.edit();
-        // editor.putLong("clear_cache", time);
-        // editor.apply();
-    // }
-
-    private int getSourcePosition(String source) {
-        switch (source) {
-            case "official":
-            case "mojang":
-                return 0;
-            case "mirror":
-                return 2;
-            default:
-                return 1;
-        }
+        sharedPreferences = getActivity().getSharedPreferences("launcher", MODE_PRIVATE);
+        PageSettingLauncherBinding binding = PageSettingLauncherBinding.bind(getContentView());
+        LauncherSettingAdapter adapter = new LauncherSettingAdapter(getContext(), this);
+        binding.settingList.setLayoutManager(new LinearLayoutManager(getContext()));
+        // 行间用间距分隔（ItemDecoration），最后一行不加；同组相邻行留 1dp 缝并绘制次要色分割线
+        int rowSpacing = (int) (8 * getContext().getResources().getDisplayMetrics().density);
+        int groupDivider = (int) (1 * getContext().getResources().getDisplayMetrics().density);
+        final int finalRowSpacing = rowSpacing;
+        final int finalGroupDivider = groupDivider;
+        binding.settingList.addItemDecoration(new SpacingItemDecoration(rowSpacing,
+                (parent, position) -> ((LauncherSettingAdapter) parent.getAdapter()).isNextInSameGroup(position)
+                        ? finalGroupDivider : finalRowSpacing,
+                () -> ThemeEngine.getInstance().getTheme().getColor()));
+        // 主题切换时重绘分割线颜色
+        ThemeEngine.getInstance().registerEvent(
+                binding.settingList, binding.settingList::invalidate);
+        binding.settingList.setAdapter(adapter);
+        adapter.rebuild();
     }
 
     @Override
@@ -305,337 +105,410 @@ public class LauncherSettingPage extends FCLCommonPage implements View.OnClickLi
     }
 
     @Override
-    public void onClick(View v) {
-        SharedPreferences sharedPreferences = getContext().getSharedPreferences("launcher", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-
-        if (v == checkUpdate) {
-            editor.putInt("ignore_update", -1);
-            editor.putInt("ignore_announcement", -1);
-            editor.putBoolean("is_first_launch", true);
-            editor.apply();
-            if (!UpdateChecker.getInstance().isChecking()) {
-                UpdateChecker.getInstance().checkManually(getContext()).whenComplete(Schedulers.androidUIThread(), e -> {
-                    if (e != null) {
-                        FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
-                        builder.setCancelable(false);
-                        builder.setAlertLevel(FCLAlertDialog.AlertLevel.ALERT);
-                        builder.setMessage(getContext().getString(R.string.update_check_failed) + "\n" + e);
-                        builder.setNegativeButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_positive), null);
-                        builder.create().show();
-                    }
-                }).start();
-            }
-        }
-        if (v == clearCache) {
-            try {
-                clearCacheDirs();
-            } catch (Exception e) {
-                LOG.log(Level.SEVERE, "Do NOT delete cache dir in othersInternal!", e);
-            }
-        }
-        if (v == exportLog) {
-            thread(() -> {
-                Path logFile = new File(new File(FCLPath.SHARED_COMMON_DIR).getParent(), "fcl-exported-logs-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss")) + ".log").toPath().toAbsolutePath();
-                LOG.info("Exporting logs to " + logFile);
-                try {
-                    Files.write(logFile, Logging.getRawLogs());
-                } catch (IOException e) {
-                    Schedulers.androidUIThread().execute(() -> {
-                        FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
-                        builder.setCancelable(false);
-                        builder.setAlertLevel(FCLAlertDialog.AlertLevel.ALERT);
-                        builder.setMessage(getContext().getString(R.string.settings_launcher_launcher_log_export_failed) + "\n" + e);
-                        builder.setNegativeButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_positive), null);
-                        builder.create().show();
-                    });
-                    LOG.log(Level.WARNING, "Failed to export logs", e);
-                    return;
+    public void onButtonClick(LauncherSettingTag tag) {
+        switch (tag) {
+            case CHECK_UPDATE:
+                SharedPreferences sharedPreferences = getContext().getSharedPreferences("launcher", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putInt("ignore_update", -1);
+                editor.putInt("ignore_announcement", -1);
+                editor.putBoolean("is_first_launch", true);
+                editor.apply();
+                if (!UpdateChecker.getInstance().isChecking()) {
+                    UpdateChecker.getInstance().checkManually(getContext()).whenComplete(Schedulers.androidUIThread(), e -> {
+                        if (e != null) {
+                            FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
+                            builder.setCancelable(false);
+                            builder.setAlertLevel(FCLAlertDialog.AlertLevel.ALERT);
+                            builder.setMessage(getContext().getString(R.string.update_check_failed) + "\n" + e);
+                            builder.setNegativeButton(getContext().getString(com.tungsten.fcl.R.string.dialog_positive), null);
+                            builder.create().show();
+                        }
+                    }).start();
                 }
+                break;
+            case CLEAR_CACHE:
+                clearCacheDirs();
+                break;
+            case EXPORT_LOG:
+                exportLog();
+                break;
+            case CLEAR_MOD_CACHE:
+                Task.runAsync(RemoteModCache::clear).whenComplete(Schedulers.androidUIThread(), e -> {
+                    Toast.makeText(getContext(), getContext().getString(R.string.settings_launcher_mod_cache_cleared), Toast.LENGTH_SHORT).show();
+                }).start();
+                break;
+            case REQUEST_AUDIO:
+                if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECORD_AUDIO)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.getInstance(), Manifest.permission.RECORD_AUDIO)) {
+                        MainActivity.getInstance().permissionResultLauncher.launch(Manifest.permission.RECORD_AUDIO);
+                    } else {
+                        try {
+                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                            Uri uri = Uri.fromParts("package", getContext().getPackageName(), null);
+                            intent.setData(uri);
+                            getContext().startActivity(intent);
+                        } catch (Exception ignored) {
+                        }
+                    }
+                }
+                break;
+            case THEME_COLOR_SET:
+                showColorPicker(ThemeEngine.getInstance().getTheme()._getColor(),
+                        color -> ThemeEngine.getInstance().applyColor(color),
+                        color -> ThemeEngine.getInstance().applyAndSave(getContext(), color),
+                        color -> ThemeEngine.getInstance().applyColor(color));
+                break;
+            case THEME_COLOR_DARK_SET:
+                showColorPicker(ThemeEngine.getInstance().getTheme().getColorDark(),
+                        color -> ThemeEngine.getInstance().applyColorDark(color),
+                        color -> ThemeEngine.getInstance().applyAndSaveDark(getContext(), color),
+                        color -> ThemeEngine.getInstance().applyColorDark(color));
+                break;
+            case THEME_COLOR2_SET:
+                showColorPicker(ThemeEngine.getInstance().getTheme()._getColor2(),
+                        color -> ThemeEngine.getInstance().applyColor2(color),
+                        color -> ThemeEngine.getInstance().applyAndSave2(getContext(), color),
+                        color -> ThemeEngine.getInstance().applyColor2(color));
+                break;
+            case THEME_COLOR2_DARK_SET:
+                showColorPicker(ThemeEngine.getInstance().getTheme().getColor2Dark(),
+                        color -> ThemeEngine.getInstance().applyColor2Dark(color),
+                        color -> ThemeEngine.getInstance().applyAndSave2Dark(getContext(), color),
+                        color -> ThemeEngine.getInstance().applyColor2Dark(color));
+                break;
+            case BACKGROUND_LT_SET:
+                selectImage(false);
+                break;
+            case BACKGROUND_DK_SET:
+                selectImage(true);
+                break;
+            case BACKGROUND_LIVE_SET:
+                selectLiveBackground();
+                break;
+            case CURSOR_SET:
+                selectCursor();
+                break;
+            case MENU_ICON_SET:
+                selectMenuIcon();
+                break;
+            case THEME_COLOR_RESET:
+                ThemeEngine.getInstance().applyAndSave(getContext(), Color.parseColor(FCLPath.Prop.getProperty("default-theme-first-color","#807F7F7F")));
+                break;
+            case THEME_COLOR_DARK_RESET:
+                ThemeEngine.getInstance().applyAndSaveDark(getContext(), Color.parseColor(FCLPath.Prop.getProperty("default-theme-first-color-dark","#807F7F7F")));
+                break;
+            case THEME_COLOR2_RESET:
+                ThemeEngine.getInstance().applyAndSave2(getContext(), Color.parseColor(FCLPath.Prop.getProperty("default-theme-second-color","#000000")));
+                break;
+            case THEME_COLOR2_DARK_RESET:
+                ThemeEngine.getInstance().applyAndSave2Dark(getContext(), Color.parseColor(FCLPath.Prop.getProperty("default-theme-second-color-dark","#FFFFFF")));
+                break;
+            case BACKGROUND_LIVE_RESET:
+                try {
+                    FileUtils.forceDelete(new File(FCLPath.LIVE_BACKGROUND_PATH));
+                    MainActivity.getInstance().setupLiveBackground();
+                } catch (IOException ignore) {
+                }
+                break;
+            case THEME_COLOR_FETCH:
+            case THEME_COLOR_DARK_FETCH:
+            case THEME_COLOR2_FETCH:
+            case THEME_COLOR2_DARK_FETCH:
+                fetchBackgroundColor(tag);
+                break;
+            case BACKGROUND_LT_RESET:
+                resetBackground(false);
+                break;
+            case BACKGROUND_DK_RESET:
+                resetBackground(true);
+                break;
+            case CURSOR_RESET:
+                deleteCursorFile();
+                break;
+            case MENU_ICON_RESET:
+                deleteMenuIconFile();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void exportLog() {
+        thread(() -> {
+            Path logFile = new File(new File(FCLPath.SHARED_COMMON_DIR).getParent(), "fcl-exported-logs-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss")) + ".log").toPath().toAbsolutePath();
+            LOG.info("Exporting logs to " + logFile);
+            try {
+                Files.write(logFile, Logging.getRawLogs());
+            } catch (IOException e) {
                 Schedulers.androidUIThread().execute(() -> {
                     FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
                     builder.setCancelable(false);
-                    builder.setAlertLevel(FCLAlertDialog.AlertLevel.INFO);
-                    builder.setMessage(AndroidUtils.getLocalizedText(getContext(), "settings_launcher_launcher_log_export_success", logFile));
-                    builder.setNegativeButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_positive), null);
+                    builder.setAlertLevel(FCLAlertDialog.AlertLevel.ALERT);
+                    builder.setMessage(getContext().getString(R.string.settings_launcher_launcher_log_export_failed) + "\n" + e);
+                    builder.setNegativeButton(getContext().getString(com.tungsten.fcl.R.string.dialog_positive), null);
                     builder.create().show();
                 });
-            });
-        }
-        if (v == requestAudioRecord) {
-            if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECORD_AUDIO)
-                    != PackageManager.PERMISSION_GRANTED) {
-                if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.getInstance(), Manifest.permission.RECORD_AUDIO)) {
-                    MainActivity.getInstance().permissionResultLauncher.launch(Manifest.permission.RECORD_AUDIO);
-                } else {
-                    try {
-                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                        Uri uri = Uri.fromParts("package", getContext().getPackageName(), null);
-                        intent.setData(uri);
-                        getContext().startActivity(intent);
-                    } catch (Exception ignored) {
-                    }
-                }
+                LOG.log(Level.WARNING, "Failed to export logs", e);
+                return;
             }
-        }
-        if (v == theme) {
-            FCLColorPickerDialog dialog = new FCLColorPickerDialog(getContext(), ThemeEngine.getInstance().getTheme().getColor(), new FCLColorPickerDialog.Listener() {
-                @Override
-                public void onColorChanged(int color) {
-                    ThemeEngine.getInstance().applyColor(color);
-                }
-
-                @Override
-                public void onPositive(int destColor) {
-                    ThemeEngine.getInstance().applyAndSave(getContext(), destColor);
-                }
-
-                @Override
-                public void onNegative(int initColor) {
-                    ThemeEngine.getInstance().applyColor(initColor);
-                }
+            Schedulers.androidUIThread().execute(() -> {
+                FCLAlertDialog.Builder builder = new FCLAlertDialog.Builder(getContext());
+                builder.setCancelable(false);
+                builder.setAlertLevel(FCLAlertDialog.AlertLevel.INFO);
+                builder.setMessage(getContext().getString(R.string.settings_launcher_launcher_log_export_success, logFile));
+                builder.setNegativeButton(getContext().getString(com.tungsten.fcl.R.string.dialog_positive), null);
+                builder.create().show();
             });
-            dialog.show();
-        }
-        if (v == theme2) {
-            FCLColorPickerDialog dialog = new FCLColorPickerDialog(getContext(), ThemeEngine.getInstance().getTheme().getColor2(), new FCLColorPickerDialog.Listener() {
-                @Override
-                public void onColorChanged(int color) {
-                    ThemeEngine.getInstance().applyColor2(color);
-                }
-
-                @Override
-                public void onPositive(int destColor) {
-                    ThemeEngine.getInstance().applyAndSave2(getContext(), destColor);
-                }
-
-                @Override
-                public void onNegative(int initColor) {
-                    ThemeEngine.getInstance().applyColor2(initColor);
-                }
-            });
-            dialog.show();
-        }
-        if (v == theme2Dark) {
-            FCLColorPickerDialog dialog = new FCLColorPickerDialog(getContext(), ThemeEngine.getInstance().getTheme().getColor2Dark(), new FCLColorPickerDialog.Listener() {
-                @Override
-                public void onColorChanged(int color) {
-                    ThemeEngine.getInstance().applyColor2Dark(color);
-                }
-
-                @Override
-                public void onPositive(int destColor) {
-                    ThemeEngine.getInstance().applyAndSave2Dark(getContext(), destColor);
-                }
-
-                @Override
-                public void onNegative(int initColor) {
-                    ThemeEngine.getInstance().applyColor2Dark(initColor);
-                }
-            });
-            dialog.show();
-        }
-        if (v == ltBackground || v == dkBackground) {
-            FileBrowser.Builder builder = new FileBrowser.Builder(getContext());
-            builder.setLibMode(LibMode.FILE_CHOOSER);
-            builder.setSelectionMode(SelectionMode.SINGLE_SELECTION);
-            ArrayList<String> suffix = new ArrayList<>();
-            suffix.add(".png");
-            suffix.add(".jpg");
-            suffix.add(".jpeg");
-            builder.setSuffix(suffix);
-            builder.create().browse(getActivity(), RequestCodes.SELECT_LAUNCHER_BACKGROUND_CODE, ((requestCode, resultCode, data) -> {
-                if (requestCode == RequestCodes.SELECT_LAUNCHER_BACKGROUND_CODE && resultCode == Activity.RESULT_OK && data != null) {
-                    String path = FileBrowser.getSelectedFiles(data).get(0);
-                    Uri uri = Uri.parse(path);
-                    if (AndroidUtils.isDocUri(uri)) {
-                        path = AndroidUtils.copyFileToDir(getActivity(), uri, new File(FCLPath.CACHE_DIR));
-                    }
-                    ThemeEngine.getInstance().applyAndSave(getContext(), ((MainActivity) getActivity()).binding.background, v == ltBackground ? path : null, v == dkBackground ? path : null);
-                }
-            }));
-        }
-        if (v == liveBackground) {
-            FileBrowser.Builder builder = new FileBrowser.Builder(getContext());
-            builder.setLibMode(LibMode.FILE_CHOOSER);
-            builder.setSelectionMode(SelectionMode.SINGLE_SELECTION);
-            ArrayList<String> suffix = new ArrayList<>();
-            suffix.add(".mp4");
-            builder.setSuffix(suffix);
-            builder.create().browse(getActivity(), RequestCodes.SELECT_LAUNCHER_BACKGROUND_CODE, ((requestCode, resultCode, data) -> {
-                if (requestCode == RequestCodes.SELECT_LAUNCHER_BACKGROUND_CODE && resultCode == Activity.RESULT_OK && data != null) {
-                    String path = FileBrowser.getSelectedFiles(data).get(0);
-                    Uri uri = Uri.parse(path);
-                    if (AndroidUtils.isDocUri(uri)) {
-                        AndroidUtils.copyFile(getActivity(), uri, new File(FCLPath.LIVE_BACKGROUND_PATH));
-                    } else {
-                        try {
-                            FileUtils.copyFile(new File(path), new File(FCLPath.LIVE_BACKGROUND_PATH));
-                        } catch (IOException ignore) {
-                        }
-                    }
-                    MainActivity.getInstance().setupLiveBackground();
-                }
-            }));
-        }
-        if (v == cursor) {
-            FileBrowser.Builder builder = new FileBrowser.Builder(getContext());
-            builder.setLibMode(LibMode.FILE_CHOOSER);
-            builder.setSelectionMode(SelectionMode.SINGLE_SELECTION);
-            ArrayList<String> suffix = new ArrayList<>();
-            suffix.add(".png");
-            builder.setSuffix(suffix);
-            builder.create().browse(getActivity(), RequestCodes.SELECT_CURSOR_CODE, ((requestCode, resultCode, data) -> {
-                if (requestCode == RequestCodes.SELECT_CURSOR_CODE && resultCode == Activity.RESULT_OK && data != null) {
-                    String path = FileBrowser.getSelectedFiles(data).get(0);
-                    Uri uri = Uri.parse(path);
-                    if (AndroidUtils.isDocUri(uri)) {
-                        AndroidUtils.copyFile(getActivity(), uri, new File(FCLPath.FILES_DIR, "cursor.png"));
-                    } else {
-                        try {
-                            FileUtils.copyFile(new File(path), new File(FCLPath.FILES_DIR, "cursor.png"));
-                        } catch (IOException ignore) {
-                        }
-                    }
-                }
-            }));
-        }
-        if (v == menuIcon) {
-            FileBrowser.Builder builder = new FileBrowser.Builder(getContext());
-            builder.setLibMode(LibMode.FILE_CHOOSER);
-            builder.setSelectionMode(SelectionMode.SINGLE_SELECTION);
-            ArrayList<String> suffix = new ArrayList<>();
-            suffix.add(".png");
-            suffix.add(".gif");
-            builder.setSuffix(suffix);
-            builder.create().browse(getActivity(), RequestCodes.SELECT_CURSOR_CODE, ((requestCode, resultCode, data) -> {
-                if (requestCode == RequestCodes.SELECT_CURSOR_CODE && resultCode == Activity.RESULT_OK && data != null) {
-                    String path = FileBrowser.getSelectedFiles(data).get(0);
-                    Uri uri = Uri.parse(path);
-                    String type = getContext().getContentResolver().getType(uri);
-                    if (type != null) {
-                        if (type.contains("png")) {
-                            type = "png";
-                        } else if (type.contains("gif")) {
-                            type = "gif";
-                        }
-                    } else {
-                        type = "png";
-                    }
-                    if (AndroidUtils.isDocUri(uri)) {
-                        AndroidUtils.copyFile(getActivity(), uri, new File(FCLPath.FILES_DIR, "menu_icon." + type));
-                    } else {
-                        try {
-                            FileUtils.copyFile(new File(path), new File(FCLPath.FILES_DIR, "menu_icon." + type));
-                        } catch (IOException ignore) {
-                        }
-                    }
-                }
-            }));
-        }
-        if (v == resetTheme) {
-            ThemeEngine.getInstance().applyAndSave(getContext(), ThemeEngine.getDefaultColor(getContext()));
-        }
-        if (v == resetTheme2) {
-            ThemeEngine.getInstance().applyAndSave2(getContext(), ThemeEngine.getDefaultColor2(getContext()));
-        }
-        if (v == resetTheme2Dark) {
-            ThemeEngine.getInstance().applyAndSave2Dark(getContext(), ThemeEngine.getDefaultColor2Dark(getContext()));
-        }
-        if (v == resetLiveBackground) {
-            try {
-                FileUtils.forceDelete(new File(FCLPath.LIVE_BACKGROUND_PATH));
-                MainActivity.getInstance().setupLiveBackground();
-            } catch (IOException ignore) {
-            }
-        }
-        if (v == fetchBackgroundColor || v == fetchBackgroundColor2 || v == fetchBackgroundColor2Dark) {
-            boolean isDarkMode = (getContext().getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
-
-            Bitmap bitmap = (isDarkMode ?
-                    ThemeEngine.getInstance().theme.getBackgroundDk() :
-                    ThemeEngine.getInstance().theme.getBackgroundLt()
-            ).getBitmap();
-
-            if (bitmap != null) {
-                Palette palette = Palette.from(bitmap).generate();
-                int dominantColor = palette.getDominantColor(getContext().getColor(com.tungsten.fcllibrary.R.color.default_theme_color));
-                if (v == fetchBackgroundColor) {
-                    int color = palette.getMutedColor(dominantColor);
-                    if (ThemeEngine.getInstance().getTheme().getColor() == color) {
-                        color = palette.getLightVibrantColor(dominantColor);
-                    }
-                    ThemeEngine.getInstance().applyAndSave(getContext(), color);
-                } else if (v == fetchBackgroundColor2) {
-                    ThemeEngine.getInstance().applyAndSave2(getContext(), palette.getVibrantColor(dominantColor));
-                } else {
-                    ThemeEngine.getInstance().applyAndSave2Dark(getContext(), palette.getVibrantColor(dominantColor));
-                }
-            }
-        }
-        if (v == resetLtBackground) {
-            new Thread(() -> {
-                if (!new File(FCLPath.LT_BACKGROUND_PATH).delete() && new File(FCLPath.LT_BACKGROUND_PATH).exists())
-                    Schedulers.androidUIThread().execute(() -> Toast.makeText(getContext(), getContext().getString(R.string.message_failed), Toast.LENGTH_SHORT).show());
-
-                Schedulers.androidUIThread().execute(() -> ThemeEngine.getInstance().applyAndSave(getContext(), ((MainActivity) getActivity()).binding.background, null, null));
-            }).start();
-        }
-        if (v == resetDkBackground) {
-            new Thread(() -> {
-                if (!new File(FCLPath.DK_BACKGROUND_PATH).delete() && new File(FCLPath.DK_BACKGROUND_PATH).exists())
-                    Schedulers.androidUIThread().execute(() -> Toast.makeText(getContext(), getContext().getString(R.string.message_failed), Toast.LENGTH_SHORT).show());
-
-                Schedulers.androidUIThread().execute(() -> ThemeEngine.getInstance().applyAndSave(getContext(), ((MainActivity) getActivity()).binding.background, null, null));
-            }).start();
-        }
-        if (v == resetCursor) {
-            new File(FCLPath.FILES_DIR, "cursor.png").delete();
-        }
-        if (v == resetMenuIcon) {
-            new File(FCLPath.FILES_DIR, "menu_icon.png").delete();
-            new File(FCLPath.FILES_DIR, "menu_icon.gif").delete();
-        }
+        });
     }
 
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        if (parent == language) {
-            LocaleUtils.changeLanguage(getContext(), position);
-            LocaleUtils.setLanguage(getContext());
-            if (!isFirst) {
-                new FCLAlertDialog.Builder(getContext())
-                        .setAlertLevel(FCLAlertDialog.AlertLevel.INFO)
-                        .setMessage(getContext().getString(R.string.message_warn_restart_after_change))
-                        .setNegativeButton(getContext().getString(com.tungsten.fcllibrary.R.string.dialog_positive), () -> {
+    private void showColorPicker(int initColor, IntConsumer apply, IntConsumer applyAndSave, IntConsumer restore) {
+        FCLColorPickerDialog dialog = new FCLColorPickerDialog(getContext(), initColor, new FCLColorPickerDialog.Listener() {
+            @Override
+            public void onColorChanged(int color) {
+                apply.accept(color);
+            }
 
-                        })
-                        .create()
-                        .show();
+            @Override
+            public void onPositive(int destColor) {
+                applyAndSave.accept(destColor);
+            }
+
+            @Override
+            public void onNegative(int initColor) {
+                restore.accept(initColor);
+            }
+        });
+        dialog.show();
+    }
+
+    private void selectImage(boolean isDk) {
+        ArrayList<String> suffix = new ArrayList<>();
+        suffix.add(".png");
+        suffix.add(".jpg");
+        suffix.add(".jpeg");
+        MainActivity.getInstance().fileLauncher.launchSingleSelection(null, suffix, files -> {
+            if (files == null) return;
+            String path = files.get(0).toFile(getActivity(), new File(FCLPath.CACHE_DIR)).getAbsolutePath();
+            ThemeEngine.getInstance().applyAndSave(getContext(), ((MainActivity) getActivity()).binding.background, isDk ? null : path, isDk ? path : null);
+        });
+    }
+
+    private void selectLiveBackground() {
+        ArrayList<String> suffix = new ArrayList<>();
+        suffix.add(".mp4");
+        MainActivity.getInstance().fileLauncher.launchSingleSelection(null, suffix, files -> {
+            if (files == null) return;
+            files.get(0).copyTo(getActivity(), new File(FCLPath.LIVE_BACKGROUND_PATH));
+            MainActivity.getInstance().setupLiveBackground();
+        });
+    }
+
+    private void selectCursor() {
+        ArrayList<String> suffix = new ArrayList<>();
+        suffix.add(".png");
+        suffix.add(".gif");
+        MainActivity.getInstance().fileLauncher.launchSingleSelection(null, suffix, files -> {
+            if (files == null) return;
+            String type;
+            if (files.get(0).fileName(getContext()).endsWith(".gif")) {
+                type = "gif";
             } else {
-                isFirst = false;
+                type = "png";
             }
+            deleteCursorFile();
+            files.get(0).copyTo(getActivity(), new File(FCLPath.FILES_DIR, "cursor." + type));
+        });
+    }
+
+    private void selectMenuIcon() {
+        ArrayList<String> suffix = new ArrayList<>();
+        suffix.add(".png");
+        suffix.add(".gif");
+        MainActivity.getInstance().fileLauncher.launchSingleSelection(null, suffix, files -> {
+            if (files == null) return;
+            String type;
+            if (files.get(0).fileName(getContext()).endsWith(".gif")) {
+                type = "gif";
+            } else {
+                type = "png";
+            }
+            deleteMenuIconFile();
+            files.get(0).copyTo(getActivity(), new File(FCLPath.FILES_DIR, "menu_icon." + type));
+        });
+    }
+
+    private void fetchBackgroundColor(LauncherSettingTag tag) {
+        ThemeData theme = ThemeEngine.getInstance().getTheme();
+        switch (tag) {
+            case THEME_COLOR_FETCH:
+                fetchPrimaryColor(theme.getBackgroundLt(), theme._getColor(),
+                        color -> ThemeEngine.getInstance().applyAndSave(getContext(), color));
+                break;
+            case THEME_COLOR_DARK_FETCH:
+                fetchPrimaryColor(theme.getBackgroundDk(), theme.getColorDark(),
+                        color -> ThemeEngine.getInstance().applyAndSaveDark(getContext(), color));
+                break;
+            case THEME_COLOR2_FETCH:
+                fetchSecondaryColor(theme.getBackgroundLt(),
+                        color -> ThemeEngine.getInstance().applyAndSave2(getContext(), color));
+                break;
+            case THEME_COLOR2_DARK_FETCH:
+                fetchSecondaryColor(theme.getBackgroundDk(),
+                        color -> ThemeEngine.getInstance().applyAndSave2Dark(getContext(), color));
+                break;
+            default:
+                break;
+        }
+    }
+
+    /** 从指定背景提取主要主题色（muted；与当前色相同时换 lightVibrant 保证可见变化） */
+    private void fetchPrimaryColor(BitmapDrawable background, int currentColor, IntConsumer applyAndSave) {
+        Bitmap bitmap = background.getBitmap();
+        if (bitmap == null) return;
+        Palette palette = Palette.from(bitmap).generate();
+        int dominantColor = palette.getDominantColor(getContext().getColor(R.color.default_theme_color));
+        int color = palette.getMutedColor(dominantColor);
+        if (currentColor == color) {
+            color = palette.getLightVibrantColor(dominantColor);
+        }
+        applyAndSave.accept(color);
+    }
+
+    /** 从指定背景提取次要主题色（vibrant） */
+    private void fetchSecondaryColor(BitmapDrawable background, IntConsumer applyAndSave) {
+        Bitmap bitmap = background.getBitmap();
+        if (bitmap == null) return;
+        Palette palette = Palette.from(bitmap).generate();
+        int dominantColor = palette.getDominantColor(getContext().getColor(R.color.default_theme_color));
+        applyAndSave.accept(palette.getVibrantColor(dominantColor));
+    }
+
+    private void resetBackground(boolean isDk) {
+        new Thread(() -> {
+            File backgroundFile = new File(isDk ? FCLPath.DK_BACKGROUND_PATH : FCLPath.LT_BACKGROUND_PATH);
+            if (!backgroundFile.delete() && backgroundFile.exists())
+                Schedulers.androidUIThread().execute(() -> Toast.makeText(getContext(), getContext().getString(R.string.message_failed), Toast.LENGTH_SHORT).show());
+
+            Schedulers.androidUIThread().execute(() -> ThemeEngine.getInstance().applyAndSave(getContext(), ((MainActivity) getActivity()).binding.background, null, null));
+        }).start();
+    }
+
+    private static void deleteMenuIconFile() {
+        try {
+            Files.deleteIfExists(Paths.get(FCLPath.FILES_DIR, "menu_icon.png"));
+            Files.deleteIfExists(Paths.get(FCLPath.FILES_DIR, "menu_icon.gif"));
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to delete menu icon", e);
+        }
+    }
+
+    private void deleteCursorFile() {
+        try {
+            Files.deleteIfExists(Paths.get(FCLPath.FILES_DIR, "cursor.png"));
+            Files.deleteIfExists(Paths.get(FCLPath.FILES_DIR, "cursor.gif"));
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Failed to delete cursor", e);
         }
     }
 
     @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-
+    public void onSwitchToggle(LauncherSettingTag tag, boolean checked) {
+        switch (tag) {
+            case SWITCH_AUTO_EXIT:
+                sharedPreferences.edit().putBoolean("autoExitLauncher", checked).apply();
+                break;
+            case SWITCH_IGNORE_NOTCH:
+                ThemeEngine.getInstance().applyAndSave(getContext(), getActivity().getWindow(), checked);
+                getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
+                break;
+            case SWITCH_CLOSE_SKIN_MODEL:
+                ThemeEngine.getInstance().setCloseSkinModel(checked);
+                ThemeData.saveTheme(getContext(), ThemeEngine.getInstance().getTheme());
+                break;
+            case SWITCH_DISABLE_FULLSCREEN_INPUT:
+                sharedPreferences.edit().putBoolean("disableFullscreenInput", checked).apply();
+                break;
+            case SWITCH_ALLOW_SCREENSHOTS:
+                sharedPreferences.edit().putBoolean("allowScreenshots", checked).apply();
+                break;
+            default:
+                break;
+        }
     }
 
     @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("launcher", MODE_PRIVATE);
-        if (buttonView == ignoreNotch) {
-            ThemeEngine.getInstance().applyAndSave(getContext(), getActivity().getWindow(), isChecked);
-            getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
-        } else if (buttonView == closeSkinModel) {
-            ThemeEngine.getInstance().getTheme().setiIgnoreSkinContainer(isChecked);
-            Theme.saveTheme(getContext(), ThemeEngine.getInstance().getTheme());
-        } else if (buttonView == disableFullscreenInput) {
-            sharedPreferences.edit().putBoolean("disableFullscreenInput", isChecked).apply();
-        } else if (buttonView == autoExitLauncher) {
-            sharedPreferences.edit().putBoolean("autoExitLauncher", isChecked).apply();
+    public void onSpinnerSelect(LauncherSettingTag tag, int position) {
+        switch (tag) {
+            case SPINNER_LANGUAGE:
+                // 初始化/复用 bind 的回调与当前值相同，忽略；实际切换才生效
+                if (position == LocaleUtils.getLanguage(getContext())) return;
+                LocaleUtils.changeLanguage(getContext(), position);
+                // 立即生效：重建 Activity 重新走 attachBaseContext 应用新语言
+                getActivity().recreate();
+                break;
+            case SPINNER_THEME_MODE:
+                // 初始化/复用 bind 的回调与当前值相同，忽略；实际切换才生效
+                if (position == sharedPreferences.getInt("themeMode", 0)) return;
+                sharedPreferences.edit().putInt("themeMode", position).apply();
+                int mode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
+                if (position != 0) {
+                    mode = position == 1 ? AppCompatDelegate.MODE_NIGHT_NO : AppCompatDelegate.MODE_NIGHT_YES;
+                }
+                AppCompatDelegate.setDefaultNightMode(mode);
+                // configChanges 含 uiMode 时 AppCompat 不重建 Activity 也不更新 Resources 配置，
+                // 亮暗切换需显式刷新主题控件与背景（ThemeEngine.isNightMode 读 themeMode 设置）
+                ThemeEngine.getInstance().refreshTheme();
+                break;
+            case SPINNER_SOURCE_AUTO:
+                config().versionListSourceProperty().set(new ArrayList<>(DownloadProviders.providersById.keySet()).get(position));
+                break;
+            case SPINNER_SOURCE:
+                config().downloadTypeProperty().set(new ArrayList<>(DownloadProviders.rawProviders.keySet()).get(position));
+                break;
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public void onSeekBarChange(LauncherSettingTag tag, int progress) {
+        switch (tag) {
+            case SEEKBAR_VIDEO_VOLUME:
+                sharedPreferences.edit().putInt("videoBackgroundVolume", progress).apply();
+                MainActivity.getInstance().setLiveBackgroundVolume();
+                break;
+            case SEEKBAR_ANIMATION_SPEED:
+                ThemeEngine.getInstance().setAnimationSpeed(progress);
+                ThemeData.saveTheme(getContext(), ThemeEngine.getInstance().getTheme());
+                break;
+            case SEEKBAR_VIBRATION:
+                sharedPreferences.edit().putInt("vibrationDuration", progress).apply();
+                break;
+            case SEEKBAR_THREADS:
+                config().downloadThreadsProperty().set(progress);
+                break;
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public void onCheckToggle(LauncherSettingTag tag, boolean checked) {
+        switch (tag) {
+            case CHECK_AUTO_SOURCE:
+                config().autoChooseDownloadTypeProperty().set(checked);
+                break;
+            case CHECK_AUTO_THREADS:
+                config().autoDownloadThreadsProperty().set(checked);
+                if (checked) {
+                    config().downloadThreadsProperty().set(FetchTask.DEFAULT_CONCURRENCY);
+                }
+                break;
+            default:
+                break;
         }
     }
 }

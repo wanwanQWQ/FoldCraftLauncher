@@ -1,7 +1,6 @@
 package com.tungsten.fcl.control;
 
-import com.tungsten.fcl.FCLApplication;
-import com.tungsten.fcl.util.AndroidUtils;
+import com.mio.util.AndroidUtilKt;
 import com.tungsten.fclauncher.bridge.FCLBridge;
 
 public class AWTInput {
@@ -57,8 +56,8 @@ public class AWTInput {
         cursorY = y;
         if (menu.getBridge() == null)
             return;
-        float xScale = (float) FCLBridge.DEFAULT_WIDTH / (float) AndroidUtils.getScreenWidth(FCLApplication.getCurrentActivity());
-        float yScale = (float) FCLBridge.DEFAULT_HEIGHT / (float) AndroidUtils.getScreenHeight(FCLApplication.getCurrentActivity());
+        float xScale = (float) FCLBridge.DEFAULT_WIDTH / (float) AndroidUtilKt.getScreenWidth();
+        float yScale = (float) FCLBridge.DEFAULT_HEIGHT / (float) AndroidUtilKt.getScreenHeight();
         menu.getBridge().nativeSendData(EVENT_TYPE_CURSOR_POS, (int) (x * xScale), (int) (y * yScale), 0, 0);
     }
 

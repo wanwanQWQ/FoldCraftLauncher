@@ -12,7 +12,7 @@ import androidx.core.content.ContextCompat;
 import com.google.gson.reflect.TypeToken;
 import com.tungsten.fcl.R;
 import com.tungsten.fcl.terracotta.profile.ProfileKind;
-import com.tungsten.fcl.util.AndroidUtils;
+import com.mio.util.AndroidUtilKt;
 import com.tungsten.fcl.util.RequestCodes;
 import com.tungsten.fclcore.fakefx.beans.InvalidationListener;
 import com.tungsten.fclcore.fakefx.beans.property.ReadOnlyObjectProperty;
@@ -22,6 +22,7 @@ import com.tungsten.fclcore.util.InvocationDispatcher;
 import com.tungsten.fclcore.util.Lang;
 import com.tungsten.fclcore.util.Logging;
 import com.tungsten.fclcore.util.gson.JsonUtils;
+import com.tungsten.fcllibrary.component.FCLActivity;
 import com.tungsten.fcllibrary.component.ResultListener;
 
 import net.burningtnt.terracotta.TerracottaAndroidAPI;
@@ -29,6 +30,7 @@ import net.burningtnt.terracotta.TerracottaAndroidAPI;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
@@ -65,14 +67,14 @@ public class Terracotta {
         return TERRACOTTA_USER_NOTICE_VERSION;
     }
 
-    public static void initialize(Activity context) {
+    public static void initialize(FCLActivity context) {
         if (initialized)
             return;
 
         notificationListener = observable -> {
             TerracottaState.Ready state = stateProperty().get();
             if (state != null && !(state instanceof TerracottaState.Waiting)) {
-                String stateText = AndroidUtils.getLocalizedText(context, "terracotta_status_" + state);
+                String stateText = AndroidUtilKt.getLocalizedText(context, "terracotta_status_" + state);
                 updateVpnNotificationState(context, stateText);
             }
         };
@@ -87,7 +89,8 @@ public class Terracotta {
                 TerracottaState.Ready state = STATE.get();
                 int index = state == null ? -1 : state.index;
                 String stateJson = TerracottaAndroidAPI.getState();
-                TerracottaState.Ready object = JsonUtils.fromNonNullJson(stateJson, new TypeToken<TerracottaState.Ready>() {}.getType());
+                TerracottaState.Ready object = JsonUtils.fromNonNullJson(stateJson, new TypeToken<TerracottaState.Ready>() {
+                }.getType());
                 TerracottaState.Ready next = object.index <= index ? null : object;
                 if (next != null) {
                     compareAndSet(state, next);
@@ -109,32 +112,36 @@ public class Terracotta {
         TerracottaAndroidAPI.setWaiting();
     }
 
-    public static void setScanning(@Nullable String room, @Nullable String player) throws Exception {
+    public static void setScanning(@Nullable String room, @Nullable String player, @Nullable List<String> extraNodes) throws Exception {
         if (!initialized)
             throw new Exception("initialize Terracotta first!");
         if (!(stateProperty().get() instanceof TerracottaState.Waiting))
             throw new Exception("reset state to waiting first!");
 
         mode = TerracottaMode.HOST;
-        TerracottaAndroidAPI.setScanning(room, player);
+        TerracottaAndroidAPI.setScanning(room, player, extraNodes);
     }
 
-    public static boolean setGuesting(String room, @Nullable String player) throws Exception {
+    public static boolean setGuesting(String room, @Nullable String player, @Nullable List<String> extraNodes) throws Exception {
         if (!initialized)
             throw new Exception("initialize Terracotta first!");
         if (!(stateProperty().get() instanceof TerracottaState.Waiting))
             throw new Exception("reset state to waiting first!");
 
         mode = TerracottaMode.GUEST;
-        return TerracottaAndroidAPI.setGuesting(room, player);
+        return TerracottaAndroidAPI.setGuesting(room, player, extraNodes);
     }
 
     public static String parseException(Context context, TerracottaState.Exception e) {
-        return AndroidUtils.getLocalizedText(context, "terracotta_status_exception_desc_" + e.getType().name().toLowerCase(Locale.ROOT));
+        return AndroidUtilKt.getLocalizedText(context, "terracotta_status_exception_desc_" + e.getType().name().toLowerCase(Locale.ROOT));
     }
 
     public static String parseProfileKind(Context context, ProfileKind kind) {
-        return AndroidUtils.getLocalizedText(context, "terracotta_player_kind_" + kind.name().toLowerCase(Locale.ROOT));
+        return AndroidUtilKt.getLocalizedText(context, "terracotta_player_kind_" + kind.name().toLowerCase(Locale.ROOT));
+    }
+
+    public static String parseDifficulty(Context context, TerracottaState.GuestStarting.Difficulty difficulty) {
+        return AndroidUtilKt.getLocalizedText(context, "terracotta_difficulty_" + difficulty.name().toLowerCase(Locale.ROOT));
     }
 
     @Nullable
@@ -186,19 +193,17 @@ public class Terracotta {
         stateProperty().removeListener(notificationListener);
     }
 
-    private static void startTerracottaVpn(Activity context) {
+    private static void startTerracottaVpn(FCLActivity context) {
         Intent intent = VpnService.prepare(context);
         if (intent != null) {
-            ResultListener.startActivityForResult(context, intent, RequestCodes.VPN_PERMISSION_CODE, (requestCode, resultCode, data) -> {
-                if (requestCode == RequestCodes.VPN_PERMISSION_CODE) {
-                    if (resultCode == Activity.RESULT_OK) {
-                        Intent vpnIntent = new Intent(context, TerracottaVPNService.class).setAction(TerracottaVPNService.ACTION_START);
-                        ContextCompat.startForegroundService(context, vpnIntent);
-                    } else {
-                        TerracottaAndroidAPI.getPendingVpnServiceRequest().reject();
-                        setWaiting(context, true);
-                        Toast.makeText(context, context.getString(R.string.terracotta_permission_vpn), Toast.LENGTH_SHORT).show();
-                    }
+            context.startActivityForResult(intent, result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent vpnIntent = new Intent(context, TerracottaVPNService.class).setAction(TerracottaVPNService.ACTION_START);
+                    ContextCompat.startForegroundService(context, vpnIntent);
+                } else {
+                    TerracottaAndroidAPI.getPendingVpnServiceRequest().reject();
+                    setWaiting(context, true);
+                    Toast.makeText(context, context.getString(R.string.terracotta_permission_vpn), Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
